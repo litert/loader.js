@@ -8,43 +8,39 @@
 [![GitHub Releases](https://img.shields.io/github/release/litert/loader.svg)](https://github.com/litert/loader/releases "Stable Release")
 [![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader/all.svg)](https://github.com/litert/loader/releases "Pre-Release")
 
-Simple browser module loader.
+轻量易用的运行于浏览器的模块加载器。
 
-## Languages
+## 特性
 
-[简体中文](doc/README.zh-CN.md) | [繁體中文](doc/README.zh-TW.md)
+[x] 无侵入，不会对您的 script 引入的其他库造成任何影响。  
+[x] 支持 CommandJS 格式的 node 模块。  
+[x] 库轻量，配置简单。
 
-## Features
+## 安装
 
-[x] No intrusion and does not affect the script label.  
-[x] Node modules that support the CommandJS format.  
-[x] The configuration is simple and lightweight.
-
-## Installation
-
-This is a module for browsers and eventually needs to be referenced by the script tag.
+这是运行于浏览器的库，因此只需要使用 script 标签引用即可。
 
 ### NPM
 
-You can install directly using NPM:
+可以直接使用 npm 下载库到本地：
 
 ```sh
 $ npm i @litert/loader --save
 ```
 
-Or install the developing (unstable) version for newest features:
+可以安装最新的开发版到本地：
 
 ```sh
 $ npm i @litert/loader@dev --save
 ```
 
-### CDN (recommend)
+### CDN（推荐）
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js, which will reflect the latest version as soon as it is published to npm. You can also browse the source of the npm package at https://cdn.jsdelivr.net/npm/@litert/loader.
+推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js，当然这不一定是最新版本，可以将版本号改为最新版本，或者在此处查找：https://cdn.jsdelivr.net/npm/@litert/loader。
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.min.js).
+同样可使用 [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.min.js).
 
-For example:
+例子：
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
@@ -52,39 +48,39 @@ For example:
 
 ## Usage
 
-Here's a general how to use it:
+通常的使用方式：
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
 ```
 
 ```javascript
-// Adding a map does not require a "js" extension.
+// 添加的映射路径无需带“.js”后缀。
 loader.setModulePaths({
     "module": "https://xxx/xxx/index",
     "module2": "../abc/in"
 });
 loader.addModulePath("module3", "./en");
-// All actions are written in the "ready" callback.
+// 所有操作请写在回调函数当中。
 loader.ready(function() {
     loader.require(["../dist/tmodule", "module2"], function(t1, t2) {
-        // Do something, you can also not write callbacks.
+        // 可以写一些内容，当然也可以不使用回调函数。
     });
 });
 ```
 
-## Test
+## 测试
 
 ### Node
 
-After compiling the TS code, execute: node dist/test-on-node to observe the execution results of the test code under node.
+编译 TS 代码之后，可以直接执行 node dist/test-on-node 来观察在 node 环境中默认的运行结果。
 
-### Browser
+### 浏览器
 
-Use your browser to access "test/" to see if the results are consistent with the node environment.
+使用浏览器访问“test/”来查看比对结果是否和 node 环境中相同。
 
-[You can also click here to access the example online.](https://litert.github.io/loader.js/test/)
+[你也可以直接点这里在线查看浏览器示例。](https://litert.github.io/loader.js/test/)
 
-## License
+## 许可
 
-This library is published under [Apache-2.0](./LICENSE) license.
+这个库的许可为 [Apache-2.0](./LICENSE)。

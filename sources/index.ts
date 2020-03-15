@@ -4,6 +4,8 @@
  * Last: 2020-3-15 11:37:30
  */
 
+// npm publish --access=public
+
 interface IModulePaths {
     [name: string]: string;
 }
