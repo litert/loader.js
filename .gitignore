@@ -1,0 +1,4 @@
+/.vscode/
+/dist/*.d.ts
+/dist/test*node*
+/node_modules/

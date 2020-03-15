@@ -1,0 +1,16 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>@litert/loader.js test</title>
+<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
+<script src="../dist/index.js"></script>
+<script src="../dist/test-on-browser.js"></script>
+</head>
+<body>
+    <div id="mask" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, .3); color: #FFF; display: flex; align-items: center; justify-content: center;">Loading...</div>
+    <input id="key" type="text" placeholder="Please input key" style="width: 200px;"><br>
+    Like: d1, f2, q3, ok, cancel, go.<br>
+    <input type="button" value="getData()" onclick="getData()"> <input type="button" value="getJson()" onclick="getJson()"> <input type="button" value="getRequire()" onclick="getRequire()">
+</body>
+</html>

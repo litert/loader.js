@@ -1,0 +1,8 @@
+/.git/
+/.vscode/
+/dist/t*
+/node_modules/
+/sources/t*
+/.gitignore
+/.npmignore
+/tsconfig.json

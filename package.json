@@ -1,0 +1,31 @@
+{
+  "name": "@litert/loader",
+  "version": "0.0.1",
+  "description": "Simple browser module loader.",
+  "keywords": [
+    "litert",
+    "module",
+    "loader",
+    "require"
+  ],
+  "main": "./dist/index.js",
+  "author": "hanguoshuai",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/litert/loader.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/litert/loader.js/issues"
+  },
+  "types": "./dist/index.d.ts",
+  "typings": "./dist/index.d.ts",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^11.15.7",
+    "typescript": "^3.8.3"
+  }
+}
