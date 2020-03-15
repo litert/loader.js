@@ -17,7 +17,7 @@ Simple browser module loader.
 ## Features
 
 - [x] No intrusion and does not affect the script label.  
-- [x] Node modules that support the CommandJS format.  
+- [x] Node modules that support the CommonJS format.  
 - [x] The configuration is simple and lightweight.
 
 ## Installation
@@ -42,7 +42,7 @@ $ npm i @litert/loader@dev --save
 
 Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js, which will reflect the latest version as soon as it is published to npm. You can also browse the source of the npm package at https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.min.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.js).
 
 For example:
 
