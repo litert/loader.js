@@ -16,4 +16,9 @@ function getRequire(key) {
     return require("./tmodule2").data[key];
 }
 exports.getRequire = getRequire;
+function requireModule3() {
+    var t3 = require("./tmodule3");
+    return t3.getNum();
+}
+exports.requireModule3 = requireModule3;
 //# sourceMappingURL=tmodule.js.map

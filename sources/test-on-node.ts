@@ -12,3 +12,7 @@ console.log(`getRequire("f2"): ` + tmodule.getRequire("f2"));
 
 console.log(`getRequire("kk"): ` + tmodule.getRequire("kk"));
 
+console.log(`requireModule3(): ` + tmodule.requireModule3());
+
+console.log(`requireModule3(): ` + tmodule.requireModule3());
+

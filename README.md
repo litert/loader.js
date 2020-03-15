@@ -42,15 +42,38 @@ For example:
 
 ## Usage
 
-Demo code is written using TypeScript.
+Here's a general how to use it:
 
 ```html
-
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
 ```
 
-```typescript
-
+```javascript
+// Adding a map does not require a "js" extension.
+loader.setModulePaths({
+    "module": "https://xxx/xxx/index",
+    "module2": "../abc/in"
+});
+loader.addModulePath("module3", "./en");
+// All actions are written in the "ready" callback.
+loader.ready(function() {
+    loader.require(["../dist/tmodule", "module2"], function(t1, t2) {
+        // Do something, you can also not write callbacks.
+    });
+});
 ```
+
+## Test
+
+### Node
+
+After compiling the TS code, execute: node dist/test-on-node to observe the execution results of the test code under node.
+
+### Browser
+
+Use your browser to access "test/" to see if the results are consistent with the node environment.
+
+[You can also click here to access the example online.](https://litert.github.io/loader.js/test/)
 
 ## License
 

@@ -26,3 +26,11 @@ export function getRequire(key: string) {
     return require("./tmodule2").data[key];
 }
 
+/**
+ * --- 执行 tmodule3 的函数 ---
+ */
+export function requireModule3() {
+    let t3 = require("./tmodule3");
+    return t3.getNum();
+}
+

@@ -1,5 +1,6 @@
 "use strict";
 var keyInput;
+var mask;
 var tmodule;
 function getData() {
     alert(tmodule.getData(keyInput.value));
@@ -10,10 +11,20 @@ function getJson() {
 function getRequire() {
     alert(tmodule.getRequire(keyInput.value));
 }
+function requireModule3() {
+    alert(tmodule.requireModule3());
+}
+function runTestOnNode() {
+    mask.style.display = "flex";
+    loader.require("../dist/test-on-node", function () {
+        mask.style.display = "none";
+    });
+}
 loader.ready(function () {
     keyInput = document.getElementById("key");
+    mask = document.getElementById("mask");
     loader.require("../dist/tmodule", function (t) {
-        document.getElementsByTagName("body")[0].removeChild(document.getElementById("mask"));
+        mask.style.display = "none";
         tmodule = t;
     });
 });
