@@ -2,11 +2,11 @@
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")
-[![License](https://img.shields.io/github/license/litert/loader.svg)](https://github.com/litert/loader/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/litert/loader.js.svg)](https://github.com/litert/loader.js/blob/master/LICENSE)
 [![node](https://img.shields.io/node/v/@litert/loader.svg?colorB=brightgreen)](https://nodejs.org/dist/latest-v12.x/)
-[![GitHub issues](https://img.shields.io/github/issues/litert/loader.svg)](https://github.com/litert/loader/issues)
-[![GitHub Releases](https://img.shields.io/github/release/litert/loader.svg)](https://github.com/litert/loader/releases "Stable Release")
-[![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader/all.svg)](https://github.com/litert/loader/releases "Pre-Release")
+[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js.svg)](https://github.com/litert/loader.js/issues)
+[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js.svg)](https://github.com/litert/loader.js/releases "Stable Release")
+[![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader.js/all.svg)](https://github.com/litert/loader.js/releases "Pre-Release")
 
 Simple browser module loader.
 
