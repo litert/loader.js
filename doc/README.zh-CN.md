@@ -12,9 +12,9 @@
 
 ## 特性
 
-[x] 无侵入，不会对您的 script 引入的其他库造成任何影响。  
-[x] 支持 CommandJS 格式的 node 模块。  
-[x] 库轻量，配置简单。
+- [x] 无侵入，不会对您的 script 引入的其他库造成任何影响。  
+- [x] 支持 CommandJS 格式的 node 模块。  
+- [x] 库轻量，配置简单。
 
 ## 安装
 
@@ -36,7 +36,7 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推荐）
 
-推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js，当然这不一定是最新版本，可以将版本号改为最新版本，或者在此处查找：https://cdn.jsdelivr.net/npm/@litert/loader。
+推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js，当然这不一定是最新版本，可以将版本号改为最新版本，或者在此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
 同样可使用 [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.min.js).
 
