@@ -1,14 +1,19 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-15 11:37:30
+ * Last: 2020-3-15 21:38:23
  */
 
 // npm publish --access=public
 
-interface IModulePaths {
-    [name: string]: string;
+interface IConfig {
+    "after"?: string;
+    "paths"?: IPaths
 }
+
+interface IPaths {
+    [key: string]: string;
+};
 
 interface IModule {
     "first": boolean;
@@ -19,17 +24,22 @@ interface IModule {
 namespace loader {
 
     /** --- 是否已加载完成 --- */
-    let _loaded: boolean = false;
+    let _ready: boolean = false;
     /** --- 注册的 ready 事件 --- */
     let _readyList: (() => void)[] = [];
-    /** --- 模块地址映射 --- */
-    let _modulePaths: IModulePaths = {};
-    /** --- 已加载的模块列表 --- */
-    let _loadedModule: {
-        [name: string]: IModule;
-    } = {};
     // --- 当前 js 作用域网址路径 ---
     let _dirname: string;
+
+    /** --- 配置项 --- */
+    let _config: IConfig = {
+        "after": "",
+        "paths": {}
+    };
+
+    /** --- 已加载的模块列表 --- */
+    let _loaded: {
+        [path: string]: IModule;
+    } = {};
 
     /**
      * --- 初始化函数 ---
@@ -48,6 +58,7 @@ namespace loader {
             if (typeof fetch !== "function") {
                 await _loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js");
             }
+            _ready = true;
             for (let func of _readyList) {
                 func();
             }
@@ -58,8 +69,8 @@ namespace loader {
      * --- 注册页面装载成功回调 ---
      * @param callback 回调函数
      */
-    export function ready(callback: () => void) {
-        if (_loaded) {
+    export function ready(callback: () => void): void {
+        if (_ready) {
             callback();
         } else {
             _readyList.push(callback);
@@ -67,11 +78,27 @@ namespace loader {
     }
 
     /**
+     * --- 设置 config ---
+     * @param config 配置项
+     */
+    export function config(config: IConfig): void {
+        _config = config;
+    }
+    
+    /**
+     * --- 设置加载文件的尾随后缀 ---
+     * @param after 尾随后缀，如 ?abc
+     */
+    export function setAfter(after: string): void {
+        _config.after = after;
+    }
+
+    /**
      * --- 设置模块地址映射 ---
      * @param list 模型映射列表
      */
-    export function setModulePaths(list: IModulePaths) {
-        _modulePaths = list;
+    export function setPaths(paths: IPaths): void {
+        _config.paths = paths;
     }
 
     /**
@@ -79,8 +106,19 @@ namespace loader {
      * @param name 模块名
      * @param path 映射地址
      */
-    export function addModulePath(name: string, path: string) {
-        _modulePaths[name] = path;
+    export function addPath(name: string, path: string): void {
+        _config.paths![name] = path;
+    }
+
+    /**
+     * --- 返回已经加载的模块地址列表 ---
+     */
+    export function getLoadedPaths(): string[] {
+        let paths: string[] = [];
+        for (let path in _loaded) {
+            paths.push(path);
+        }
+        return paths;
     }
 
     /**
@@ -116,16 +154,16 @@ namespace loader {
      * @param path 
      * @param dirname 
      */
-    export function getModule(path: string, dirname: string): any {
+    export function __getModule(path: string, dirname: string): any {
         path = _moduleName2Path(path, dirname);
-        if (!_loadedModule[path]) {
+        if (!_loaded[path]) {
             return null;
         }
-        if (!_loadedModule[path].first) {
-            _loadedModule[path].object = _loadedModule[path].func();
-            _loadedModule[path].first = true;
+        if (!_loaded[path].first) {
+            _loaded[path].object = _loaded[path].func();
+            _loaded[path].first = true;
         }
-        return _loadedModule[path].object;
+        return _loaded[path].object;
     }
 
     // --- 内部 ---
@@ -138,11 +176,11 @@ namespace loader {
     async function _loadModule(path: string, dirname: string): Promise<IModule | null> {
         path = _moduleName2Path(path, dirname);
         // --- 判断是否加载过 ---
-        if (_loadedModule[path]) {
-            return _loadedModule[path];
+        if (_loaded[path]) {
+            return _loaded[path];
         }
         // --- 加载文件 ---
-        let text = await _fetch(path);
+        let text = await _fetch(path + _config.after);
         if (!text) {
             return null;
         }
@@ -151,7 +189,7 @@ namespace loader {
         if (text[0] === "{" && text[text.length - 1] === "}") {
             // --- json 文件 ---
             let data = JSON.parse(text);
-            _loadedModule[path] = {
+            _loaded[path] = {
                 "first": true,
                 "func": () => {},
                 "object": data
@@ -164,7 +202,7 @@ namespace loader {
                 strict = `"use strict"\n`;
                 text = text.replace(/"use strict"\n?/, "");
             }
-            // --- 提取本文件的所有 require 并加载 ---
+            // --- 提取本文件的所有 require 并加载 （适用于 Commonjs） ---
             let fdirname = path.slice(0, path.lastIndexOf("/"));
             let match;
             let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
@@ -173,17 +211,44 @@ namespace loader {
                     return null;
                 }
             }
-            text = `${strict}${(function require(path: string) {
-                return loader.getModule(path, __dirname);
-            }).toString()}var __dirname = "${fdirname}";var exports = {};${text}\n\nreturn exports;`;
+            // --- 组成当前文件的执行 function ---
+            let __loaded: any = {};
+            let __loadedLength = 0;
+
+            text = `${strict}
+            ${(function require(path: string) {
+                return loader.__getModule(path, __dirname);
+            }).toString()}
+            ${(function define(name: any, input: any, callback: any) {
+                if (Array.isArray(name)) {
+                    callback = input;
+                    input = name;
+                    name = "";
+                }
+                if (name === "") {
+                    name = "__module_" + __loadedLength;
+                }
+                __loaded[name] = {
+                    "input": input,
+                    "func": callback,
+                    "object": null
+                };
+            }).toString()}
+            var __dirname = "${fdirname}";
+            var __filename = "${path}";
+            var exports = {};${text}
+            var __loaded = {};
+            var __loadedLength = 0;
+            
+            return exports;`;
             let func = new Function(text);
-            _loadedModule[path] = {
+            _loaded[path] = {
                 "first": false,
                 "func": func,
                 "object": null
             };
         }
-        return _loadedModule[path];
+        return _loaded[path];
     }
 
     /**
@@ -192,10 +257,7 @@ namespace loader {
      */
     function _fetch(path: string): Promise<string | null> {
         return new Promise(function(resolve) {
-            fetch(path, {
-                method: "GET",
-                credentials: "include"
-            }).then(function(res: Response) {
+            fetch(path).then(function(res: Response) {
                 return res.text();
             }).then(function(text: string) {
                 resolve(text);
@@ -228,8 +290,8 @@ namespace loader {
      */
     function _moduleName2Path(path: string, dirname: string): string {
         // --- 查询是否有映射 ---
-        if (_modulePaths[path]) {
-            path = _modulePaths[path];
+        if (_config.paths![path]) {
+            path = _config.paths![path];
         }
         // --- 是否是相对路径 ---
         if (path.slice(0, 8).indexOf("//") === -1) {

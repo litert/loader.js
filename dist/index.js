@@ -35,13 +35,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+;
 var loader;
 (function (loader) {
-    var _loaded = false;
+    var _ready = false;
     var _readyList = [];
-    var _modulePaths = {};
-    var _loadedModule = {};
     var _dirname;
+    var _config = {
+        "after": "",
+        "paths": {}
+    };
+    var _loaded = {};
     function _run() {
         document.addEventListener("DOMContentLoaded", function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -62,6 +66,7 @@ var loader;
                             _a.sent();
                             _a.label = 2;
                         case 2:
+                            _ready = true;
                             for (_i = 0, _readyList_1 = _readyList; _i < _readyList_1.length; _i++) {
                                 func = _readyList_1[_i];
                                 func();
@@ -73,7 +78,7 @@ var loader;
         });
     }
     function ready(callback) {
-        if (_loaded) {
+        if (_ready) {
             callback();
         }
         else {
@@ -81,14 +86,30 @@ var loader;
         }
     }
     loader.ready = ready;
-    function setModulePaths(list) {
-        _modulePaths = list;
+    function config(config) {
+        _config = config;
     }
-    loader.setModulePaths = setModulePaths;
-    function addModulePath(name, path) {
-        _modulePaths[name] = path;
+    loader.config = config;
+    function setAfter(after) {
+        _config.after = after;
     }
-    loader.addModulePath = addModulePath;
+    loader.setAfter = setAfter;
+    function setPaths(paths) {
+        _config.paths = paths;
+    }
+    loader.setPaths = setPaths;
+    function addPath(name, path) {
+        _config.paths[name] = path;
+    }
+    loader.addPath = addPath;
+    function getLoadedPaths() {
+        var paths = [];
+        for (var path in _loaded) {
+            paths.push(path);
+        }
+        return paths;
+    }
+    loader.getLoadedPaths = getLoadedPaths;
     function require(paths, callback, error) {
         if (callback === void 0) { callback = function () { }; }
         if (error === void 0) { error = function () { }; }
@@ -130,29 +151,29 @@ var loader;
         });
     }
     loader.require = require;
-    function getModule(path, dirname) {
+    function __getModule(path, dirname) {
         path = _moduleName2Path(path, dirname);
-        if (!_loadedModule[path]) {
+        if (!_loaded[path]) {
             return null;
         }
-        if (!_loadedModule[path].first) {
-            _loadedModule[path].object = _loadedModule[path].func();
-            _loadedModule[path].first = true;
+        if (!_loaded[path].first) {
+            _loaded[path].object = _loaded[path].func();
+            _loaded[path].first = true;
         }
-        return _loadedModule[path].object;
+        return _loaded[path].object;
     }
-    loader.getModule = getModule;
+    loader.__getModule = __getModule;
     function _loadModule(path, dirname) {
         return __awaiter(this, void 0, void 0, function () {
-            var text, data, strict, fdirname, match, reg, func;
+            var text, data, strict, fdirname, match, reg, __loaded_1, __loadedLength_1, func;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         path = _moduleName2Path(path, dirname);
-                        if (_loadedModule[path]) {
-                            return [2, _loadedModule[path]];
+                        if (_loaded[path]) {
+                            return [2, _loaded[path]];
                         }
-                        return [4, _fetch(path)];
+                        return [4, _fetch(path + _config.after)];
                     case 1:
                         text = _a.sent();
                         if (!text) {
@@ -161,7 +182,7 @@ var loader;
                         text = text.replace(/^\s+|\s+$/g, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
                         if (!(text[0] === "{" && text[text.length - 1] === "}")) return [3, 2];
                         data = JSON.parse(text);
-                        _loadedModule[path] = {
+                        _loaded[path] = {
                             "first": true,
                             "func": function () { },
                             "object": data
@@ -186,27 +207,40 @@ var loader;
                         }
                         return [3, 3];
                     case 5:
-                        text = "" + strict + (function require(path) {
-                            return loader.getModule(path, __dirname);
-                        }).toString() + "var __dirname = \"" + fdirname + "\";var exports = {};" + text + "\n\nreturn exports;";
+                        __loaded_1 = {};
+                        __loadedLength_1 = 0;
+                        text = strict + "\n            " + (function require(path) {
+                            return loader.__getModule(path, __dirname);
+                        }).toString() + "\n            " + (function define(name, input, callback) {
+                            if (Array.isArray(name)) {
+                                callback = input;
+                                input = name;
+                                name = "";
+                            }
+                            if (name === "") {
+                                name = "__module_" + __loadedLength_1;
+                            }
+                            __loaded_1[name] = {
+                                "input": input,
+                                "func": callback,
+                                "object": null
+                            };
+                        }).toString() + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var exports = {};" + text + "\n            var __loaded = {};\n            var __loadedLength = 0;\n            \n            return exports;";
                         func = new Function(text);
-                        _loadedModule[path] = {
+                        _loaded[path] = {
                             "first": false,
                             "func": func,
                             "object": null
                         };
                         _a.label = 6;
-                    case 6: return [2, _loadedModule[path]];
+                    case 6: return [2, _loaded[path]];
                 }
             });
         });
     }
     function _fetch(path) {
         return new Promise(function (resolve) {
-            fetch(path, {
-                method: "GET",
-                credentials: "include"
-            }).then(function (res) {
+            fetch(path).then(function (res) {
                 return res.text();
             }).then(function (text) {
                 resolve(text);
@@ -226,8 +260,8 @@ var loader;
         });
     }
     function _moduleName2Path(path, dirname) {
-        if (_modulePaths[path]) {
-            path = _modulePaths[path];
+        if (_config.paths[path]) {
+            path = _config.paths[path];
         }
         if (path.slice(0, 8).indexOf("//") === -1) {
             path = dirname + "/" + path;

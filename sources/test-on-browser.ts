@@ -1,6 +1,13 @@
 let keyInput: HTMLInputElement;
+let consoleEl: HTMLDivElement;
 let mask: HTMLDivElement;
 let tmodule: any;
+
+/** --- 重写 log --- */
+let logx = console.log;
+console.log = function(msg: any) {
+    consoleEl.innerHTML += `<div class="cl">${typeof msg === "string" ? msg : JSON.stringify(msg, undefined, 4)}</div>`
+}
 
 function getData() {
     alert(tmodule.getData(keyInput.value));
@@ -25,9 +32,24 @@ function runTestOnNode() {
     });
 }
 
+function runTypeGuard() {
+    mask.style.display = "flex";
+    loader.require("../dist/trun-typeguard", function() {
+        mask.style.display = "none";
+    });
+}
+
+function getLoadedPaths() {
+    console.log(loader.getLoadedPaths());
+}
+
 loader.ready(function() {
     keyInput = <HTMLInputElement>document.getElementById("key");
+    consoleEl = <HTMLDivElement>document.getElementById("console");
     mask = <HTMLDivElement>document.getElementById("mask");
+    loader.setPaths({
+        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/index"
+    });
     loader.require("../dist/tmodule", function(t: any) {
         mask.style.display = "none";
         tmodule = t;
