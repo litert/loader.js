@@ -3,6 +3,7 @@
 /dist/t*
 /node_modules/
 /sources/t*
+/test/
 /.gitignore
 /.npmignore
 /tsconfig.json

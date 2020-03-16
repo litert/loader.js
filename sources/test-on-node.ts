@@ -16,3 +16,4 @@ console.log(`requireModule3(): ` + tmodule.requireModule3());
 
 console.log(`requireModule3(): ` + tmodule.requireModule3());
 
+console.log(module);

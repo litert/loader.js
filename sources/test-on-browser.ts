@@ -43,13 +43,23 @@ function getLoadedPaths() {
     console.log(loader.getLoadedPaths());
 }
 
+function loadAmd() {
+    mask.style.display = "flex";
+    loader.require("./tamd", function(t) {
+        mask.style.display = "none";
+        console.log(t);
+        alert("getTm2Num(): " + t.getTm2Num());
+    });
+}
+
 loader.ready(function() {
     keyInput = <HTMLInputElement>document.getElementById("key");
     consoleEl = <HTMLDivElement>document.getElementById("console");
     mask = <HTMLDivElement>document.getElementById("mask");
     loader.setPaths({
-        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/index"
+        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/"
     });
+    loader.setAfter("?1");
     loader.require("../dist/tmodule", function(t: any) {
         mask.style.display = "none";
         tmodule = t;

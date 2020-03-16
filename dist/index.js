@@ -114,14 +114,14 @@ var loader;
         if (callback === void 0) { callback = function () { }; }
         if (error === void 0) { error = function () { }; }
         return __awaiter(this, void 0, void 0, function () {
-            var o, _i, paths_1, path, module_1;
+            var input, _i, paths_1, path, module_1;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         if (typeof paths === "string") {
                             paths = [paths];
                         }
-                        o = [];
+                        input = [];
                         _i = 0, paths_1 = paths;
                         _a.label = 1;
                     case 1:
@@ -136,16 +136,16 @@ var loader;
                         }
                         if (!module_1.first) {
                             module_1.first = true;
-                            module_1.object = module_1.func();
+                            module_1.object = (new Function(module_1.func))();
                         }
-                        o.push(module_1.object);
+                        input.push(module_1.object);
                         _a.label = 3;
                     case 3:
                         _i++;
                         return [3, 1];
                     case 4:
-                        callback.apply(void 0, o);
-                        return [2, o];
+                        callback.apply(void 0, input);
+                        return [2, input];
                 }
             });
         });
@@ -157,15 +157,15 @@ var loader;
             return null;
         }
         if (!_loaded[path].first) {
-            _loaded[path].object = _loaded[path].func();
             _loaded[path].first = true;
+            _loaded[path].object = (new Function(_loaded[path].func))();
         }
         return _loaded[path].object;
     }
     loader.__getModule = __getModule;
     function _loadModule(path, dirname) {
         return __awaiter(this, void 0, void 0, function () {
-            var text, data, strict, fdirname, match, reg, __loaded_1, __loadedLength_1, func;
+            var text, data, strict, fdirname, match, reg, match2, reg2, __loaded_amd, __loadedLength_amd, requireFunc, defineFunc, runLastAmdFunc;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -184,10 +184,10 @@ var loader;
                         data = JSON.parse(text);
                         _loaded[path] = {
                             "first": true,
-                            "func": function () { },
+                            "func": "",
                             "object": data
                         };
-                        return [3, 6];
+                        return [3, 11];
                     case 2:
                         strict = "";
                         if (text.indexOf("\"use strict\"") !== -1) {
@@ -207,33 +207,110 @@ var loader;
                         }
                         return [3, 3];
                     case 5:
-                        __loaded_1 = {};
-                        __loadedLength_1 = 0;
-                        text = strict + "\n            " + (function require(path) {
-                            return loader.__getModule(path, __dirname);
-                        }).toString() + "\n            " + (function define(name, input, callback) {
+                        reg = /define.+?\[(.+?)\]/g;
+                        _a.label = 6;
+                    case 6:
+                        if (!(match = reg.exec(text))) return [3, 10];
+                        match2 = void 0;
+                        reg2 = /["'](.+?)["']/g;
+                        _a.label = 7;
+                    case 7:
+                        if (!(match2 = reg2.exec(match[1]))) return [3, 9];
+                        if (match2[1] === "require" || match2[1] === "exports") {
+                            return [3, 7];
+                        }
+                        if ((new RegExp("define.+?[\"']" + match2[1] + "[\"']")).test(text)) {
+                            return [3, 7];
+                        }
+                        return [4, _loadModule(match2[1], fdirname)];
+                    case 8:
+                        if (!(_a.sent())) {
+                            return [2, null];
+                        }
+                        return [3, 7];
+                    case 9: return [3, 6];
+                    case 10:
+                        __loaded_amd = {};
+                        __loadedLength_amd = 0;
+                        requireFunc = (function require(path) {
+                            if (__loaded_amd[path]) {
+                                if (!__loaded_amd[path].first) {
+                                    __loaded_amd[path].first = true;
+                                    var ex = {};
+                                    __loaded_amd[path].object = (new Function("require", "exports", __loaded_amd[path].func))(require, ex);
+                                    if (!__loaded_amd[path].object) {
+                                        __loaded_amd[path].object = ex;
+                                    }
+                                }
+                                return __loaded_amd[path].object;
+                            }
+                            else {
+                                return loader.__getModule(path, __dirname);
+                            }
+                        }).toString();
+                        defineFunc = (function define(name, input, callback) {
+                            ++__loadedLength_amd;
                             if (Array.isArray(name)) {
                                 callback = input;
                                 input = name;
                                 name = "";
                             }
-                            if (name === "") {
-                                name = "__module_" + __loadedLength_1;
+                            else if (typeof name === "function") {
+                                callback = name;
+                                input = [];
+                                name = "";
                             }
-                            __loaded_1[name] = {
-                                "input": input,
-                                "func": callback,
+                            else if (typeof input === "function") {
+                                callback = input;
+                                input = [];
+                            }
+                            if (name === "") {
+                                name = "#";
+                            }
+                            var param = [];
+                            var match = /\(([\s\S]*?)\)[\s\S]*?{([\s\S]*)}/.exec(callback.toString());
+                            var paramReg = /\w+/g;
+                            var paramMatch;
+                            while (paramMatch = paramReg.exec(match[1])) {
+                                param.push(paramMatch[0]);
+                            }
+                            var func = match[2].replace(/^\s+|\s+$/g, "");
+                            for (var i = 0; i < input.length; ++i) {
+                                if (input[i] === "require" || input[i] === "exports") {
+                                    continue;
+                                }
+                                func = "var " + param[i] + " = require('" + input[i] + "');\n" + func;
+                            }
+                            __loaded_amd[name] = {
+                                "first": false,
+                                "func": func,
                                 "object": null
                             };
-                        }).toString() + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var exports = {};" + text + "\n            var __loaded = {};\n            var __loadedLength = 0;\n            \n            return exports;";
-                        func = new Function(text);
+                        }).toString();
+                        runLastAmdFunc = (function __runLast_amd() {
+                            if (__loadedLength_amd === 0) {
+                                return;
+                            }
+                            var name = "";
+                            if (__loaded_amd["#"]) {
+                                name = "#";
+                            }
+                            else if (__loaded_amd["index"]) {
+                                name = "index";
+                            }
+                            if (name === "") {
+                                return;
+                            }
+                            exports = require(name);
+                        }).toString();
+                        text = strict + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + text + "\n            \n            __runLast_amd();\n            return exports;";
                         _loaded[path] = {
                             "first": false,
-                            "func": func,
+                            "func": text,
                             "object": null
                         };
-                        _a.label = 6;
-                    case 6: return [2, _loaded[path]];
+                        _a.label = 11;
+                    case 11: return [2, _loaded[path]];
                 }
             });
         });
@@ -265,6 +342,9 @@ var loader;
         }
         if (path.slice(0, 8).indexOf("//") === -1) {
             path = dirname + "/" + path;
+        }
+        if (path[path.length - 1] === "/") {
+            path += "index";
         }
         path = path.replace(/\/\.\//g, "/");
         var _loop_1 = function () {

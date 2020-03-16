@@ -1,7 +1,7 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-15 21:38:23
+ * Last: 2020-3-17 00:58:16
  */
 
 // npm publish --access=public
@@ -17,7 +17,7 @@ interface IPaths {
 
 interface IModule {
     "first": boolean;
-    "func": Function;
+    "func": string;
     "object": any;
 }
 
@@ -122,17 +122,17 @@ namespace loader {
     }
 
     /**
-     * --- 用户调用通过网络加载一个模块 ---
+     * --- 用户调用通过网络加载一个模块，这是用户在 js 中主动调用的加载模块的函数 ---
      * @param path 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param callback 成功回调
      * @param error 失败回调
      */
-    export async function require(paths: string | string[], callback: (...o: any[]) => void = function() {}, error: (path: string) => void = function() {}): Promise<any[] | null> {
+    export async function require(paths: string | string[], callback: (...input: any[]) => void = function() {}, error: (path: string) => void = function() {}): Promise<any[] | null> {
         if (typeof paths === "string") {
             paths = [paths];
         }
         // --- callback 时返回的模块对象列表 ---
-        let o: any[] = [];
+        let input: any[] = [];
         for (let path of paths) {
             let module = await _loadModule(path, _dirname);
             if (!module) {
@@ -141,12 +141,12 @@ namespace loader {
             }
             if (!module.first) {
                 module.first = true;
-                module.object = module.func();
+                module.object = (new Function(module.func))();
             }
-            o.push(module.object);
+            input.push(module.object);
         }
-        callback(...o);
-        return o;
+        callback(...input);
+        return input;
     }
 
     /**
@@ -160,8 +160,8 @@ namespace loader {
             return null;
         }
         if (!_loaded[path].first) {
-            _loaded[path].object = _loaded[path].func();
             _loaded[path].first = true;
+            _loaded[path].object = (new Function(_loaded[path].func))();
         }
         return _loaded[path].object;
     }
@@ -169,7 +169,7 @@ namespace loader {
     // --- 内部 ---
 
     /**
-     * --- 通过网络加载 module 但不自动执行 ---
+     * --- 通过网络加载 module 但不自动执行，已经加载过的不会重新加载 ---
      * @param path 模块
      * @param dirname 当前目录地址
      */
@@ -191,19 +191,21 @@ namespace loader {
             let data = JSON.parse(text);
             _loaded[path] = {
                 "first": true,
-                "func": () => {},
+                "func": "",
                 "object": data
             };
         } else {
             // --- js 文件 ---
-            // --- 先去除严格模式 ---
+            // --- 先去除严格模式字符串 ---
             let strict = ``;
             if (text.indexOf(`"use strict"`) !== -1) {
                 strict = `"use strict"\n`;
                 text = text.replace(/"use strict"\n?/, "");
             }
-            // --- 提取本文件的所有 require 并加载 （适用于 Commonjs） ---
+            /** --- 定义当前模块的 __dirname --- */
             let fdirname = path.slice(0, path.lastIndexOf("/"));
+
+            // --- 提取本文件的所有 require 同步函数并加载 ---
             let match;
             let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
             while (match = reg.exec(text)) {
@@ -211,40 +213,137 @@ namespace loader {
                     return null;
                 }
             }
-            // --- 组成当前文件的执行 function ---
-            let __loaded: any = {};
-            let __loadedLength = 0;
+            // --- 提取 define 的 ---
+            reg = /define.+?\[(.+?)\]/g;
+            while (match = reg.exec(text)) {
+                let match2;
+                let reg2 = /["'](.+?)["']/g;
+                while (match2 = reg2.exec(match[1])) {
+                    if (match2[1] === "require" || match2[1] === "exports") {
+                        continue;
+                    }
+                    if ((new RegExp(`define.+?["']${match2[1]}["']`)).test(text)) {
+                        continue;
+                    }
+                    if (!await _loadModule(match2[1], fdirname)) {
+                        return null;
+                    }
+                }
+            }
 
-            text = `${strict}
-            ${(function require(path: string) {
-                return loader.__getModule(path, __dirname);
-            }).toString()}
-            ${(function define(name: any, input: any, callback: any) {
+            // --- 组成当前文件的执行 function 字符串 ---
+            var __loaded_amd: {
+                [key: string]: IModule;
+            } = {};
+            var __loadedLength_amd = 0;
+
+            /** --- 模块内部使用的 require 同步方法，模块已经被提前异步加载过 --- */
+            let requireFunc = (function require(path: string): any {
+                // --- 判断是加别的模块，还是本文件的模块 ---
+                if (__loaded_amd[path]) {
+                    // --- 加载本文件的模块 ---
+                    if (!__loaded_amd[path].first) {
+                        __loaded_amd[path].first = true;
+                        let ex = {};
+                        __loaded_amd[path].object = (new Function("require", "exports", __loaded_amd[path].func))(require, ex);
+                        if (!__loaded_amd[path].object) {
+                            __loaded_amd[path].object = ex;
+                        }
+                    }
+                    return __loaded_amd[path].object;
+                } else {
+                    return loader.__getModule(path, __dirname);
+                }
+            }).toString();
+
+            /** --- AMD 模块异步加载器，name 可能还未加载 --- */
+            let defineFunc = (function define(name: any, input?: any, callback?: any): void {
+                // --- 这里面是定义阶段就会执行的 ---
+                // --- define('xx', ['xxx'], (xxx) => {}); ---
+                // --- callback 不一定立马执行 ---
+                ++__loadedLength_amd;
                 if (Array.isArray(name)) {
+                    // --- ['xx'], (xx) => {} ---
                     callback = input;
                     input = name;
                     name = "";
+                } else if (typeof name === "function") {
+                    // --- () => {} ---
+                    callback = name;
+                    input = [];
+                    name = "";
+                } else if (typeof input === "function") {
+                    // --- 'name', () => {} ---
+                    callback = input;
+                    input = [];
                 }
+                // --- 'name', ['xx'], (xx) => {} ---
                 if (name === "") {
-                    name = "__module_" + __loadedLength;
+                    name = "#";
                 }
-                __loaded[name] = {
-                    "input": input,
-                    "func": callback,
+                // --- 添加定义到列表 ---
+                let param: string[] = [];
+                let match = /\(([\s\S]*?)\)[\s\S]*?{([\s\S]*)}/.exec(callback.toString());
+                let paramReg = /\w+/g;
+                let paramMatch;
+                while (paramMatch = paramReg.exec(match![1])) {
+                    param.push(paramMatch[0]);
+                }
+                let func = match![2].replace(/^\s+|\s+$/g, "");
+                for (let i = 0; i < input.length; ++i) {
+                    if (input[i] === "require" || input[i] === "exports") {
+                        continue;
+                    }
+                    func = "var " + param[i] + " = require('" + input[i] + "');\n" + func;
+                }
+                __loaded_amd[name] = {
+                    "first": false,
+                    "func": func,
                     "object": null
                 };
-            }).toString()}
+            }).toString();
+
+            /** --- 模块文件结束时执行的，只有 define 有定义才会做处理 --- */
+            let runLastAmdFunc = (function __runLast_amd(): void {
+                // --- 此函数在 amd 结尾时执行，仅执行
+                if (__loadedLength_amd === 0) {
+                    return;
+                }
+                // --- 判断是否有要执行的模块，顺序为无名模块，没有则执行 index 模块 ---
+                let name = "";
+                if (__loaded_amd["#"]) {
+                    name = "#"
+                } else if (__loaded_amd["index"]) {
+                    name = "index";
+                }
+                if (name === "") {
+                    return;
+                }
+                exports = require(name);
+            }).toString();
+
+            // --- 组合最终 function 的字符串 ---
+            text = `${strict}
             var __dirname = "${fdirname}";
             var __filename = "${path}";
-            var exports = {};${text}
-            var __loaded = {};
-            var __loadedLength = 0;
+            var module = {
+                exports: {}
+            };
+            var exports = module.exports;
+            var __loaded_amd = {};
+            var __loadedLength_amd = 0;
+
+            ${requireFunc}
+            ${defineFunc}
+            ${runLastAmdFunc}
+
+            ${text}
             
+            __runLast_amd();
             return exports;`;
-            let func = new Function(text);
             _loaded[path] = {
                 "first": false,
-                "func": func,
+                "func": text,
                 "object": null
             };
         }
@@ -295,8 +394,12 @@ namespace loader {
         }
         // --- 是否是相对路径 ---
         if (path.slice(0, 8).indexOf("//") === -1) {
-            // --- 根据当前 _dirname 的相对路径 ---
+            // --- 根据当前 dirname 的相对路径组合 ---
             path = dirname + "/" + path;
+        }
+        // --- 是否自动加 index ---
+        if (path[path.length - 1] === "/") {
+            path += "index";
         }
         // --- 去除 ./ ---
         path = path.replace(/\/\.\//g, "/");

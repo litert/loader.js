@@ -16,9 +16,11 @@ Simple browser module loader.
 
 ## Features
 
+- [x] The configuration is simple and lightweight.  
 - [x] No intrusion and does not affect the script label.  
 - [x] Node modules that support the CommonJS format.  
-- [x] The configuration is simple and lightweight.
+- [x] Modules that support AMD format.  
+- [x] The fetch function is automatically supported without additional loading.
 
 ## Installation
 
@@ -60,11 +62,13 @@ Here's a general how to use it:
 
 ```javascript
 // Adding a map does not require a "js" extension.
-loader.setModulePaths({
+loader.setPaths({
     "module": "https://xxx/xxx/index",
     "module2": "../abc/in"
 });
-loader.addModulePath("module3", "./en");
+loader.addPath("module3", "./en");
+// You can append strings after a file, for example, to prevent caching.
+loader.setAfter("?" + Math.random());
 // All actions are written in the "ready" callback.
 loader.ready(function() {
     loader.require(["../dist/tmodule", "module2"], function(t1, t2) {

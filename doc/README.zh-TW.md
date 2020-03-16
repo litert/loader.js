@@ -12,9 +12,11 @@
 
 ## 特性
 
+- [x] 庫輕量，配置簡單。  
 - [x] 無侵入，不會對您的 script 引入的其他庫造成任何影響。  
 - [x] 支援 CommonJS 格式的 node 模組。  
-- [x] 庫輕量，配置簡單。
+- [x] 支援 AMD 格式的模組。  
+- [x] 自動支援 fetch 函數，無需額外載入。
 
 ## 安裝
 
@@ -56,11 +58,13 @@ $ npm i @litert/loader@dev --save
 
 ```javascript
 // 添加的映射路徑無需帶「.js」尾碼。
-loader.setModulePaths({
+loader.setPaths({
     "module": "https://xxx/xxx/index",
     "module2": "../abc/in"
 });
-loader.addModulePath("module3", "./en");
+loader.addPath("module3", "./en");
+// 可在檔後面追加字串，例如可以用來防止緩存。
+loader.setAfter("?" + Math.random());
 // 所有操作請寫在回呼函數當中。
 loader.ready(function() {
     loader.require(["../dist/tmodule", "module2"], function(t1, t2) {
