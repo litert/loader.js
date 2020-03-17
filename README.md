@@ -42,14 +42,14 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js, which will reflect the latest version as soon as it is published to npm. You can also browse the source of the npm package at https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js, which will reflect the latest version as soon as it is published to npm. You can also browse the source of the npm package at https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@0.1.1/dist/index.min.js).
 
 For example:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
 ```
 
 ## Usage
@@ -57,7 +57,7 @@ For example:
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
 ```
 
 ```javascript

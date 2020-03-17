@@ -38,14 +38,14 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推薦）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js，當然這不一定是最新版本，可以將版本號改為最新版本，或者在此處查找：HTTPs://cdn.jsdelivr.net/npm/@litert/loader/。
+推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js，當然這不一定是最新版本，可以將版本號改為最新版本，或者在此處查找：HTTPs://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@0.0.1/dist/index.js).
+同樣可使用 [unpkg](https://unpkg.com/@litert/loader@0.1.1/dist/index.min.js).
 
 例子：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
 ```
 
 ## Usage
@@ -53,7 +53,7 @@ $ npm i @litert/loader@dev --save
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.0.1/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
 ```
 
 ```javascript
