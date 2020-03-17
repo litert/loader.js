@@ -4,6 +4,8 @@
  * Last: 2020-3-17 00:58:16
  */
 
+// terser dist/index.js -o dist/index.min.js
+//  {4,}
 // npm publish --access=public
 
 interface IConfig {
