@@ -1,11 +1,10 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-17 00:58:16
+ * Last: 2020-3-17 00:58:16, 2020-5-7 17:26:24
  */
 
 // terser dist/index.js -o dist/index.min.js
-// {4,}
 // npm publish --access=public
 
 interface IConfig {
