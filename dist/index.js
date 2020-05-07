@@ -41,10 +41,7 @@ var loader;
     var _ready = false;
     var _readyList = [];
     var _dirname;
-    var _config = {
-        "after": "",
-        "paths": {}
-    };
+    var _config = {};
     var _loaded = {};
     function _run() {
         document.addEventListener("DOMContentLoaded", function () {
@@ -99,7 +96,15 @@ var loader;
     }
     loader.setPaths = setPaths;
     function addPath(name, path) {
-        _config.paths[name] = path;
+        var _a;
+        if (_config.paths) {
+            _config.paths[name] = path;
+        }
+        else {
+            _config.paths = (_a = {},
+                _a[name] = path,
+                _a);
+        }
     }
     loader.addPath = addPath;
     function getLoadedPaths() {
@@ -164,18 +169,19 @@ var loader;
     }
     loader.__getModule = __getModule;
     function _loadModule(path, dirname) {
+        var _a;
         return __awaiter(this, void 0, void 0, function () {
             var text, data, strict, fdirname, match, reg, match2, reg2, __loaded_amd, __loadedLength_amd, requireFunc, defineFunc, runLastAmdFunc;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         path = _moduleName2Path(path, dirname);
                         if (_loaded[path]) {
                             return [2, _loaded[path]];
                         }
-                        return [4, _fetch(path + _config.after)];
+                        return [4, _fetch((_a = path + _config.after) !== null && _a !== void 0 ? _a : "")];
                     case 1:
-                        text = _a.sent();
+                        text = _b.sent();
                         if (!text) {
                             return [2, null];
                         }
@@ -197,23 +203,23 @@ var loader;
                         fdirname = path.slice(0, path.lastIndexOf("/"));
                         match = void 0;
                         reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
-                        _a.label = 3;
+                        _b.label = 3;
                     case 3:
                         if (!(match = reg.exec(text))) return [3, 5];
                         return [4, _loadModule(match[1], fdirname)];
                     case 4:
-                        if (!(_a.sent())) {
+                        if (!(_b.sent())) {
                             return [2, null];
                         }
                         return [3, 3];
                     case 5:
                         reg = /define.+?\[(.+?)\]/g;
-                        _a.label = 6;
+                        _b.label = 6;
                     case 6:
                         if (!(match = reg.exec(text))) return [3, 10];
                         match2 = void 0;
                         reg2 = /["'](.+?)["']/g;
-                        _a.label = 7;
+                        _b.label = 7;
                     case 7:
                         if (!(match2 = reg2.exec(match[1]))) return [3, 9];
                         if (match2[1] === "require" || match2[1] === "exports") {
@@ -224,7 +230,7 @@ var loader;
                         }
                         return [4, _loadModule(match2[1], fdirname)];
                     case 8:
-                        if (!(_a.sent())) {
+                        if (!(_b.sent())) {
                             return [2, null];
                         }
                         return [3, 7];
@@ -309,7 +315,7 @@ var loader;
                             "func": text,
                             "object": null
                         };
-                        _a.label = 11;
+                        _b.label = 11;
                     case 11: return [2, _loaded[path]];
                 }
             });
@@ -337,7 +343,7 @@ var loader;
         });
     }
     function _moduleName2Path(path, dirname) {
-        if (_config.paths[path]) {
+        if (_config.paths && _config.paths[path]) {
             path = _config.paths[path];
         }
         if (path.slice(0, 8).indexOf("//") === -1) {

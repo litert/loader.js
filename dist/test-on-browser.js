@@ -31,9 +31,6 @@ function runTypeGuard() {
         mask.style.display = "none";
     });
 }
-function getLoadedPaths() {
-    console.log(loader.getLoadedPaths());
-}
 function loadAmd() {
     mask.style.display = "flex";
     loader.require("./tamd", function (t) {
@@ -41,6 +38,15 @@ function loadAmd() {
         console.log(t);
         alert("getTm2Num(): " + t.getTm2Num());
     });
+}
+function getLoadedPaths() {
+    console.log(loader.getLoadedPaths());
+}
+function setRandomAfter() {
+    loader.config({
+        "after": "?" + Math.random().toString()
+    });
+    console.log("Set up.");
 }
 loader.ready(function () {
     keyInput = document.getElementById("key");

@@ -5,7 +5,7 @@
  */
 
 // terser dist/index.js -o dist/index.min.js
-//  {4,}
+// {4,}
 // npm publish --access=public
 
 interface IConfig {
@@ -33,10 +33,7 @@ namespace loader {
     let _dirname: string;
 
     /** --- 配置项 --- */
-    let _config: IConfig = {
-        "after": "",
-        "paths": {}
-    };
+    let _config: IConfig = {};
 
     /** --- 已加载的模块列表 --- */
     let _loaded: {
@@ -109,7 +106,13 @@ namespace loader {
      * @param path 映射地址
      */
     export function addPath(name: string, path: string): void {
-        _config.paths![name] = path;
+        if ( _config.paths) {
+            _config.paths[name] = path;
+        } else {
+            _config.paths = {
+                [name]: path
+            };
+        }
     }
 
     /**
@@ -182,7 +185,7 @@ namespace loader {
             return _loaded[path];
         }
         // --- 加载文件 ---
-        let text = await _fetch(path + _config.after);
+        let text = await _fetch(path + _config.after ?? "");
         if (!text) {
             return null;
         }
@@ -391,8 +394,8 @@ namespace loader {
      */
     function _moduleName2Path(path: string, dirname: string): string {
         // --- 查询是否有映射 ---
-        if (_config.paths![path]) {
-            path = _config.paths![path];
+        if (_config.paths && _config.paths[path]) {
+            path = _config.paths[path];
         }
         // --- 是否是相对路径 ---
         if (path.slice(0, 8).indexOf("//") === -1) {
