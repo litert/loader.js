@@ -20,7 +20,9 @@ Simple browser module loader.
 - [x] No intrusion and does not affect the script label.  
 - [x] Node modules that support the CommonJS format.  
 - [x] Modules that support AMD format.  
-- [x] The fetch function is automatically supported without additional loading.
+- [x] The fetch function is automatically supported without additional loading.  
+- [x] The Promise object is automatically supported if not in the browser.  
+- [x] Supports running code in memory.
 
 ## Installation
 
@@ -74,6 +76,23 @@ loader.ready(function() {
     loader.require(["../dist/tmodule", "module2"], function(t1, t2) {
         // Do something, you can also not write callbacks.
     });
+
+    // --- Load by memory ---
+    var [rtn] = await loader.requireMemory("main", {
+        "/main.js": `var sub = require("./sub");
+        function getData(key) {
+            return key + ", end.";
+        }
+        exports.getData = getData;
+
+        function getSubStr() {
+            return sub.str;
+        }
+        exports.getSubStr = getSubStr;`,
+        "/sub.js": `exports.str = "hehe";`
+    });
+    console.log(main.getData("rand: " + Math.random()));
+    console.log(main.getSubStr());
 });
 ```
 

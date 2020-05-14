@@ -46,7 +46,7 @@ var loader;
     function _run() {
         document.addEventListener("DOMContentLoaded", function () {
             return __awaiter(this, void 0, void 0, function () {
-                var lio, _i, _readyList_1, func;
+                var lio, hasPromise, res, ver, next, script;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
@@ -57,18 +57,67 @@ var loader;
                                 lio = window.location.href.lastIndexOf("/");
                                 _dirname = window.location.href.slice(0, lio);
                             }
-                            if (!(typeof fetch !== "function")) return [3, 2];
-                            return [4, _loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js")];
-                        case 1:
-                            _a.sent();
-                            _a.label = 2;
-                        case 2:
-                            _ready = true;
-                            for (_i = 0, _readyList_1 = _readyList; _i < _readyList_1.length; _i++) {
-                                func = _readyList_1[_i];
-                                func();
+                            hasPromise = true;
+                            res = /Version\/([0-9.]+) Safari/.exec(navigator.userAgent);
+                            if (res) {
+                                ver = parseFloat(res[1]);
+                                if (ver < 10) {
+                                    hasPromise = false;
+                                    Promise = undefined;
+                                }
                             }
-                            return [2];
+                            else {
+                                if (!Promise) {
+                                    hasPromise = false;
+                                }
+                            }
+                            next = function () {
+                                return __awaiter(this, void 0, void 0, function () {
+                                    var _i, _readyList_1, func;
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0:
+                                                if (!(typeof fetch !== "function")) return [3, 2];
+                                                return [4, _loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js")];
+                                            case 1:
+                                                _a.sent();
+                                                _a.label = 2;
+                                            case 2:
+                                                _ready = true;
+                                                for (_i = 0, _readyList_1 = _readyList; _i < _readyList_1.length; _i++) {
+                                                    func = _readyList_1[_i];
+                                                    func();
+                                                }
+                                                return [2];
+                                        }
+                                    });
+                                });
+                            };
+                            if (!!hasPromise) return [3, 1];
+                            script = document.createElement("script");
+                            script.addEventListener("load", function () {
+                                return __awaiter(this, void 0, void 0, function () {
+                                    return __generator(this, function (_a) {
+                                        switch (_a.label) {
+                                            case 0: return [4, next()];
+                                            case 1:
+                                                _a.sent();
+                                                return [2];
+                                        }
+                                    });
+                                });
+                            });
+                            script.addEventListener("error", function (e) {
+                                alert("Network error.");
+                            });
+                            script.src = "https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js";
+                            document.getElementsByTagName("head")[0].appendChild(script);
+                            return [3, 3];
+                        case 1: return [4, next()];
+                        case 2:
+                            _a.sent();
+                            _a.label = 3;
+                        case 3: return [2];
                     }
                 });
             });
@@ -84,7 +133,12 @@ var loader;
     }
     loader.ready = ready;
     function config(config) {
-        _config = config;
+        if (config.after) {
+            _config.after = config.after;
+        }
+        if (config.paths) {
+            _config.paths = config.paths;
+        }
     }
     loader.config = config;
     function setAfter(after) {
@@ -141,7 +195,7 @@ var loader;
                         }
                         if (!module_1.first) {
                             module_1.first = true;
-                            module_1.object = (new Function(module_1.func))();
+                            module_1.object = (new Function("__config", "__partLoaded", module_1.func))(module_1.param[0], module_1.param[1]);
                         }
                         input.push(module_1.object);
                         _a.label = 3;
@@ -156,88 +210,171 @@ var loader;
         });
     }
     loader.require = require;
-    function __getModule(path, dirname) {
-        path = _moduleName2Path(path, dirname);
-        if (!_loaded[path]) {
+    function requireMemory(paths, files, config) {
+        if (config === void 0) { config = {}; }
+        return __awaiter(this, void 0, void 0, function () {
+            var input, _i, paths_2, path, module_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (typeof paths === "string") {
+                            paths = [paths];
+                        }
+                        input = [];
+                        _i = 0, paths_2 = paths;
+                        _a.label = 1;
+                    case 1:
+                        if (!(_i < paths_2.length)) return [3, 4];
+                        path = paths_2[_i];
+                        return [4, _loadModule(path, "", files, config)];
+                    case 2:
+                        module_2 = _a.sent();
+                        if (!module_2) {
+                            return [2, null];
+                        }
+                        if (!module_2.first) {
+                            module_2.first = true;
+                            module_2.object = (new Function("__config", "__partLoaded", module_2.func))(module_2.param[0], module_2.param[1]);
+                        }
+                        input.push(module_2.object);
+                        _a.label = 3;
+                    case 3:
+                        _i++;
+                        return [3, 1];
+                    case 4: return [2, input];
+                }
+            });
+        });
+    }
+    loader.requireMemory = requireMemory;
+    function __getModule(path, dirname, config, partLoaded) {
+        if (partLoaded === void 0) { partLoaded = {}; }
+        path = _moduleName2Path(path, dirname, config);
+        var module;
+        if (partLoaded[path]) {
+            module = partLoaded[path];
+        }
+        else if (_loaded[path]) {
+            module = _loaded[path];
+        }
+        if (!module) {
             return null;
         }
-        if (!_loaded[path].first) {
-            _loaded[path].first = true;
-            _loaded[path].object = (new Function(_loaded[path].func))();
+        if (!module.first) {
+            module.first = true;
+            module.object = (new Function("__config", "__partLoaded", module.func))(module.param[0], module.param[1]);
         }
-        return _loaded[path].object;
+        return module.object;
     }
     loader.__getModule = __getModule;
-    function _loadModule(path, dirname) {
+    function _loadModule(path, dirname, files, config, partLoaded) {
+        if (config === void 0) { config = {}; }
+        if (partLoaded === void 0) { partLoaded = {}; }
         var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var text, data, strict, fdirname, match, reg, match2, reg2, __loaded_amd, __loadedLength_amd, requireFunc, defineFunc, runLastAmdFunc;
+            var after, inFiles, code, blob, text, data, strict, fdirname, plio, match, reg, match2, reg2, __loaded_amd, __loadedLength_amd, __config, __partLoaded, requireFunc, defineFunc, runLastAmdFunc;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        path = _moduleName2Path(path, dirname);
+                        after = config.after || _config.after;
+                        inFiles = false;
+                        path = _moduleName2Path(path, dirname, config);
+                        if (partLoaded[path]) {
+                            return [2, partLoaded[path]];
+                        }
                         if (_loaded[path]) {
                             return [2, _loaded[path]];
                         }
-                        return [4, _fetch((_a = path + _config.after) !== null && _a !== void 0 ? _a : "")];
-                    case 1:
+                        if (!(files && files[path])) return [3, 4];
+                        inFiles = true;
+                        blob = files[path];
+                        if (!(typeof blob === "string")) return [3, 1];
+                        code = blob;
+                        return [3, 3];
+                    case 1: return [4, _blob2Text(blob)];
+                    case 2:
+                        code = _b.sent();
+                        _b.label = 3;
+                    case 3: return [3, 6];
+                    case 4: return [4, _fetch((_a = path + after) !== null && _a !== void 0 ? _a : "")];
+                    case 5:
                         text = _b.sent();
                         if (!text) {
                             return [2, null];
                         }
-                        text = text.replace(/^\s+|\s+$/g, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
-                        if (!(text[0] === "{" && text[text.length - 1] === "}")) return [3, 2];
-                        data = JSON.parse(text);
-                        _loaded[path] = {
-                            "first": true,
-                            "func": "",
-                            "object": data
-                        };
-                        return [3, 11];
-                    case 2:
-                        strict = "";
-                        if (text.indexOf("\"use strict\"") !== -1) {
-                            strict = "\"use strict\"\n";
-                            text = text.replace(/"use strict"\n?/, "");
-                        }
-                        fdirname = path.slice(0, path.lastIndexOf("/"));
-                        match = void 0;
-                        reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
-                        _b.label = 3;
-                    case 3:
-                        if (!(match = reg.exec(text))) return [3, 5];
-                        return [4, _loadModule(match[1], fdirname)];
-                    case 4:
-                        if (!(_b.sent())) {
-                            return [2, null];
-                        }
-                        return [3, 3];
-                    case 5:
-                        reg = /define.+?\[(.+?)\]/g;
+                        code = text;
                         _b.label = 6;
                     case 6:
-                        if (!(match = reg.exec(text))) return [3, 10];
+                        code = code.replace(/^\s+|\s+$/g, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+                        if (!(code[0] === "{" && code[code.length - 1] === "}")) return [3, 7];
+                        data = JSON.parse(code);
+                        if (inFiles) {
+                            partLoaded[path] = {
+                                "first": true,
+                                "func": "",
+                                "object": data,
+                                "param": [config, partLoaded]
+                            };
+                        }
+                        else {
+                            _loaded[path] = {
+                                "first": true,
+                                "func": "",
+                                "object": data,
+                                "param": [config, partLoaded]
+                            };
+                        }
+                        return [3, 16];
+                    case 7:
+                        strict = "";
+                        if (code.indexOf("\"use strict\"") !== -1) {
+                            strict = "\"use strict\"\n";
+                            code = code.replace(/"use strict"\n?/, "");
+                        }
+                        fdirname = "";
+                        plio = path.lastIndexOf("/");
+                        if (plio !== -1) {
+                            fdirname = path.slice(0, plio);
+                        }
+                        match = void 0;
+                        reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
+                        _b.label = 8;
+                    case 8:
+                        if (!(match = reg.exec(code))) return [3, 10];
+                        return [4, _loadModule(match[1], fdirname, files, config, partLoaded)];
+                    case 9:
+                        if (!(_b.sent())) {
+                            return [3, 8];
+                        }
+                        return [3, 8];
+                    case 10:
+                        reg = /define.+?\[(.+?)\]/g;
+                        _b.label = 11;
+                    case 11:
+                        if (!(match = reg.exec(code))) return [3, 15];
                         match2 = void 0;
                         reg2 = /["'](.+?)["']/g;
-                        _b.label = 7;
-                    case 7:
-                        if (!(match2 = reg2.exec(match[1]))) return [3, 9];
+                        _b.label = 12;
+                    case 12:
+                        if (!(match2 = reg2.exec(match[1]))) return [3, 14];
                         if (match2[1] === "require" || match2[1] === "exports") {
-                            return [3, 7];
+                            return [3, 12];
                         }
-                        if ((new RegExp("define.+?[\"']" + match2[1] + "[\"']")).test(text)) {
-                            return [3, 7];
+                        if ((new RegExp("define.+?[\"']" + match2[1] + "[\"']")).test(code)) {
+                            return [3, 12];
                         }
-                        return [4, _loadModule(match2[1], fdirname)];
-                    case 8:
+                        return [4, _loadModule(match2[1], fdirname, files, config, partLoaded)];
+                    case 13:
                         if (!(_b.sent())) {
-                            return [2, null];
+                            return [3, 12];
                         }
-                        return [3, 7];
-                    case 9: return [3, 6];
-                    case 10:
+                        return [3, 12];
+                    case 14: return [3, 11];
+                    case 15:
                         __loaded_amd = {};
                         __loadedLength_amd = 0;
+                        __config = {};
+                        __partLoaded = {};
                         requireFunc = (function require(path) {
                             if (__loaded_amd[path]) {
                                 if (!__loaded_amd[path].first) {
@@ -251,7 +388,13 @@ var loader;
                                 return __loaded_amd[path].object;
                             }
                             else {
-                                return loader.__getModule(path, __dirname);
+                                var m = loader.__getModule(path, __dirname, __config, __partLoaded);
+                                if (m) {
+                                    return m;
+                                }
+                                else {
+                                    throw "Failed require.";
+                                }
                             }
                         }).toString();
                         defineFunc = (function define(name, input, callback) {
@@ -290,7 +433,8 @@ var loader;
                             __loaded_amd[name] = {
                                 "first": false,
                                 "func": func,
-                                "object": null
+                                "object": null,
+                                "param": [__config, __partLoaded]
                             };
                         }).toString();
                         runLastAmdFunc = (function __runLast_amd() {
@@ -309,14 +453,32 @@ var loader;
                             }
                             exports = require(name);
                         }).toString();
-                        text = strict + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + text + "\n            \n            __runLast_amd();\n            return exports;";
-                        _loaded[path] = {
-                            "first": false,
-                            "func": text,
-                            "object": null
-                        };
-                        _b.label = 11;
-                    case 11: return [2, _loaded[path]];
+                        code = strict + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + code + "\n            \n            __runLast_amd();\n            return module.exports;";
+                        if (inFiles) {
+                            partLoaded[path] = {
+                                "first": false,
+                                "func": code,
+                                "object": null,
+                                "param": [config, partLoaded]
+                            };
+                        }
+                        else {
+                            _loaded[path] = {
+                                "first": false,
+                                "func": code,
+                                "object": null,
+                                "param": [config, partLoaded]
+                            };
+                        }
+                        _b.label = 16;
+                    case 16:
+                        if (inFiles) {
+                            return [2, partLoaded[path]];
+                        }
+                        else {
+                            return [2, _loaded[path]];
+                        }
+                        return [2];
                 }
             });
         });
@@ -324,10 +486,17 @@ var loader;
     function _fetch(path) {
         return new Promise(function (resolve) {
             fetch(path).then(function (res) {
-                return res.text();
+                if (res.status === 200 || res.status === 304) {
+                    return res.text();
+                }
+                else {
+                    resolve(null);
+                    return "";
+                }
             }).then(function (text) {
                 resolve(text);
             }).catch(function (err) {
+                logx("z");
                 resolve(null);
             });
         });
@@ -342,9 +511,11 @@ var loader;
             el.appendChild(script);
         });
     }
-    function _moduleName2Path(path, dirname) {
-        if (_config.paths && _config.paths[path]) {
-            path = _config.paths[path];
+    function _moduleName2Path(path, dirname, config) {
+        if (config === void 0) { config = {}; }
+        var paths = config.paths || _config.paths;
+        if (paths && paths[path]) {
+            path = paths[path];
         }
         if (path.slice(0, 8).indexOf("//") === -1) {
             path = dirname + "/" + path;
@@ -372,6 +543,24 @@ var loader;
             path += ".js";
         }
         return path;
+    }
+    function _blob2Text(blob) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2, new Promise(function (resove) {
+                        var fr = new FileReader();
+                        fr.addEventListener("load", function (e) {
+                            if (e.target) {
+                                resove(e.target.result);
+                            }
+                            else {
+                                resove("");
+                            }
+                        });
+                        fr.readAsText(blob);
+                    })];
+            });
+        });
     }
     _run();
 })(loader || (loader = {}));

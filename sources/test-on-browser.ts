@@ -41,11 +41,54 @@ function runTypeGuard() {
 
 function loadAmd() {
     mask.style.display = "flex";
-    loader.require("./tamd", function(t) {
+    loader.require("tamd", function(t) {
         mask.style.display = "none";
         console.log(t);
         alert("getTm2Num(): " + t.getTm2Num());
     });
+}
+
+function loadSeedrandom() {
+    mask.style.display = "flex";
+    loader.require("seedrandom", function(sr) {
+        mask.style.display = "none";
+        let rng = sr("hello");
+        console.log(rng());
+        rng = sr();
+        console.log(rng());  
+    });
+}
+
+async function loadMemoryFile() {
+    mask.style.display = "flex";
+    let rtn = await loader.requireMemory("main", {
+        "/main.js": `var sub = require("./sub");
+        var sr = require("seedrandom");
+        function getData(key) {
+            return key + ", end.";
+        }
+        exports.getData = getData;
+
+        function getSubStr() {
+            return sub.str;
+        }
+        exports.getSubStr = getSubStr;
+        
+        exports.getRand = function() {
+            var rng = sr('abc');
+            return rng();
+        }`,
+        "/sub.js": `exports.str = "hehe";`
+    });
+    mask.style.display = "none";
+    if (!rtn) {
+        console.log("Load memory file failed.");
+        return;
+    }
+    let [main] = rtn;
+    console.log(main.getData("rand: " + Math.random()));
+    console.log(main.getSubStr());
+    console.log(main.getRand());
 }
 
 function getLoadedPaths() {
@@ -53,10 +96,11 @@ function getLoadedPaths() {
 }
 
 function setRandomAfter() {
+    let rand = Math.random().toString();
     loader.config({
-        "after": "?" + Math.random().toString()
+        "after": "?" + rand
     });
-    console.log("Set up.");
+    console.log("Set up to '?" + rand + "'.");
 }
 
 loader.ready(function() {
@@ -64,9 +108,10 @@ loader.ready(function() {
     consoleEl = <HTMLDivElement>document.getElementById("console");
     mask = <HTMLDivElement>document.getElementById("mask");
     loader.setPaths({
-        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/"
+        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/",
+        "seedrandom": "https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min"
     });
-    loader.setAfter("?1");
+    loader.setAfter("?" + Math.random());
     loader.require("../dist/tmodule", function(t: any) {
         mask.style.display = "none";
         tmodule = t;
