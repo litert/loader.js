@@ -443,7 +443,7 @@ namespace loader {
                 if (name === "") {
                     return;
                 }
-                exports = require(name);
+                module.exports = require(name);
             }).toString();
 
             // --- 组合最终 function 的字符串 ---

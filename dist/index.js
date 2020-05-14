@@ -451,7 +451,7 @@ var loader;
                             if (name === "") {
                                 return;
                             }
-                            exports = require(name);
+                            module.exports = require(name);
                         }).toString();
                         code = strict + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + code + "\n            \n            __runLast_amd();\n            return module.exports;";
                         if (inFiles) {
