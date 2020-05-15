@@ -521,7 +521,7 @@ var loader;
         if (paths && paths[path]) {
             path = paths[path];
         }
-        if (path.slice(0, 8).indexOf("//") === -1) {
+        if (path.slice(0, 8).indexOf("//") === -1 && path[0] !== "/") {
             path = dirname + "/" + path;
         }
         if (path[path.length - 1] === "/") {

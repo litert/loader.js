@@ -543,7 +543,7 @@ namespace loader {
             path = paths[path];
         }
         // --- 是否是相对路径 ---
-        if (path.slice(0, 8).indexOf("//") === -1) {
+        if (path.slice(0, 8).indexOf("//") === -1 && path[0] !== "/") {
             // --- 根据当前 dirname 的相对路径组合 ---
             path = dirname + "/" + path;
         }

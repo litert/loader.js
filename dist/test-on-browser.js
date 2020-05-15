@@ -92,9 +92,9 @@ function loadMemoryFile() {
             switch (_a.label) {
                 case 0:
                     mask.style.display = "flex";
-                    return [4, loader.requireMemory("main", {
+                    return [4, loader.requireMemory("/main", {
                             "/main.js": "var sub = require(\"./sub\");\n        var sr = require(\"seedrandom\");\n        function getData(key) {\n            return key + \", end.\";\n        }\n        exports.getData = getData;\n\n        function getSubStr() {\n            return sub.str;\n        }\n        exports.getSubStr = getSubStr;\n        \n        exports.getRand = function() {\n            var rng = sr('abc');\n            return rng();\n        }",
-                            "/sub.js": "exports.str = \"hehe\";"
+                            "/sub.js": new Blob(["exports.str = \"hehe\";"])
                         })];
                 case 1:
                     rtn = _a.sent();

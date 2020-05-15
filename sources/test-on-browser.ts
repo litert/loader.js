@@ -61,7 +61,7 @@ function loadSeedrandom() {
 
 async function loadMemoryFile() {
     mask.style.display = "flex";
-    let rtn = await loader.requireMemory("main", {
+    let rtn = await loader.requireMemory("/main", {
         "/main.js": `var sub = require("./sub");
         var sr = require("seedrandom");
         function getData(key) {
@@ -78,7 +78,7 @@ async function loadMemoryFile() {
             var rng = sr('abc');
             return rng();
         }`,
-        "/sub.js": `exports.str = "hehe";`
+        "/sub.js": new Blob([`exports.str = "hehe";`])
     });
     mask.style.display = "none";
     if (!rtn) {
