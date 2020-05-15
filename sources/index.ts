@@ -72,7 +72,7 @@ namespace loader {
             let next = async function() {
                 // --- 判断 fetch 是否存在 ---
                 if (typeof fetch !== "function") {
-                    await _loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js");
+                    await loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js");
                 }
                 _ready = true;
                 for (let func of _readyList) {
@@ -219,6 +219,46 @@ namespace loader {
     }
 
     /**
+     * --- 简单 fetch 获取网络数据 ---
+     * @param url 网络地址
+     */
+    export function fetchGet(url: string, init?: RequestInit): Promise<string | null> {
+        return new Promise(function(resolve) {
+            fetch(url, init).then(function(res: Response) {
+                if (res.status === 200 || res.status === 304) {
+                    return res.text();
+                } else {
+                    resolve(null);
+                    return "";
+                }
+            }).then(function(text: string) {
+                resolve(text);
+            }).catch(function(err) {
+                resolve(null);
+            });
+        });
+    }
+
+    /**
+     * --- 加载 script 标签 ---
+     * @param el 在此标签中增加
+     * @param path 增加的 js 文件地址
+     */
+    function loadScript(el: HTMLElement, path: string): Promise<boolean> {
+        return new Promise(function(resolve) {
+            let script = document.createElement("script");
+            script.addEventListener("load", function() {
+                resolve(true);
+            });
+            script.addEventListener("error", function() {
+                resolve(false);
+            })
+            script.src = path;
+            el.appendChild(script);
+        });
+    }
+
+    /**
      * --- 获取并执行 module，仅会执行一次，以后只返回执行结果 ---
      * @param path 
      * @param dirname 
@@ -281,7 +321,7 @@ namespace loader {
                 code = await _blob2Text(blob);
             }
         } else {
-            let text = await _fetch(path + after ?? "");
+            let text = await fetchGet(path + after ?? "");
             if (!text) {
                 return null;
             }
@@ -486,44 +526,6 @@ namespace loader {
         } else {
             return _loaded[path];
         }
-    }
-
-    /**
-     * --- fetch 获取数据 ---
-     * @param path 获取地址
-     */
-    function _fetch(path: string): Promise<string | null> {
-        return new Promise(function(resolve) {
-            fetch(path).then(function(res: Response) {
-                if (res.status === 200 || res.status === 304) {
-                    return res.text();
-                } else {
-                    resolve(null);
-                    return "";
-                }
-            }).then(function(text: string) {
-                resolve(text);
-            }).catch(function(err) {
-                logx("z");
-                resolve(null);
-            });
-        });
-    }
-
-    /**
-     * --- 加载 script 标签 ---
-     * @param el 在此标签中增加
-     * @param path 增加的 js 文件地址
-     */
-    function _loadScript(el: HTMLElement, path: string): Promise<void> {
-        return new Promise(function(resolve) {
-            let script = document.createElement("script");
-            script.addEventListener("load", () => {
-                resolve();
-            });
-            script.src = path;
-            el.appendChild(script);
-        });
     }
 
     /**

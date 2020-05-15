@@ -78,7 +78,7 @@ var loader;
                                         switch (_a.label) {
                                             case 0:
                                                 if (!(typeof fetch !== "function")) return [3, 2];
-                                                return [4, _loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js")];
+                                                return [4, loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js")];
                                             case 1:
                                                 _a.sent();
                                                 _a.label = 2;
@@ -247,6 +247,37 @@ var loader;
         });
     }
     loader.requireMemory = requireMemory;
+    function fetchGet(url, init) {
+        return new Promise(function (resolve) {
+            fetch(url, init).then(function (res) {
+                if (res.status === 200 || res.status === 304) {
+                    return res.text();
+                }
+                else {
+                    resolve(null);
+                    return "";
+                }
+            }).then(function (text) {
+                resolve(text);
+            }).catch(function (err) {
+                resolve(null);
+            });
+        });
+    }
+    loader.fetchGet = fetchGet;
+    function loadScript(el, path) {
+        return new Promise(function (resolve) {
+            var script = document.createElement("script");
+            script.addEventListener("load", function () {
+                resolve(true);
+            });
+            script.addEventListener("error", function () {
+                resolve(false);
+            });
+            script.src = path;
+            el.appendChild(script);
+        });
+    }
     function __getModule(path, dirname, config, partLoaded) {
         if (partLoaded === void 0) { partLoaded = {}; }
         path = _moduleName2Path(path, dirname, config);
@@ -296,7 +327,7 @@ var loader;
                         code = _b.sent();
                         _b.label = 3;
                     case 3: return [3, 6];
-                    case 4: return [4, _fetch((_a = path + after) !== null && _a !== void 0 ? _a : "")];
+                    case 4: return [4, fetchGet((_a = path + after) !== null && _a !== void 0 ? _a : "")];
                     case 5:
                         text = _b.sent();
                         if (!text) {
@@ -481,34 +512,6 @@ var loader;
                         return [2];
                 }
             });
-        });
-    }
-    function _fetch(path) {
-        return new Promise(function (resolve) {
-            fetch(path).then(function (res) {
-                if (res.status === 200 || res.status === 304) {
-                    return res.text();
-                }
-                else {
-                    resolve(null);
-                    return "";
-                }
-            }).then(function (text) {
-                resolve(text);
-            }).catch(function (err) {
-                logx("z");
-                resolve(null);
-            });
-        });
-    }
-    function _loadScript(el, path) {
-        return new Promise(function (resolve) {
-            var script = document.createElement("script");
-            script.addEventListener("load", function () {
-                resolve();
-            });
-            script.src = path;
-            el.appendChild(script);
         });
     }
     function _moduleName2Path(path, dirname, config) {
