@@ -278,6 +278,7 @@ var loader;
             el.appendChild(script);
         });
     }
+    loader.loadScript = loadScript;
     function __getModule(path, dirname, config, partLoaded) {
         if (partLoaded === void 0) { partLoaded = {}; }
         path = _moduleName2Path(path, dirname, config);

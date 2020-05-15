@@ -244,7 +244,7 @@ namespace loader {
      * @param el 在此标签中增加
      * @param path 增加的 js 文件地址
      */
-    function loadScript(el: HTMLElement, path: string): Promise<boolean> {
+    export function loadScript(el: HTMLElement, path: string): Promise<boolean> {
         return new Promise(function(resolve) {
             let script = document.createElement("script");
             script.addEventListener("load", function() {
