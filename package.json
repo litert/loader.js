@@ -1,6 +1,6 @@
 {
   "name": "@litert/loader",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Simple browser module loader.",
   "keywords": [
     "litert",
@@ -26,7 +26,7 @@
   "dependencies": {},
   "devDependencies": {
     "@litert/typeguard": "^1.0.1",
-    "@types/node": "^11.15.7",
-    "typescript": "^3.8.3"
+    "@types/node": "^11.15.20",
+    "typescript": "^3.9.7"
   }
 }

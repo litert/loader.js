@@ -136,4 +136,3 @@ loader.ready(function () {
         tmodule = t;
     });
 });
-//# sourceMappingURL=test-on-browser.js.map

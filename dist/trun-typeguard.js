@@ -27,4 +27,3 @@ console.log(tgc.compile({
         "test": "any"
     }
 }).toString());
-//# sourceMappingURL=trun-typeguard.js.map

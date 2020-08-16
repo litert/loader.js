@@ -10,4 +10,3 @@ console.log("getRequire(\"kk\"): " + tmodule.getRequire("kk"));
 console.log("requireModule3(): " + tmodule.requireModule3());
 console.log("requireModule3(): " + tmodule.requireModule3());
 console.log(module);
-//# sourceMappingURL=test-on-node.js.map

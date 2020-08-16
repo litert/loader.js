@@ -41,7 +41,10 @@ var loader;
     var _ready = false;
     var _readyList = [];
     var _dirname;
-    var _config = {};
+    var _config = {
+        "after": "",
+        "paths": {}
+    };
     var _loaded = {};
     function _run() {
         document.addEventListener("DOMContentLoaded", function () {
@@ -133,10 +136,10 @@ var loader;
     }
     loader.ready = ready;
     function config(config) {
-        if (config.after) {
+        if (config.after !== undefined) {
             _config.after = config.after;
         }
-        if (config.paths) {
+        if (config.paths !== undefined) {
             _config.paths = config.paths;
         }
     }
@@ -300,15 +303,15 @@ var loader;
     }
     loader.__getModule = __getModule;
     function _loadModule(path, dirname, files, config, partLoaded) {
+        var _a;
         if (config === void 0) { config = {}; }
         if (partLoaded === void 0) { partLoaded = {}; }
-        var _a;
         return __awaiter(this, void 0, void 0, function () {
-            var after, inFiles, code, blob, text, data, strict, fdirname, plio, match, reg, match2, reg2, __loaded_amd, __loadedLength_amd, __config, __partLoaded, requireFunc, defineFunc, runLastAmdFunc;
+            var after, inFiles, code, blob, text, data, strict, fdirname_1, plio, match, reg, list_1, match2, reg2, __loaded_amd, __loadedLength_amd, __config, __partLoaded, requireFunc, defineFunc, runLastAmdFunc;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        after = config.after || _config.after;
+                        after = config.after !== undefined ? config.after : _config.after;
                         inFiles = false;
                         path = _moduleName2Path(path, dirname, config);
                         if (partLoaded[path]) {
@@ -356,53 +359,64 @@ var loader;
                                 "param": [config, partLoaded]
                             };
                         }
-                        return [3, 16];
+                        return [3, 15];
                     case 7:
                         strict = "";
                         if (code.indexOf("\"use strict\"") !== -1) {
                             strict = "\"use strict\"\n";
                             code = code.replace(/"use strict"\n?/, "");
                         }
-                        fdirname = "";
+                        fdirname_1 = "";
                         plio = path.lastIndexOf("/");
                         if (plio !== -1) {
-                            fdirname = path.slice(0, plio);
+                            fdirname_1 = path.slice(0, plio);
                         }
                         match = void 0;
                         reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
-                        _b.label = 8;
-                    case 8:
-                        if (!(match = reg.exec(code))) return [3, 10];
-                        return [4, _loadModule(match[1], fdirname, files, config, partLoaded)];
-                    case 9:
-                        if (!(_b.sent())) {
-                            return [3, 8];
+                        list_1 = [];
+                        while (match = reg.exec(code)) {
+                            list_1.push(match[1]);
                         }
-                        return [3, 8];
-                    case 10:
+                        if (!(list_1.length > 0)) return [3, 9];
+                        return [4, new Promise(function (resolve) {
+                                var now = 0;
+                                for (var _i = 0, list_2 = list_1; _i < list_2.length; _i++) {
+                                    var item = list_2[_i];
+                                    _loadModule(item, fdirname_1, files, config, partLoaded).then(function () {
+                                        ++now;
+                                        if (now === list_1.length) {
+                                            resolve();
+                                        }
+                                    });
+                                }
+                            })];
+                    case 8:
+                        _b.sent();
+                        _b.label = 9;
+                    case 9:
                         reg = /define.+?\[(.+?)\]/g;
-                        _b.label = 11;
-                    case 11:
-                        if (!(match = reg.exec(code))) return [3, 15];
+                        _b.label = 10;
+                    case 10:
+                        if (!(match = reg.exec(code))) return [3, 14];
                         match2 = void 0;
                         reg2 = /["'](.+?)["']/g;
-                        _b.label = 12;
-                    case 12:
-                        if (!(match2 = reg2.exec(match[1]))) return [3, 14];
+                        _b.label = 11;
+                    case 11:
+                        if (!(match2 = reg2.exec(match[1]))) return [3, 13];
                         if (match2[1] === "require" || match2[1] === "exports") {
-                            return [3, 12];
+                            return [3, 11];
                         }
                         if ((new RegExp("define.+?[\"']" + match2[1] + "[\"']")).test(code)) {
-                            return [3, 12];
+                            return [3, 11];
                         }
-                        return [4, _loadModule(match2[1], fdirname, files, config, partLoaded)];
-                    case 13:
+                        return [4, _loadModule(match2[1], fdirname_1, files, config, partLoaded)];
+                    case 12:
                         if (!(_b.sent())) {
-                            return [3, 12];
+                            return [3, 11];
                         }
-                        return [3, 12];
-                    case 14: return [3, 11];
-                    case 15:
+                        return [3, 11];
+                    case 13: return [3, 10];
+                    case 14:
                         __loaded_amd = {};
                         __loadedLength_amd = 0;
                         __config = {};
@@ -485,7 +499,7 @@ var loader;
                             }
                             module.exports = require(name);
                         }).toString();
-                        code = strict + "\n            var __dirname = \"" + fdirname + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + code + "\n            \n            __runLast_amd();\n            return module.exports;";
+                        code = strict + "\n            var __dirname = \"" + fdirname_1 + "\";\n            var __filename = \"" + path + "\";\n            var module = {\n                exports: {}\n            };\n            var exports = module.exports;\n            var __loaded_amd = {};\n            var __loadedLength_amd = 0;\n\n            " + requireFunc + "\n            " + defineFunc + "\n            " + runLastAmdFunc + "\n\n            " + code + "\n            \n            __runLast_amd();\n            return module.exports;";
                         if (inFiles) {
                             partLoaded[path] = {
                                 "first": false,
@@ -502,8 +516,8 @@ var loader;
                                 "param": [config, partLoaded]
                             };
                         }
-                        _b.label = 16;
-                    case 16:
+                        _b.label = 15;
+                    case 15:
                         if (inFiles) {
                             return [2, partLoaded[path]];
                         }
@@ -568,4 +582,3 @@ var loader;
     }
     _run();
 })(loader || (loader = {}));
-//# sourceMappingURL=index.js.map

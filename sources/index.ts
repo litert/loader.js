@@ -1,7 +1,7 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52
+ * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52, 2020-8-16 14:41:15
  */
 
 // terser dist/index.js -o dist/index.min.js
@@ -35,7 +35,10 @@ namespace loader {
     let _dirname: string;
 
     /** --- 配置项 --- */
-    let _config: IConfig = {};
+    let _config: IConfig = {
+        "after": "",
+        "paths": {}
+    };
 
     /** --- 已加载的模块列表 --- */
     let _loaded: {
@@ -112,10 +115,10 @@ namespace loader {
      * @param config 配置项
      */
     export function config(config: IConfig): void {
-        if (config.after) {
+        if (config.after !== undefined) {
             _config.after = config.after;
         }
-        if (config.paths) {
+        if (config.paths !== undefined) {
             _config.paths = config.paths;
         }
     }
@@ -293,13 +296,10 @@ namespace loader {
      * @param path 模块地址、模块名或 code
      * @param dirname 当前目录地址
      */
-    async function _loadModule(path: string, dirname: string, files?: Record<string, Blob | string>, config: {
-        "after"?: string;
-        "paths"?: IPaths
-    } = {}, partLoaded: {
+    async function _loadModule(path: string, dirname: string, files?: Record<string, Blob | string>, config: IConfig = {}, partLoaded: {
         [path: string]: IModule;
     } = {}): Promise<IModule | null> {
-        let after = config.after || _config.after;
+        let after = config.after !== undefined ? config.after : _config.after;
         let inFiles: boolean = false;
         // --- parse module 的 path  ---
         path = _moduleName2Path(path, dirname, config);
@@ -361,13 +361,25 @@ namespace loader {
             if (plio !== -1) {
                 fdirname = path.slice(0, plio);
             }
-            // --- 提取本文件的所有 require 同步函数并加载 ---
+            // --- 提取本文件的所有 require 同步函数并并行加载 ---
             let match;
             let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
+            let list: string[] = [];
             while (match = reg.exec(code)) {
-                if (!await _loadModule(match[1], fdirname, files, config, partLoaded)) {
-                    continue;
-                }
+                list.push(match[1]);
+            }
+            if (list.length > 0) {
+                await new Promise(function(resolve) {
+                    let now = 0;
+                    for (let item of list) {
+                        _loadModule(item, fdirname, files, config, partLoaded).then(() => {
+                            ++now;
+                            if (now === list.length) {
+                                resolve();
+                            }
+                        });
+                    }
+                });
             }
             // --- 提取 define 的 ---
             reg = /define.+?\[(.+?)\]/g;
@@ -533,10 +545,7 @@ namespace loader {
      * @param path 原 path
      * @param dirname 相对 __dirname
      */
-    function _moduleName2Path(path: string, dirname: string, config: {
-        "after"?: string;
-        "paths"?: IPaths
-    } = {}): string {
+    function _moduleName2Path(path: string, dirname: string, config: IConfig = {}): string {
         let paths = config.paths || _config.paths;
         // --- 查询是否有映射 ---
         if (paths && paths[path]) {

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.requireModule3 = exports.getRequire = exports.getJson = exports.getData = void 0;
 var tmodule2 = require("./tmodule2");
 var tjson = require("./tjson.json");
 function getData(key) {
@@ -21,4 +22,3 @@ function requireModule3() {
     return t3.getNum();
 }
 exports.requireModule3 = requireModule3;
-//# sourceMappingURL=tmodule.js.map

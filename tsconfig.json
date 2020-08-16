@@ -2,13 +2,14 @@
     "compilerOptions": {
         "module": "CommonJS",
         "removeComments": true,
-        "preserveConstEnums": true,
+        "preserveConstEnums": true, // 保留 const 和 enum 声明
         "outDir": "dist/",
-        "sourceMap": true,
-        "target": "es5",
-        "strict": true,
+        "sourceMap": false,
+        "target": "ES5",
+        "strict": true,             // 严格模式
         "declaration": true,        // d.ts
         "declarationMap": false,
-        "newLine": "LF"
+        "newLine": "LF",
+        "lib": ["DOM", "ES5", "ES2015.Iterable", "ScriptHost", "ES2015.Promise"]
     }
 }
