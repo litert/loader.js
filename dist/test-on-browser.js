@@ -67,14 +67,6 @@ function runTypeGuard() {
         mask.style.display = "none";
     });
 }
-function loadAmd() {
-    mask.style.display = "flex";
-    loader.require("tamd", function (t) {
-        mask.style.display = "none";
-        console.log(t);
-        alert("getTm2Num(): " + t.getTm2Num());
-    });
-}
 function loadSeedrandom() {
     mask.style.display = "flex";
     loader.require("seedrandom", function (sr) {
@@ -83,6 +75,12 @@ function loadSeedrandom() {
         console.log(rng());
         rng = sr();
         console.log(rng());
+    });
+}
+function loop() {
+    mask.style.display = "flex";
+    loader.require("../dist/tloop", function () {
+        mask.style.display = "none";
     });
 }
 function loadMemoryFile() {

@@ -9,9 +9,10 @@
 
 // --- 使用 loader 库则会自动支持 fetch、Promise，无需再做相关兼容性支持 ---
 
+/** --- 配置项 --- */
 interface IConfig {
     "after"?: string;
-    "paths"?: IPaths
+    "paths"?: IPaths;
 }
 
 interface IPaths {
@@ -22,25 +23,21 @@ interface IModule {
     "first": boolean;
     "func": string;
     "object": any;
-    "param": any[];
 }
 
 namespace loader {
 
     /** --- 是否已加载完成 --- */
-    let _ready: boolean = false;
+    let _isReady: boolean = false;
     /** --- 注册的 ready 事件 --- */
-    let _readyList: (() => void)[] = [];
-    // --- 当前 js 作用域网址路径 ---
-    let _dirname: string;
+    let _readys: (() => void)[] = [];
+    /** --- 当前 js 运行的作用域网址路径（非 JS 的文件路径），末尾不以 / 结尾 --- */
+    let _dir: string;
 
-    /** --- 配置项 --- */
-    let _config: IConfig = {
-        "after": "",
-        "paths": {}
-    };
+    /** --- 全局配置项 --- */
+    let _config: IConfig = {};
 
-    /** --- 已加载的模块列表 --- */
+    /** --- 网络上已加载的模块列表 --- */
     let _loaded: {
         [path: string]: IModule;
     } = {};
@@ -53,10 +50,10 @@ namespace loader {
         document.addEventListener("DOMContentLoaded", async function() {
             // --- 设置当前网址路径 ---
             if (window.location.href[window.location.href.length - 1] === "/") {
-                _dirname = window.location.href.slice(0, -1);
+                _dir = window.location.href.slice(0, -1);
             } else {
                 let lio = window.location.href.lastIndexOf("/");
-                _dirname = window.location.href.slice(0, lio);
+                _dir = window.location.href.slice(0, lio);
             }
             // --- 判断 Promise 是否存在 ---
             let hasPromise = true;
@@ -77,8 +74,8 @@ namespace loader {
                 if (typeof fetch !== "function") {
                     await loadScript(document.getElementsByTagName("head")[0], "https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js");
                 }
-                _ready = true;
-                for (let func of _readyList) {
+                _isReady = true;
+                for (let func of _readys) {
                     func();
                 }
             };
@@ -103,10 +100,10 @@ namespace loader {
      * @param callback 回调函数
      */
     export function ready(callback: () => void): void {
-        if (_ready) {
+        if (_isReady) {
             callback();
         } else {
-            _readyList.push(callback);
+            _readys.push(callback);
         }
     }
 
@@ -155,7 +152,7 @@ namespace loader {
     }
 
     /**
-     * --- 返回已经加载的模块地址列表 ---
+     * --- 返回已经加载的网络模块地址列表 ---
      */
     export function getLoadedPaths(): string[] {
         let paths: string[] = [];
@@ -169,23 +166,23 @@ namespace loader {
      * --- 用户调用通过网络加载一个模块，这是用户在 js 中主动调用的加载模块的函数 ---
      * @param path 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param callback 成功回调
-     * @param error 失败回调
+     * @param opt 选项
      */
-    export async function require(paths: string | string[], callback: (...input: any[]) => void = function() {}, error: (path: string) => void = function() {}): Promise<any[] | null> {
+    export async function require(paths: string | string[], callback: (...input: any[]) => void = function() {}, error?: (path: string) => void): Promise<any[] | null> {
         if (typeof paths === "string") {
             paths = [paths];
         }
         // --- callback 时返回的模块对象列表 ---
         let input: any[] = [];
         for (let path of paths) {
-            let module = await _loadModule(path, _dirname);
+            let module = await _loadModule(path, _dir, {}, {});
             if (!module) {
-                error(path);
+                error && error(path);
                 return null;
             }
             if (!module.first) {
                 module.first = true;
-                module.object = (new Function("__config", "__partLoaded", module.func))(module.param[0], module.param[1]);
+                module.object = (new Function("__filesLoaded", module.func))({});
             }
             input.push(module.object);
         }
@@ -198,23 +195,21 @@ namespace loader {
      * @param path 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param files 基准路径或文件序列，用以加载子模型
      */
-    export async function requireMemory(paths: string | string[], files: Record<string, Blob | string>, config: {
-        "after"?: string;
-        "paths"?: IPaths
-    } = {}): Promise<any[] | null> {
+    export async function requireMemory(paths: string | string[], files: Record<string, Blob | string>): Promise<any[] | null> {
         if (typeof paths === "string") {
             paths = [paths];
         }
         // --- callback 时返回的模块对象列表 ---
         let input: any[] = [];
+        let filesLoaded = {};
         for (let path of paths) {
-            let module = await _loadModule(path, "", files, config);
+            let module = await _loadModule(path, "", files, filesLoaded);
             if (!module) {
                 return null;
             }
             if (!module.first) {
                 module.first = true;
-                module.object = (new Function("__config", "__partLoaded", module.func))(module.param[0], module.param[1]);
+                module.object = (new Function("__filesLoaded", module.func))(filesLoaded);
             }
             input.push(module.object);
         }
@@ -266,16 +261,13 @@ namespace loader {
      * @param path 
      * @param dirname 
      */
-    export function __getModule(path: string, dirname: string, config?: {
-        "after"?: string;
-        "paths"?: IPaths
-    }, partLoaded: {
+    export function __getModule(path: string, dirname: string, filesLoaded: {
         [path: string]: IModule;
-    } = {}): any {
-        path = _moduleName2Path(path, dirname, config);
+    }): any {
+        path = _moduleName2Path(path, dirname);
         let module!: IModule;
-        if (partLoaded[path]) {
-            module = partLoaded[path];
+        if (filesLoaded[path]) {
+            module = filesLoaded[path];
         } else if (_loaded[path]) {
             module = _loaded[path];
         }
@@ -284,7 +276,12 @@ namespace loader {
         }
         if (!module.first) {
             module.first = true;
-            module.object = (new Function("__config", "__partLoaded", module.func))(module.param[0], module.param[1]);
+            module.object = (new Function("__filesLoaded", module.func))(filesLoaded);
+        } else {
+            if (!module.object) {
+                console.log("Loop containment is prohibited.");
+                return {};
+            }
         }
         return module.object;
     }
@@ -294,20 +291,20 @@ namespace loader {
     /**
      * --- 通过网络、内存加载 module 但不自动执行，已经加载过的不会重新加载 ---
      * @param path 模块地址、模块名或 code
-     * @param dirname 当前目录地址
+     * @param dir 当前目录地址
+     * @param files 内存中的文件列表
+     * @param filesLoaded files 中的代替 _loaded 的作用
      */
-    async function _loadModule(path: string, dirname: string, files?: Record<string, Blob | string>, config: IConfig = {}, partLoaded: {
+    async function _loadModule(path: string, dir: string, files: Record<string, Blob | string> = {}, filesLoaded: {
         [path: string]: IModule;
-    } = {}): Promise<IModule | null> {
-        let after = config.after !== undefined ? config.after : _config.after;
+    }): Promise<IModule | null> {
         let inFiles: boolean = false;
         // --- parse module 的 path  ---
-        path = _moduleName2Path(path, dirname, config);
+        path = _moduleName2Path(path, dir);
         // --- 判断是否加载过 ---
-        if (partLoaded[path]) {
-            return partLoaded[path];
-        }
-        if (_loaded[path]) {
+        if (filesLoaded[path]) {
+            return filesLoaded[path];
+        } else if (_loaded[path]) {
             return _loaded[path];
         }
         // --- 加载文件 ---
@@ -321,7 +318,7 @@ namespace loader {
                 code = await _blob2Text(blob);
             }
         } else {
-            let text = await fetchGet(path + after ?? "");
+            let text = await fetchGet(path + _config.after ?? "");
             if (!text) {
                 return null;
             }
@@ -331,24 +328,39 @@ namespace loader {
         code = code.replace(/^\s+|\s+$/g, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n");
         if (code[0] === "{" && code[code.length - 1] === "}") {
             // --- json 文件 ---
-            let data = JSON.parse(code);
-            if (inFiles) {
-                partLoaded[path] = {
-                    "first": true,
-                    "func": "",
-                    "object": data,
-                    "param": [config, partLoaded]
-                };
-            } else {
-                _loaded[path] = {
-                    "first": true,
-                    "func": "",
-                    "object": data,
-                    "param": [config, partLoaded]
-                };
+            try {
+                let data = JSON.parse(code);
+                if (inFiles) {
+                    filesLoaded[path] = {
+                        "first": true,
+                        "func": "",
+                        "object": data
+                    };
+                } else {
+                    _loaded[path] = {
+                        "first": true,
+                        "func": "",
+                        "object": data
+                    };
+                }
+            } catch {
+                return null;
             }
         } else {
             // --- js 文件 ---
+            if (inFiles) {
+                filesLoaded[path] = {
+                    "first": false,
+                    "func": "",
+                    "object": null
+                };
+            } else {
+                _loaded[path] = {
+                    "first": false,
+                    "func": "",
+                    "object": null
+                };
+            }
             // --- 先去除严格模式字符串 ---
             let strict = ``;
             if (code.indexOf(`"use strict"`) !== -1) {
@@ -361,6 +373,8 @@ namespace loader {
             if (plio !== -1) {
                 fdirname = path.slice(0, plio);
             }
+            // --- 处理 sourceMap ---
+            code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${fdirname}/$1`);
             // --- 提取本文件的所有 require 同步函数并并行加载 ---
             let match;
             let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
@@ -372,7 +386,7 @@ namespace loader {
                 await new Promise(function(resolve) {
                     let now = 0;
                     for (let item of list) {
-                        _loadModule(item, fdirname, files, config, partLoaded).then(() => {
+                        _loadModule(item, fdirname, files, filesLoaded).then(() => {
                             ++now;
                             if (now === list.length) {
                                 resolve();
@@ -381,122 +395,6 @@ namespace loader {
                     }
                 });
             }
-            // --- 提取 define 的 ---
-            reg = /define.+?\[(.+?)\]/g;
-            while (match = reg.exec(code)) {
-                let match2;
-                let reg2 = /["'](.+?)["']/g;
-                while (match2 = reg2.exec(match[1])) {
-                    if (match2[1] === "require" || match2[1] === "exports") {
-                        continue;
-                    }
-                    if ((new RegExp(`define.+?["']${match2[1]}["']`)).test(code)) {
-                        continue;
-                    }
-                    if (!await _loadModule(match2[1], fdirname, files, config, partLoaded)) {
-                        continue;
-                    }
-                }
-            }
-
-            // --- 组成当前文件的执行 function 字符串 ---
-            var __loaded_amd: {
-                [key: string]: IModule;
-            } = {};
-            var __loadedLength_amd = 0;
-            var __config = {};
-            var __partLoaded = {};
-
-            /** --- 模块内部使用的 require 同步方法，模块已经被提前异步加载过 --- */
-            let requireFunc = (function require(path: string): any {
-                // --- 判断是加别的模块，还是本文件的模块 ---
-                if (__loaded_amd[path]) {
-                    // --- 加载本文件的模块 ---
-                    if (!__loaded_amd[path].first) {
-                        __loaded_amd[path].first = true;
-                        let ex = {};
-                        __loaded_amd[path].object = (new Function("require", "exports", __loaded_amd[path].func))(require, ex);
-                        if (!__loaded_amd[path].object) {
-                            __loaded_amd[path].object = ex;
-                        }
-                    }
-                    return __loaded_amd[path].object;
-                } else {
-                    let m = loader.__getModule(path, __dirname, __config, __partLoaded);
-                    if (m) {
-                        return m;
-                    } else {
-                        throw "Failed require.";
-                    }
-                }
-            }).toString();
-
-            /** --- AMD 模块异步加载器，name 可能还未加载 --- */
-            let defineFunc = (function define(name: any, input?: any, callback?: any): void {
-                // --- 这里面是定义阶段就会执行的 ---
-                // --- define('xx', ['xxx'], (xxx) => {}); ---
-                // --- callback 不一定立马执行 ---
-                ++__loadedLength_amd;
-                if (Array.isArray(name)) {
-                    // --- ['xx'], (xx) => {} ---
-                    callback = input;
-                    input = name;
-                    name = "";
-                } else if (typeof name === "function") {
-                    // --- () => {} ---
-                    callback = name;
-                    input = [];
-                    name = "";
-                } else if (typeof input === "function") {
-                    // --- 'name', () => {} ---
-                    callback = input;
-                    input = [];
-                }
-                // --- 'name', ['xx'], (xx) => {} ---
-                if (name === "") {
-                    name = "#";
-                }
-                // --- 添加定义到列表 ---
-                let param: string[] = [];
-                let match = /\(([\s\S]*?)\)[\s\S]*?{([\s\S]*)}/.exec(callback.toString());
-                let paramReg = /\w+/g;
-                let paramMatch;
-                while (paramMatch = paramReg.exec(match![1])) {
-                    param.push(paramMatch[0]);
-                }
-                let func = match![2].replace(/^\s+|\s+$/g, "");
-                for (let i = 0; i < input.length; ++i) {
-                    if (input[i] === "require" || input[i] === "exports") {
-                        continue;
-                    }
-                    func = "var " + param[i] + " = require('" + input[i] + "');\n" + func;
-                }
-                __loaded_amd[name] = {
-                    "first": false,
-                    "func": func,
-                    "object": null,
-                    "param": [__config, __partLoaded]
-                };
-            }).toString();
-
-            /** --- 模块文件结束时执行的，只有 define 有定义才会做处理 --- */
-            let runLastAmdFunc = (function __runLast_amd(): void {
-                // --- 此函数在 amd 结尾时执行，仅执行
-                if (__loadedLength_amd === 0) {
-                    return;
-                }
-                // --- 判断是否有要执行的模块，顺序为无名模块，没有则执行 index 模块 ---
-                let name = "";
-                if (__loaded_amd["#"]) {
-                    name = "#"
-                } else if (__loaded_amd["index"]) {
-                    name = "index";
-                }
-                if (name === "") {
-                    return;
-                }
-                module.exports = require(name);
-            }).toString();
 
             // --- 组合最终 function 的字符串 ---
             code = `${strict}
@@ -506,35 +404,27 @@ namespace loader {
                 exports: {}
             };
             var exports = module.exports;
-            var __loaded_amd = {};
-            var __loadedLength_amd = 0;
 
-            ${requireFunc}
-            ${defineFunc}
-            ${runLastAmdFunc}
+            function require(path) {
+                var m = loader.__getModule(path, __dirname, __filesLoaded);
+                if (m) {
+                    return m;
+                } else {
+                    throw "Failed require.";
+                }
+            }
 
             ${code}
-            
-            __runLast_amd();
+
             return module.exports;`;
             if (inFiles) {
-                partLoaded[path] = {
-                    "first": false,
-                    "func": code,
-                    "object": null,
-                    "param": [config, partLoaded]
-                };
+                filesLoaded[path].func = code;
             } else {
-                _loaded[path] = {
-                    "first": false,
-                    "func": code,
-                    "object": null,
-                    "param": [config, partLoaded]
-                };
+                _loaded[path].func = code;
             }
         }
         if (inFiles) {
-            return partLoaded[path];
+            return filesLoaded[path];
         } else {
             return _loaded[path];
         }
@@ -545,8 +435,8 @@ namespace loader {
      * @param path 原 path
      * @param dirname 相对 __dirname
      */
-    function _moduleName2Path(path: string, dirname: string, config: IConfig = {}): string {
-        let paths = config.paths || _config.paths;
+    function _moduleName2Path(path: string, dirname: string): string {
+        let paths = _config.paths;
         // --- 查询是否有映射 ---
         if (paths && paths[path]) {
             path = paths[path];
@@ -563,15 +453,8 @@ namespace loader {
         // --- 去除 ./ ---
         path = path.replace(/\/\.\//g, "/");
         // --- 去除 ../ ---
-        while (true) {
-            let count = 0;
-            path = path.replace(/\/(?!\.\.)[^\/]+\/\.\.\//, function(s: string): string {
-                ++count;
-                return "/";
-            });
-            if (count === 0) {
-                break;
-            }
+        while (/\/(?!\.\.)[^/]+\/\.\.\//.test(path)) {
+            path = path.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
         }
         // --- 看是否要增加 .js ---
         if (path.slice(-5) !== ".json" && path.slice(-3) !== ".js") {
