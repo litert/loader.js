@@ -4,7 +4,6 @@
  * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52, 2020-8-16 14:41:15
  */
 
-// terser dist/index.js -o dist/index.min.js
 // npm publish --access=public
 
 // --- 使用 loader 库则会自动支持 fetch、Promise，无需再做相关兼容性支持 ---
