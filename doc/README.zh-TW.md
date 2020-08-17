@@ -20,8 +20,8 @@
 - [x] 無侵入，不會對您的 script 引入的其他庫造成任何影響。  
 - [x] 支援 CommonJS 格式的 node 模組。  
 - [x] 自動支援 fetch 函數，無需額外載入。
-- [x] The Promise object is automatically supported if not in the browser.  
-- [x] Supports running code in memory.
+- [x] 自動支 Promise 物件，無需額外載入。  
+- [x] 支援直接運行記憶體檔案代碼。
 
 ## 安裝
 
