@@ -110,7 +110,7 @@ loader.ready(function() {
         "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/",
         "seedrandom": "https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min"
     });
-    // loader.setAfter("?" + Math.random());
+    loader.setAfter("?" + Math.random());
     loader.require("../dist/tmodule", function(t: any) {
         mask.style.display = "none";
         tmodule = t;
