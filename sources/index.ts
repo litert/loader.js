@@ -317,7 +317,7 @@ namespace loader {
                 code = await _blob2Text(blob);
             }
         } else {
-            let text = await fetchGet(path + _config.after ?? "");
+            let text = await fetchGet(path + (_config.after ?? ""));
             if (!text) {
                 return null;
             }

@@ -330,7 +330,7 @@ var loader;
                         code = _b.sent();
                         _b.label = 3;
                     case 3: return [3, 6];
-                    case 4: return [4, fetchGet((_a = path + _config.after) !== null && _a !== void 0 ? _a : "")];
+                    case 4: return [4, fetchGet(path + ((_a = _config.after) !== null && _a !== void 0 ? _a : ""))];
                     case 5:
                         text = _b.sent();
                         if (!text) {
