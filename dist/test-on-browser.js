@@ -41,7 +41,7 @@ var mask;
 var tmodule;
 var logx = console.log;
 console.log = function (msg) {
-    consoleEl.innerHTML += "<div class=\"cl\">" + (typeof msg === "string" ? msg : JSON.stringify(msg, undefined, 4)) + "</div>";
+    consoleEl.innerHTML += "<div class='cl'>" + (typeof msg === 'string' ? msg : JSON.stringify(msg, undefined, 4)) + "</div>";
 };
 function getData() {
     alert(tmodule.getData(keyInput.value));
@@ -56,31 +56,31 @@ function requireModule3() {
     alert(tmodule.requireModule3());
 }
 function runTestOnNode() {
-    mask.style.display = "flex";
-    loader.require("../dist/test-on-node", function () {
-        mask.style.display = "none";
+    mask.style.display = 'flex';
+    loader.require('../dist/test-on-node', function () {
+        mask.style.display = 'none';
     });
 }
 function runTypeGuard() {
-    mask.style.display = "flex";
-    loader.require("../dist/trun-typeguard", function () {
-        mask.style.display = "none";
+    mask.style.display = 'flex';
+    loader.require('../dist/trun-typeguard', function () {
+        mask.style.display = 'none';
     });
 }
 function loadSeedrandom() {
-    mask.style.display = "flex";
-    loader.require("seedrandom", function (sr) {
-        mask.style.display = "none";
-        var rng = sr("hello");
+    mask.style.display = 'flex';
+    loader.require('seedrandom', function (sr) {
+        mask.style.display = 'none';
+        var rng = sr('hello');
         console.log(rng());
         rng = sr();
         console.log(rng());
     });
 }
 function loop() {
-    mask.style.display = "flex";
-    loader.require("../dist/tloop", function () {
-        mask.style.display = "none";
+    mask.style.display = 'flex';
+    loader.require('../dist/tloop', function () {
+        mask.style.display = 'none';
     });
 }
 function loadMemoryFile() {
@@ -89,20 +89,20 @@ function loadMemoryFile() {
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    mask.style.display = "flex";
-                    return [4, loader.requireMemory("/main", {
-                            "/main.js": "var sub = require(\"./sub\");\n        var sr = require(\"seedrandom\");\n        function getData(key) {\n            return key + \", end.\";\n        }\n        exports.getData = getData;\n\n        function getSubStr() {\n            return sub.str;\n        }\n        exports.getSubStr = getSubStr;\n        \n        exports.getRand = function() {\n            var rng = sr('abc');\n            return rng();\n        }",
-                            "/sub.js": new Blob(["exports.str = \"hehe\";"])
+                    mask.style.display = 'flex';
+                    return [4, loader.requireMemory('/main', {
+                            '/main.js': "var sub = require('./sub');\n        var sr = require('seedrandom');\n        function getData(key) {\n            return key + ', end.';\n        }\n        exports.getData = getData;\n\n        function getSubStr() {\n            return sub.str;\n        }\n        exports.getSubStr = getSubStr;\n        \n        exports.getRand = function() {\n            var rng = sr('abc');\n            return rng();\n        }",
+                            '/sub.js': new Blob(['exports.str = "hehe";'])
                         })];
                 case 1:
                     rtn = _a.sent();
-                    mask.style.display = "none";
+                    mask.style.display = 'none';
                     if (!rtn) {
-                        console.log("Load memory file failed.");
+                        console.log('Load memory file failed.');
                         return [2];
                     }
                     main = rtn[0];
-                    console.log(main.getData("rand: " + Math.random()));
+                    console.log(main.getData('rand: ' + Math.random()));
                     console.log(main.getSubStr());
                     console.log(main.getRand());
                     return [2];
@@ -115,22 +115,30 @@ function getLoadedPaths() {
 }
 function setRandomAfter() {
     var rand = Math.random().toString();
-    loader.config({
-        "after": "?" + rand
-    });
-    console.log("Set up to '?" + rand + "'.");
+    loader.setAfter('?' + rand);
+    console.log('Set up to "?' + rand + '".');
 }
 loader.ready(function () {
-    keyInput = document.getElementById("key");
-    consoleEl = document.getElementById("console");
-    mask = document.getElementById("mask");
-    loader.setPaths({
-        "@litert/typeguard": "https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/",
-        "seedrandom": "https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min"
-    });
-    loader.setAfter("?" + Math.random());
-    loader.require("../dist/tmodule", function (t) {
-        mask.style.display = "none";
-        tmodule = t;
+    return __awaiter(this, void 0, void 0, function () {
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    keyInput = document.getElementById('key');
+                    consoleEl = document.getElementById('console');
+                    mask = document.getElementById('mask');
+                    loader.setPaths({
+                        '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/',
+                        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                    });
+                    loader.setAfter('?' + Math.random());
+                    return [4, loader.require('../dist/tmodule', function (t) {
+                            mask.style.display = 'none';
+                            tmodule = t;
+                        })];
+                case 1:
+                    _a.sent();
+                    return [2];
+            }
+        });
     });
 });
