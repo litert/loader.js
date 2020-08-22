@@ -50,13 +50,23 @@ const loader: ILoader = {
                 }
                 this.isReady = true;
                 for (let func of this.readys) {
-                    func() as unknown;
+                    const rtn = func();
+                    if (rtn instanceof Promise) {
+                        rtn.catch((e) => {
+                            throw e;
+                        });
+                    }
                 }
             };
             if (!hasPromise) {
                 let script = document.createElement('script');
                 script.addEventListener('load', function() {
-                    next() as unknown;
+                    const rtn = next();
+                    if (rtn instanceof Promise) {
+                        rtn.catch((e) => {
+                            throw e;
+                        });
+                    }
                 });
                 script.addEventListener('error', function() {
                     alert('Network error.');
@@ -65,7 +75,12 @@ const loader: ILoader = {
                 document.getElementsByTagName('head')[0].appendChild(script);
             }
             else {
-                next() as unknown;
+                const rtn = next();
+                if (rtn instanceof Promise) {
+                    rtn.catch((e) => {
+                        throw e;
+                    });
+                }
             }
         };
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
@@ -79,7 +94,12 @@ const loader: ILoader = {
 
     ready: function(callback: () => void | Promise<void>): void {
         if (this.isReady) {
-            callback() as unknown;
+            const rtn = callback();
+            if (rtn instanceof Promise) {
+                rtn.catch((e) => {
+                    throw e;
+                });
+            }
         }
         else {
             this.readys.push(callback);

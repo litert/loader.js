@@ -66,7 +66,7 @@ var loader = {
                 }
             }
             var next = function () { return __awaiter(_this, void 0, void 0, function () {
-                var _i, _a, func;
+                var _i, _a, func, rtn;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -79,7 +79,12 @@ var loader = {
                             this.isReady = true;
                             for (_i = 0, _a = this.readys; _i < _a.length; _i++) {
                                 func = _a[_i];
-                                func();
+                                rtn = func();
+                                if (rtn instanceof Promise) {
+                                    rtn.catch(function (e) {
+                                        throw e;
+                                    });
+                                }
                             }
                             return [2];
                     }
@@ -88,7 +93,12 @@ var loader = {
             if (!hasPromise) {
                 var script = document.createElement('script');
                 script.addEventListener('load', function () {
-                    next();
+                    var rtn = next();
+                    if (rtn instanceof Promise) {
+                        rtn.catch(function (e) {
+                            throw e;
+                        });
+                    }
                 });
                 script.addEventListener('error', function () {
                     alert('Network error.');
@@ -97,7 +107,12 @@ var loader = {
                 document.getElementsByTagName('head')[0].appendChild(script);
             }
             else {
-                next();
+                var rtn = next();
+                if (rtn instanceof Promise) {
+                    rtn.catch(function (e) {
+                        throw e;
+                    });
+                }
             }
         };
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
@@ -109,7 +124,12 @@ var loader = {
     },
     ready: function (callback) {
         if (this.isReady) {
-            callback();
+            var rtn = callback();
+            if (rtn instanceof Promise) {
+                rtn.catch(function (e) {
+                    throw e;
+                });
+            }
         }
         else {
             this.readys.push(callback);

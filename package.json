@@ -1,6 +1,6 @@
 {
   "name": "@litert/loader",
-  "version": "1.0.0-beta",
+  "version": "1.0.1",
   "description": "Simple browser module loader.",
   "keywords": [
     "litert",

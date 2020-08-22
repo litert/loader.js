@@ -114,3 +114,5 @@ interface ILoaderModule {
     'func': string;
     'object': any;
 }
+
+// declare let loader: ILoader;
