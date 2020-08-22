@@ -1,13 +1,13 @@
 # LiteRT/Loader
 
-[![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
-[![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")
-[![npm version](https://img.shields.io/npm/v/@litert/loader/beta.svg)](https://www.npmjs.com/package/@litert/loader "Beta Version")
-[![License](https://img.shields.io/github/license/litert/loader.js.svg)](https://github.com/litert/loader.js/blob/master/LICENSE)
-[![node](https://img.shields.io/node/v/@litert/loader.svg?colorB=brightgreen)](https://nodejs.org/dist/latest-v12.x/)
-[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js.svg)](https://github.com/litert/loader.js/issues)
-[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js.svg)](https://github.com/litert/loader.js/releases "Stable Release")
-[![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader.js/all.svg)](https://github.com/litert/loader.js/releases "Pre-Release")
+[![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
+[![npm version](https://img.shields.io/npm/v/@litert/loader/dev)](https://www.npmjs.com/package/@litert/loader "Development Version")
+[![npm version](https://img.shields.io/npm/v/@litert/loader/beta)](https://www.npmjs.com/package/@litert/loader "Beta Version")
+[![License](https://img.shields.io/github/license/litert/loader.js)](https://github.com/litert/loader.js/blob/master/LICENSE)
+[![node](https://img.shields.io/node/v/@litert/loader?colorB=brightgreen)](https://nodejs.org/dist/latest-v12.x/)
+[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js)](https://github.com/litert/loader.js/issues)
+[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js)](https://github.com/litert/loader.js/releases "Stable Release")
+[![GitHub including pre-releases](https://img.shields.io/github/v/release/litert/loader.js?include_prereleases)](https://github.com/litert/loader.js/releases "Pre-Release")
 
 Simple browser module loader.
 
