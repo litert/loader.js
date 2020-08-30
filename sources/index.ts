@@ -21,7 +21,7 @@ const loader: ILoader = {
         /** --- 文档装载完毕后需要执行的函数 --- */
         let runFun = (): void => {
             // --- 设置当前网址路径 ---
-            if (window.location.href[window.location.href.length - 1] === '/') {
+            if (window.location.href.endsWith('/')) {
                 this.dir = window.location.href.slice(0, -1);
             }
             else {
@@ -287,7 +287,7 @@ const loader: ILoader = {
         }
         // --- 处理文件内容 ---
         code = code.replace(/^\s+|\s+$/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        if (code[0] === '{' && code[code.length - 1] === '}') {
+        if (code.startsWith('{') && code.endsWith('}')) {
             // --- json 文件 ---
             try {
                 let data = JSON.parse(code);
@@ -340,6 +340,35 @@ const loader: ILoader = {
             }
             // --- 处理 sourceMap ---
             code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${fdirname}/$1`);
+            // --- 将 es6 module 语法转换为 require 模式 ---
+            // --- import * as x ---
+            code = code.replace(/import *\* *as +(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
+            // --- ( import { x } / export { x } ) from 'x' ---
+            code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function(t, t1: string, t2: string, t3: string, t4: string): string {
+                let tmpVar = 't' + t4.replace(/[^a-zA-Z]/g, '') + '_' + Math.round(Math.random() * 10000);
+                let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
+                let list = t2.split(',');
+                for (let i = 0; i < list.length; ++i) {
+                    list[i] = list[i].trim();
+                    txt += t1 === 'import' ? 'const ' : 'exports.';
+                    txt += `${list[i]} = ${tmpVar}.${list[i]};`;
+                }
+                return txt.slice(0, -1);
+            });
+            // --- export { a, b, c } ---
+            code = code.replace(/export *{(.+?)}/g, function(t, t1: string): string {
+                let txt = '';
+                let list = t1.split(',');
+                for (let i = 0; i < list.length; ++i) {
+                    list[i] = list[i].trim();
+                    txt += `exports.${list[i]} = ${list[i]};`;
+                }
+                return txt.slice(0, -1);
+            });
+            // --- export let a = 'qq' ---
+            code = code.replace(/export +(\w+ +)*(\w+) *=/g, 'exports.$2 =');
+            // --- export function a() {} ---
+            code = code.replace(/export +function +(\w+)/g, 'exports.$1 = function');
             // --- 提取本文件的所有 require 同步函数并并行加载 ---
             let match;
             let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
@@ -414,12 +443,12 @@ const loader: ILoader = {
             path = paths[path];
         }
         // --- 是否是相对路径 ---
-        if (path.slice(0, 8).indexOf('//') === -1 && path[0] !== '/') {
+        if (path.slice(0, 8).indexOf('//') === -1 && !path.startsWith('/')) {
             // --- 根据当前 dirname 的相对路径组合 ---
             path = dirname + '/' + path;
         }
         // --- 是否自动加 index ---
-        if (path[path.length - 1] === '/') {
+        if (path.endsWith('/')) {
             path += 'index';
         }
         // --- 去除 ./ ---
@@ -429,7 +458,7 @@ const loader: ILoader = {
             path = path.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
         }
         // --- 看是否要增加 .js ---
-        if (path.slice(-5) !== '.json' && path.slice(-3) !== '.js') {
+        if (!path.endsWith('.json') && !path.endsWith('.js')) {
             path += '.js';
         }
         return path;

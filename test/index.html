@@ -26,7 +26,9 @@ input{padding:5px;}body,html{margin:0;}body{padding:10px;}
     <input type="button" value="getRequire()" onclick="getRequire()">
     <input type="button" value="requireModule3()" onclick="requireModule3()">
     <input type="button" value="loadSeedrandom()" onclick="loadSeedrandom()">
-    <input type="button" value="Loop contained" onclick="loop()"> 
+    <input type="button" value="Loop contained" onclick="loop()">
+
+    <input type="button" value="loadES6Module()" onclick="loadES6Module()" style="margin-left: 20px;">
 
     <input type="button" value="loadMemoryFile()" onclick="loadMemoryFile()" style="margin-left: 20px;">
 
@@ -41,7 +43,12 @@ Run the test file under node directly, and the return value will be displayed be
 <hr>
 Run @litert/typeguard on browser:
 <div style="margin-top: 10px;">
-    <input type="button" value="runTypeGuard()" onclick="runTypeGuard()">
+    <input type="button" value="runTypeGuard()" onclick="runTypeGuard()"> (CommonJS)
+</div>
+<hr>
+Run @juggle/resize-observer on browser:
+<div style="margin-top: 10px;">
+    <input type="button" value="runResizeObserver()" onclick="runResizeObserver()"> (ES6 Module)
 </div>
 <div style="height: 350px;"></div>
 

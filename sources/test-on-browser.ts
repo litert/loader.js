@@ -5,8 +5,25 @@ let tmodule: any;
 
 /** --- 重写 log --- */
 let logx = console.log;
-console.log = function(msg: any) {
-    consoleEl.innerHTML += `<div class='cl'>${typeof msg === 'string' ? msg : JSON.stringify(msg, undefined, 4)}</div>`;
+console.log = function(...msg: any[]) {
+    let iHTML = '<div class="cl">';
+    for (let i = 0; i < msg.length; ++i) {
+        let item = msg[i];
+        if (typeof item === 'string') {
+            iHTML += item;
+        }
+        else {
+            let v = JSON.stringify(item, undefined, 4);
+            if (v) {
+                iHTML += v;
+            }
+            else {
+                iHTML += item.toString();
+            }
+        }
+        iHTML += '	';
+    }
+    consoleEl.innerHTML += `${iHTML}</div>`;
 };
 
 function getData(): void {
@@ -25,20 +42,6 @@ function requireModule3(): void {
     alert(tmodule.requireModule3());
 }
 
-function runTestOnNode(): void {
-    mask.style.display = 'flex';
-    loader.require('../dist/test-on-node', function() {
-        mask.style.display = 'none';
-    }) as unknown;
-}
-
-function runTypeGuard(): void {
-    mask.style.display = 'flex';
-    loader.require('../dist/trun-typeguard', function() {
-        mask.style.display = 'none';
-    }) as unknown;
-}
-
 function loadSeedrandom(): void {
     mask.style.display = 'flex';
     loader.require('seedrandom', function(sr) {
@@ -55,6 +58,15 @@ function loop(): void {
     mask.style.display = 'flex';
     loader.require('../dist/tloop', function() {
         mask.style.display = 'none';
+    }) as unknown;
+}
+
+// --- 加载 es6 module ---
+function loadES6Module(): void {
+    mask.style.display = 'flex';
+    loader.require('./es6-module', function(e) {
+        mask.style.display = 'none';
+        console.log('a:', e.a, 'b:', e.b, 'c:', e.c, 'd:', e.d, 'e:', e.e);
     }) as unknown;
 }
 
@@ -98,6 +110,29 @@ function setRandomAfter(): void {
     let rand = Math.random().toString();
     loader.setAfter('?' + rand);
     console.log('Set up to "?' + rand + '".');
+}
+
+function runTestOnNode(): void {
+    mask.style.display = 'flex';
+    loader.require('../dist/test-on-node', function() {
+        mask.style.display = 'none';
+    }) as unknown;
+}
+
+function runTypeGuard(): void {
+    mask.style.display = 'flex';
+    loader.require('../dist/trun-typeguard', function() {
+        mask.style.display = 'none';
+    }) as unknown;
+}
+
+function runResizeObserver(): void {
+    mask.style.display = 'flex';
+    loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', function(ro) {
+        mask.style.display = 'none';
+        logx(ro.ResizeObserver, ro.ResizeObserverEntry);
+        console.log(ro.ResizeObserver, ro.ResizeObserverEntry);
+    }) as unknown;
 }
 
 loader.ready(async function(): Promise<void> {
