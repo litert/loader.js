@@ -7,8 +7,7 @@ let tmodule: any;
 let logx = console.log;
 console.log = function(...msg: any[]) {
     let iHTML = '<div class="cl">';
-    for (let i = 0; i < msg.length; ++i) {
-        let item = msg[i];
+    for (let item of msg) {
         if (typeof item === 'string') {
             iHTML += item;
         }
