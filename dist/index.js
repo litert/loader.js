@@ -170,8 +170,19 @@ const loader = {
             return input;
         });
     },
-    fetchGet: function (url, init) {
+    fetch: function (url, init = {}) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (init.credentials === undefined) {
+                if (url.slice(0, 4).toLowerCase() === 'http') {
+                    let m = /^(ht.+?\/\/.+?\/)/.exec(window.location.href.toLowerCase());
+                    if (m && url.toLowerCase().startsWith(m[0])) {
+                        init.credentials = 'include';
+                    }
+                }
+                else {
+                    init.credentials = 'include';
+                }
+            }
             return new Promise(function (resolve) {
                 fetch(url, init).then(function (res) {
                     if (res.status === 200 || res.status === 304) {
@@ -249,7 +260,7 @@ const loader = {
                 }
             }
             else {
-                let text = yield this.fetchGet(path + ((_a = this.config.after) !== null && _a !== void 0 ? _a : ''));
+                let text = yield this.fetch(path + ((_a = this.config.after) !== null && _a !== void 0 ? _a : ''));
                 if (!text) {
                     return null;
                 }

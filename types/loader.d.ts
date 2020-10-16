@@ -62,7 +62,7 @@ interface ILoader {
      * --- 简单 fetch 获取网络数据 ---
      * @param url 网络地址
      */
-    fetchGet: (url: string, init?: RequestInit) => Promise<string | null>;
+    fetch: (url: string, init?: RequestInit) => Promise<string | null>;
     /**
      * --- 加载 script 标签 ---
      * @param el 在此标签中增加

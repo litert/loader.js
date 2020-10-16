@@ -185,7 +185,18 @@ const loader: ILoader = {
         return input;
     },
 
-    fetchGet: async function(url: string, init?: RequestInit): Promise<string | null> {
+    fetch: async function(url: string, init: RequestInit = {}): Promise<string | null> {
+        if (init.credentials === undefined) {
+            if (url.slice(0, 4).toLowerCase() === 'http') {
+                let m = /^(ht.+?\/\/.+?\/)/.exec(window.location.href.toLowerCase());
+                if (m && url.toLowerCase().startsWith(m[0])) {
+                    init.credentials = 'include';
+                }
+            }
+            else {
+                init.credentials = 'include';
+            }
+        }
         return new Promise(function(resolve) {
             fetch(url, init).then(function(res: Response) {
                 if (res.status === 200 || res.status === 304) {
@@ -279,7 +290,7 @@ const loader: ILoader = {
             }
         }
         else {
-            let text = await this.fetchGet(path + (this.config.after ?? ''));
+            let text = await this.fetch(path + (this.config.after ?? ''));
             if (!text) {
                 return null;
             }
