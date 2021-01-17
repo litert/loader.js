@@ -21,7 +21,6 @@ Simple browser module loader.
 - [x] No intrusion and does not affect the script label.  
 - [x] Support the CommonJS / ES6 Module format.  
 - [x] The fetch function is automatically supported without additional loading.  
-- [x] The Promise object is automatically supported if not in the browser.  
 - [x] Supports running code in memory.
 
 ## Installation
