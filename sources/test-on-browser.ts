@@ -8,6 +8,7 @@ let logx = console.log;
 console.log = function(...msg: any[]) {
     let iHTML = '<div class="cl">';
     for (let item of msg) {
+        iHTML += '<div style="padding-right:10px;">';
         if (typeof item === 'string') {
             iHTML += item;
         }
@@ -20,9 +21,10 @@ console.log = function(...msg: any[]) {
                 iHTML += item.toString();
             }
         }
-        iHTML += '	';
+        iHTML += '</div>';
     }
     consoleEl.innerHTML += `${iHTML}</div>`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
 };
 
 function getData(): void {
@@ -69,10 +71,9 @@ function loadES6Module(): void {
     }) as unknown;
 }
 
-async function loadMemoryFile() {
-    mask.style.display = 'flex';
-    let rtn = await loader.requireMemory('/main', {
-        '/main.js': `var sub = require('./sub');
+let memoryFiles = {
+    '/main.js':
+        `var sub = require('./sub');
         var sr = require('seedrandom');
         function getData(key) {
             return key + ', end.';
@@ -80,7 +81,7 @@ async function loadMemoryFile() {
         exports.getData = getData;
 
         function getSubStr() {
-            return sub.str;
+            return sub.str + '(count:' + sub.getCount() + ')';
         }
         exports.getSubStr = getSubStr;
         
@@ -88,17 +89,29 @@ async function loadMemoryFile() {
             var rng = sr('abc');
             return rng();
         }`,
-        '/sub.js': new Blob(['exports.str = "hehe";'])
-    });
+
+    '/sub.js': new Blob([
+        `var count = 0;
+        exports.str = "hehe";
+        
+        function getCount() {
+            return ++count;
+        }
+        exports.getCount = getCount;`
+    ])
+};
+let filesLoaded = {};
+async function loadMemoryFile(save: boolean = false) {
+    mask.style.display = 'flex';
+    let rtn = await loader.requireMemory('/main', memoryFiles, save ? filesLoaded : undefined);
     mask.style.display = 'none';
     if (!rtn) {
         console.log('Load memory file failed.');
         return;
     }
     let [main] = rtn;
-    console.log(main.getData('rand: ' + Math.random()));
-    console.log(main.getSubStr());
-    console.log(main.getRand());
+    console.log(main.getData('"rand: ' + Math.random() + '"'));
+    console.log('getSubStr:', main.getSubStr(), 'getRand:', main.getRand());
 }
 
 function getLoadedPaths(): void {

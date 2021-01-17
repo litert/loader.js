@@ -15,7 +15,7 @@ const loader = {
     config: {},
     loaded: {},
     run: function () {
-        let runFun = () => {
+        let runFun = () => __awaiter(this, void 0, void 0, function* () {
             if (window.location.href.endsWith('/')) {
                 this.dir = window.location.href.slice(0, -1);
             }
@@ -23,61 +23,23 @@ const loader = {
                 let lio = window.location.href.lastIndexOf('/');
                 this.dir = window.location.href.slice(0, lio);
             }
-            let hasPromise = true;
-            let res = /Version\/([0-9.]+) Safari/.exec(navigator.userAgent);
-            if (res) {
-                let ver = parseFloat(res[1]);
-                if (ver < 10) {
-                    hasPromise = false;
-                    Promise = undefined;
-                }
+            if (typeof fetch !== 'function') {
+                yield this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
             }
-            else {
-                if (!Promise) {
-                    hasPromise = false;
-                }
-            }
-            let next = () => __awaiter(this, void 0, void 0, function* () {
-                if (typeof fetch !== 'function') {
-                    yield this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
-                }
-                this.isReady = true;
-                for (let func of this.readys) {
-                    const rtn = func();
-                    if (rtn instanceof Promise) {
-                        rtn.catch((e) => {
-                            throw e;
-                        });
-                    }
-                }
-            });
-            if (!hasPromise) {
-                let script = document.createElement('script');
-                script.addEventListener('load', function () {
-                    const rtn = next();
-                    if (rtn instanceof Promise) {
-                        rtn.catch((e) => {
-                            throw e;
-                        });
-                    }
-                });
-                script.addEventListener('error', function () {
-                    alert('Network error.');
-                });
-                script.src = 'https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js';
-                document.getElementsByTagName('head')[0].appendChild(script);
-            }
-            else {
-                const rtn = next();
+            this.isReady = true;
+            for (let func of this.readys) {
+                const rtn = func();
                 if (rtn instanceof Promise) {
                     rtn.catch((e) => {
                         throw e;
                     });
                 }
             }
-        };
+        });
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
-            runFun();
+            runFun().catch((e) => {
+                throw e;
+            });
         }
         else {
             document.addEventListener('DOMContentLoaded', runFun);
@@ -149,13 +111,15 @@ const loader = {
             return input;
         });
     },
-    requireMemory: function (paths, files) {
+    requireMemory: function (paths, files, filesLoaded) {
         return __awaiter(this, void 0, void 0, function* () {
             if (typeof paths === 'string') {
                 paths = [paths];
             }
             let input = [];
-            let filesLoaded = {};
+            if (!filesLoaded) {
+                filesLoaded = {};
+            }
             for (let path of paths) {
                 let module = yield this.loadModule(path, '', files, filesLoaded);
                 if (!module) {

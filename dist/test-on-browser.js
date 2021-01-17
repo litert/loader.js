@@ -16,6 +16,7 @@ let logx = console.log;
 console.log = function (...msg) {
     let iHTML = '<div class="cl">';
     for (let item of msg) {
+        iHTML += '<div style="padding-right:10px;">';
         if (typeof item === 'string') {
             iHTML += item;
         }
@@ -28,9 +29,10 @@ console.log = function (...msg) {
                 iHTML += item.toString();
             }
         }
-        iHTML += '	';
+        iHTML += '</div>';
     }
     consoleEl.innerHTML += `${iHTML}</div>`;
+    consoleEl.scrollTop = consoleEl.scrollHeight;
 };
 function getData() {
     alert(tmodule.getData(keyInput.value));
@@ -67,11 +69,8 @@ function loadES6Module() {
         console.log('a:', e.a, 'b:', e.b, 'c:', e.c, 'd:', e.d, 'e:', e.e);
     });
 }
-function loadMemoryFile() {
-    return __awaiter(this, void 0, void 0, function* () {
-        mask.style.display = 'flex';
-        let rtn = yield loader.requireMemory('/main', {
-            '/main.js': `var sub = require('./sub');
+let memoryFiles = {
+    '/main.js': `var sub = require('./sub');
         var sr = require('seedrandom');
         function getData(key) {
             return key + ', end.';
@@ -79,7 +78,7 @@ function loadMemoryFile() {
         exports.getData = getData;
 
         function getSubStr() {
-            return sub.str;
+            return sub.str + '(count:' + sub.getCount() + ')';
         }
         exports.getSubStr = getSubStr;
         
@@ -87,17 +86,29 @@ function loadMemoryFile() {
             var rng = sr('abc');
             return rng();
         }`,
-            '/sub.js': new Blob(['exports.str = "hehe";'])
-        });
+    '/sub.js': new Blob([
+        `var count = 0;
+        exports.str = "hehe";
+        
+        function getCount() {
+            return ++count;
+        }
+        exports.getCount = getCount;`
+    ])
+};
+let filesLoaded = {};
+function loadMemoryFile(save = false) {
+    return __awaiter(this, void 0, void 0, function* () {
+        mask.style.display = 'flex';
+        let rtn = yield loader.requireMemory('/main', memoryFiles, save ? filesLoaded : undefined);
         mask.style.display = 'none';
         if (!rtn) {
             console.log('Load memory file failed.');
             return;
         }
         let [main] = rtn;
-        console.log(main.getData('rand: ' + Math.random()));
-        console.log(main.getSubStr());
-        console.log(main.getRand());
+        console.log(main.getData('"rand: ' + Math.random() + '"'));
+        console.log('getSubStr:', main.getSubStr(), 'getRand:', main.getRand());
     });
 }
 function getLoadedPaths() {

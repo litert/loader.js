@@ -54,10 +54,13 @@ interface ILoader {
     require: (paths: string | string[], callback?: (...input: any[]) => void, error?: (path: string) => void) => Promise<any[] | null>;
     /**
      * --- 通过运行时文件加载模型 ---
-     * @param path 路径或模型映射名，如 ./abc，echarts，../xx/xx
+     * @param paths 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param files 基准路径或文件序列，用以加载子模型
+     * @param filesLoaded 需要保留状态则传入保留状态对象
      */
-    requireMemory: (paths: string | string[], files: Record<string, Blob | string>) => Promise<any[] | null>;
+    requireMemory: (paths: string | string[], files: Record<string, Blob | string>, filesLoaded?: {
+        [path: string]: ILoaderModule;
+    }) => Promise<any[] | null>;
     /**
      * --- 简单 fetch 获取网络数据 ---
      * @param url 网络地址

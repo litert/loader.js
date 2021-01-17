@@ -1,12 +1,12 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52, 2020-8-16 14:41:15
+ * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52, 2020-8-16 14:41:15, 2021-01-18 01:53:54
  */
 
 // npm publish --access=public
 
-// --- 使用 loader 库则会自动支持 fetch、Promise，无需再做相关兼容性支持 ---
+// --- 使用 loader 库则会自动支持 fetch 无需再做相关兼容性支持 ---
 
 const loader: ILoader = {
     isReady: false,
@@ -19,7 +19,7 @@ const loader: ILoader = {
 
     run: function() {
         /** --- 文档装载完毕后需要执行的函数 --- */
-        let runFun = (): void => {
+        let runFun = async (): Promise<void> => {
             // --- 设置当前网址路径 ---
             if (window.location.href.endsWith('/')) {
                 this.dir = window.location.href.slice(0, -1);
@@ -28,54 +28,13 @@ const loader: ILoader = {
                 let lio = window.location.href.lastIndexOf('/');
                 this.dir = window.location.href.slice(0, lio);
             }
-            // --- 判断 Promise 是否存在 ---
-            let hasPromise = true;
-            let res = /Version\/([0-9.]+) Safari/.exec(navigator.userAgent);
-            if (res) {
-                let ver = parseFloat(res[1]);
-                if (ver < 10) {
-                    hasPromise = false;
-                    (Promise as any) = undefined as any;
-                }
+            // --- 判断 fetch 是否存在 ---
+            if (typeof fetch !== 'function') {
+                await this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
             }
-            else {
-                if (!Promise) {
-                    hasPromise = false;
-                }
-            }
-            let next = async (): Promise<void> => {
-                // --- 判断 fetch 是否存在 ---
-                if (typeof fetch !== 'function') {
-                    await this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
-                }
-                this.isReady = true;
-                for (let func of this.readys) {
-                    const rtn = func();
-                    if (rtn instanceof Promise) {
-                        rtn.catch((e) => {
-                            throw e;
-                        });
-                    }
-                }
-            };
-            if (!hasPromise) {
-                let script = document.createElement('script');
-                script.addEventListener('load', function() {
-                    const rtn = next();
-                    if (rtn instanceof Promise) {
-                        rtn.catch((e) => {
-                            throw e;
-                        });
-                    }
-                });
-                script.addEventListener('error', function() {
-                    alert('Network error.');
-                });
-                script.src = 'https://cdn.jsdelivr.net/npm/es6-promise@4/dist/es6-promise.auto.min.js';
-                document.getElementsByTagName('head')[0].appendChild(script);
-            }
-            else {
-                const rtn = next();
+            this.isReady = true;
+            for (let func of this.readys) {
+                const rtn = func();
                 if (rtn instanceof Promise) {
                     rtn.catch((e) => {
                         throw e;
@@ -84,11 +43,13 @@ const loader: ILoader = {
             }
         };
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
-            runFun();
+            runFun().catch((e) => {
+                throw e;
+            });
         }
         else {
             // --- 先等待文档装载完毕 ---
-            document.addEventListener('DOMContentLoaded', runFun);
+            document.addEventListener('DOMContentLoaded', runFun as () => void);
         }
     },
 
@@ -164,13 +125,17 @@ const loader: ILoader = {
         return input;
     },
 
-    requireMemory: async function(paths: string | string[], files: Record<string, Blob | string>): Promise<any[] | null> {
+    requireMemory: async function(paths: string | string[], files: Record<string, Blob | string>, filesLoaded?: {
+        [path: string]: ILoaderModule;
+    }): Promise<any[] | null> {
         if (typeof paths === 'string') {
             paths = [paths];
         }
         // --- callback 时返回的模块对象列表 ---
         let input: any[] = [];
-        let filesLoaded = {};
+        if (!filesLoaded) {
+            filesLoaded = {};
+        }
         for (let path of paths) {
             let module = await this.loadModule(path, '', files, filesLoaded);
             if (!module) {
@@ -388,7 +353,7 @@ const loader: ILoader = {
                 list.push(match[1]);
             }
             if (list.length > 0) {
-                await new Promise((resolve) => {
+                await new Promise<void>((resolve) => {
                     let now = 0;
                     for (let item of list) {
                         this.loadModule(item, fdirname, files, filesLoaded).then(() => {
