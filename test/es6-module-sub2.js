@@ -1,5 +1,2 @@
-export let q = 'z';
-
-export function x() {
-    console.log('xx');
-}
+export let d = '4';
+export let e = '5';

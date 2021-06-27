@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireModule3 = exports.getRequire = exports.getJson = exports.getData = void 0;
+exports.requireModule3 = exports.getJson = exports.getData = void 0;
 const tmodule2 = require("./tmodule2");
 let tjson = require('./tjson.json');
 function getData(key) {
@@ -13,10 +13,6 @@ function getJson(key) {
     return (_a = tjson[key]) !== null && _a !== void 0 ? _a : 'know';
 }
 exports.getJson = getJson;
-function getRequire(key) {
-    return require('./tmodule2').data[key];
-}
-exports.getRequire = getRequire;
 function requireModule3() {
     let t3 = require('./tmodule3');
     return t3.getNum();

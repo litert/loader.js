@@ -1,7 +1,6 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
  * Date: 2020-3-14 22:00:31
- * Last: 2020-3-17 00:58:16, 2020-5-14 19:34:52, 2020-8-16 14:41:15, 2021-01-18 01:53:54
  */
 
 // npm publish --access=public
@@ -11,23 +10,11 @@
 const loader: ILoader = {
     isReady: false,
     readys: [],
-    dir: '',
+    scriptPath: '',
 
-    config: {},
-
-    loaded: {},
-
-    run: function() {
+    init: function() {
         /** --- 文档装载完毕后需要执行的函数 --- */
-        let runFun = async (): Promise<void> => {
-            // --- 设置当前网址路径 ---
-            if (window.location.href.endsWith('/')) {
-                this.dir = window.location.href.slice(0, -1);
-            }
-            else {
-                let lio = window.location.href.lastIndexOf('/');
-                this.dir = window.location.href.slice(0, lio);
-            }
+        let run = async (): Promise<void> => {
             // --- 判断 fetch 是否存在 ---
             if (typeof fetch !== 'function') {
                 await this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
@@ -43,13 +30,13 @@ const loader: ILoader = {
             }
         };
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
-            runFun().catch((e) => {
+            run().catch((e) => {
                 throw e;
             });
         }
         else {
             // --- 先等待文档装载完毕 ---
-            document.addEventListener('DOMContentLoaded', runFun as () => void);
+            document.addEventListener('DOMContentLoaded', run as () => void);
         }
     },
 
@@ -67,116 +54,455 @@ const loader: ILoader = {
         }
     },
 
-    setConfig: function(config: ILoaderConfig): void {
-        if (config.after !== undefined) {
-            this.config.after = config.after;
-        }
-        if (config.paths !== undefined) {
-            this.config.paths = config.paths;
-        }
-    },
-
-    setAfter: function(after: string): void {
-        this.config.after = after;
-    },
-
-    setPaths: function(paths: ILoaderPaths): void {
-        this.config.paths = paths;
-    },
-
-    addPath: function(name: string, path: string): void {
-        if (this.config.paths) {
-            this.config.paths[name] = path;
-        }
-        else {
-            this.config.paths = {
-                [name]: path
-            };
-        }
-    },
-
-    getLoadedPaths: function(): string[] {
-        let paths: string[] = [];
-        for (let path in this.loaded) {
-            paths.push(path);
-        }
-        return paths;
-    },
-
-    require: async function(paths: string | string[], callback?: (...input: any[]) => void, error?: (path: string) => void): Promise<any[] | null> {
+    require: function(paths: string | string[], files: Record<string, Blob | string>, executedFiles: Record<string, any>, opt: {
+        'map'?: Record<string, string>;
+        'dir'?: string;
+        'style'?: string;
+    } = {}): any[] {
         if (typeof paths === 'string') {
             paths = [paths];
         }
-        // --- callback 时返回的模块对象列表 ---
-        let input: any[] = [];
-        for (let path of paths) {
-            let module = await this.loadModule(path, this.dir, {}, {});
-            if (!module) {
-                error?.(path);
-                return null;
-            }
-            if (!module.first) {
-                module.first = true;
-                module.object = (new Function('__filesLoaded', module.func))({});
-            }
-            input.push(module.object);
+        if (opt.dir === undefined) {
+            opt.dir = location.href;
         }
-        callback?.(...input);
-        return input;
+        let styleElement: HTMLStyleElement | null = null;
+        if (opt.style) {
+            styleElement = document.querySelector('style[name="' + opt.style + '"]');
+            if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.setAttribute('name', opt.style);
+                let headElement = document.getElementsByTagName('head')[0];
+                if (headElement) {
+                    headElement.append(styleElement);
+                }
+                else {
+                    document.append(styleElement);
+                }
+            }
+        }
+        // --- 返回的模块对象 ---
+        let output: any[] = [];
+        for (let path of paths) {
+            path = this.moduleNameResolve(path, opt.dir, opt.map);
+            // --- 判断是否加载过 ---
+            if (executedFiles[path]) {
+                output.push(executedFiles[path]);
+                continue;
+            }
+            // --- 未加载过 ---
+            if (!files[path]) {
+                output.push(null);
+                continue;
+            }
+            if (typeof files[path] !== 'string') {
+                output.push(null);
+                continue;
+            }
+            // --- 获取文本内容 string ---
+            let code: string = files[path] as string;
+            if (path.endsWith('.css')) {
+                if (styleElement) {
+                    (async () => {
+                        let reg = /url\(["']{0,1}(.+?)["']{0,1}\)/ig;
+                        let match: RegExpExecArray | null = null;
+                        while ((match = reg.exec(code))) {
+                            let realPath: string = this.urlResolve(path, match[1]);
+                            let file: Blob | null = (files[realPath] && files[realPath] instanceof Blob) ? files[realPath] as Blob : null;
+                            if (file) {
+                                code = code.replace(match[0], `url('${await this.blob2DataUrl(file)}')`);
+                            }
+                        }
+                        styleElement.append(code);
+                    })().catch((e) => { throw e; });
+                }
+                output.push(code);
+            }
+            else if (code.startsWith('{') && code.endsWith('}')) {
+                // --- json 文件 ---
+                try {
+                    let data = JSON.parse(code);
+                    executedFiles[path] = data;
+                    output.push(data);
+                }
+                catch {
+                    output.push(null);
+                }
+            }
+            else {
+                /** --- 代码末尾增加 exports.xxx = --- */
+                let needExports: string[] = [];
+                // --- 去除 // 注释、/* 注释 ---
+                code = this.removeComment(code);
+                // --- 先去除严格模式字符串 ---
+                let strict = '';
+                if (code.includes('"use strict"')) {
+                    strict = '"use strict"\n';
+                    code = code.replace(/"use strict"\n?/, '');
+                }
+                /** --- 定义当前模块的 __dirname --- */
+                let dirname: string = '';
+                let plio = path.lastIndexOf('/');
+                if (plio !== -1) {
+                    dirname = path.slice(0, plio);
+                }
+                // --- 处理 sourceMap ---
+                code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${dirname}/$1`);
+                // --- 将 es6 module 语法转换为 require 模式 ---
+                // --- import * as x ---
+                code = code.replace(/import *\* *as *(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
+                // --- import x from 'x' ---
+                code = code.replace(/import *(\S+) *from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2).default');
+                // --- ( import { x, x as y } / export { x, x as y } ) from 'x' ---
+                code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function(t, t1: string, t2: string, t3: string, t4: string): string {
+                    let tmpVar = 't' + t4.replace(/[^a-zA-Z]/g, '') + '_' + Math.round(Math.random() * 10000);
+                    let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
+                    let list = t2.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        txt += t1 === 'import' ? 'const ' : 'exports.';
+                        let reg: RegExpExecArray | null = /^(.+) +as +(.+)$/.exec(list[i]);
+                        if (reg) {
+                            txt += `${reg[2]} = ${tmpVar}.${reg[1]};`;
+                        }
+                        else {
+                            txt += `${list[i]} = ${tmpVar}.${list[i]};`;
+                        }
+                    }
+                    return txt.slice(0, -1);
+                });
+                // --- import x ---
+                code = code.replace(/import *(['"].+?['"])/g, function(t: string, t1: string): string {
+                    return `require(${t1})`;
+                });
+                // --- import(x) ---
+                code = code.replace(/import\((.+?)\)/g, function(t: string, t1: string): string {
+                    return `importOverride(${t1})`;
+                });
+                // --- export { a, b, c } ---
+                code = code.replace(/export *{(.+?)}/g, function(t, t1: string): string {
+                    let txt = '';
+                    let list = t1.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        txt += `exports.${list[i]} = ${list[i]};`;
+                    }
+                    return txt.slice(0, -1);
+                });
+                // --- expoer * from x ---
+                code = code.replace(/export *\* *from *(["'])(\S+)["']/g, function(t: string, t1: string, t2: string): string {
+                    return `var lrTmpList = require(${t1}${t2}${t1});var lrTmpKey;for (lrTmpKey in lrTmpList) { exports[lrTmpKey] = lrTmpList[lrTmpKey]; }`;
+                });
+                // --- export class xxx {}, export function a() {} ---
+                while (true) {
+                    let match = /(export +)(class|function) +([\w$]+)[\s\S]+$/.exec(code);
+                    if (!match) {
+                        break;
+                    }
+                    let overCode: string = '';
+                    /** --- 大括号，-1 代表还没有进入函数 / 类主体 --- */
+                    let bigCount: number = -1;
+                    /** --- 小括号，-1 代表进入了函数 / 类主体 --- */
+                    let smallCount: number = 0;
+                    /** --- 当前是否是字符串、正则 --- */
+                    let isString: string = '';
+                    let i: number = 0;
+                    for (i = 0; i < match[0].length; ++i) {
+                        let char = match[0][i];
+                        if (isString !== '') {
+                            // --- 字符串模式 ---
+                            if ((char === isString) && (match[0][i - 1] !== '\\')) {
+                                isString = '';
+                            }
+                            overCode += char;
+                        }
+                        else {
+                            switch (char) {
+                                case '"':
+                                case '`':
+                                case '\'': {
+                                    isString = char;
+                                    overCode += char;
+                                    break;
+                                }
+                                case '{': {
+                                    if (smallCount <= 0) {
+                                        if (smallCount === 0) {
+                                            smallCount = -1;
+                                        }
+                                        if (bigCount === -1) {
+                                            bigCount = 1;
+                                        }
+                                        else {
+                                            ++bigCount;
+                                        }
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '}': {
+                                    if (smallCount <= 0) {
+                                        --bigCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '(': {
+                                    if (smallCount >= 0) {
+                                        ++smallCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case ')': {
+                                    if (smallCount >= 0) {
+                                        --smallCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '/': {
+                                    // --- 判断是 reg 还是 / 除号 ---
+                                    // --- 如果是 / 号前面必定有变量或数字，否则就是 reg ---
+                                    for (let j = i - 1; j >= 0; --j) {
+                                        if (match[0][j] === ' ' || match[0][j] === '\t') {
+                                            continue;
+                                        }
+                                        if (match[0][j] === ')') {
+                                            break;
+                                        }
+                                        if ((match[0][j] === '\n') || (!/\w/.test(match[0][j]))) {
+                                            isString = char;
+                                            break;
+                                        }
+                                        // --- 是除号 ---
+                                        break;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                default: {
+                                    overCode += char;
+                                }
+                            }
+                        }
+                        if (bigCount === 0) {
+                            // --- 函数 / class 体结束 ---
+                            break;
+                        }
+                    }
+                    code = code.slice(0, match.index) + overCode.slice(match[1].length) + `exports.${match[3]} = ${match[3]};` + code.slice(match.index + i + 1);
+                }
+                // --- export default aaa ---
+                code = code.replace(/export default ([\w$]+)/g, 'exports.default = $1');
+                // --- export const {a, b} = x;, export let [a, b]; 等 ---
+                code = code.replace(/export +(\w+) *([{[])(.+?)([}\]])/g, function(t, t1: string, t2: string, t3: string, t4: string): string {
+                    let list = t3.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        needExports.push('exports.' + list[i] + ' = ' + list[i] + ';');
+                    }
+                    return t1 + ' ' + t2 + t3 + t4;
+                });
+                // --- export let a = 'qq'; export let a; ---
+                code = code.replace(/export +(\w+) +(\w+)/g, function(t: string, t1: string, t2: string): string {
+                    if (!['let', 'var', 'const'].includes(t1)) {
+                        return t;
+                    }
+                    needExports.push('exports.' + t2 + ' = ' + t2 + ';');
+                    return t1 + ' ' + t2;
+                });
+
+                // --- 组合最终 function 的字符串 ---
+                code = `${strict}
+                var __dirname = '${dirname}';
+                var __filename = '${path}';
+                var module = {
+                    exports: {}
+                };
+                var exports = module.exports;
+
+                let importOverride = function(url) {
+                    return loader.import(url, __files, __executedFiles, {
+                        'map': __map,
+                        'dir': __filename,
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                    });
+                }
+
+                function require(path) {
+                    var m = loader.require(path, __files, __executedFiles, {
+                        'map': __map,
+                        'dir': __filename,
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                    });
+                    if (m[0]) {
+                        return m[0];
+                    }
+                    else {
+                        throw 'Failed require "' + path + '" on "' + __filename + '".';
+                    }
+                }
+
+                ${code}
+
+                ${needExports.join('')}
+
+                return module.exports;`;
+                executedFiles[path] = (new Function('__files', '__executedFiles', '__map', code))(files, executedFiles, opt.map);
+                output.push(executedFiles[path]);
+            }
+        }
+        return output;
     },
 
-    requireMemory: async function(paths: string | string[], files: Record<string, Blob | string>, filesLoaded?: {
-        [path: string]: ILoaderModule;
-    }): Promise<any[] | null> {
-        if (typeof paths === 'string') {
-            paths = [paths];
-        }
-        // --- callback 时返回的模块对象列表 ---
-        let input: any[] = [];
-        if (!filesLoaded) {
-            filesLoaded = {};
-        }
-        for (let path of paths) {
-            let module = await this.loadModule(path, '', files, filesLoaded);
-            if (!module) {
-                return null;
-            }
-            if (!module.first) {
-                module.first = true;
-                module.object = (new Function('__filesLoaded', module.func))(filesLoaded);
-            }
-            input.push(module.object);
-        }
-        return input;
-    },
-
-    fetch: async function(url: string, init: RequestInit = {}): Promise<string | null> {
+    fetch: function(url: string, init: RequestInit = {}): Promise<string | Blob | null> {
+        let initClone: RequestInit = {};
+        Object.assign(initClone, init);
         if (init.credentials === undefined) {
             if (url.slice(0, 4).toLowerCase() === 'http') {
                 let m = /^(ht.+?\/\/.+?\/)/.exec(window.location.href.toLowerCase());
                 if (m && url.toLowerCase().startsWith(m[0])) {
-                    init.credentials = 'include';
+                    initClone.credentials = 'include';
                 }
             }
             else {
-                init.credentials = 'include';
+                initClone.credentials = 'include';
             }
         }
         return new Promise(function(resolve) {
-            fetch(url, init).then(function(res: Response) {
+            fetch(url, init).then(function(res: Response): Promise<string | Blob> | string {
                 if (res.status === 200 || res.status === 304) {
-                    return res.text();
+                    let typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
+                    for (let item of typeList) {
+                        if (res.headers.get('content-type')?.toLowerCase().includes(item)) {
+                            return res.text();
+                        }
+                    }
+                    return res.blob();
                 }
                 else {
                     resolve(null);
                     return '';
                 }
-            }).then(function(text: string) {
+            }).then(function(text: string | Blob): void {
                 resolve(text);
             }).catch(function() {
                 resolve(null);
             });
         });
+    },
+
+    fetchFiles: async function(urls: string[], opt: {
+        'init'?: RequestInit;
+        'load'?: (url: string) => void;
+        'loaded'?: (url: string, state: number) => void;
+        'dir'?: string;
+        'files'?: Record<string, Blob | string>;
+    } = {}): Promise<Record<string, Blob | string>> {
+        return new Promise<Record<string, Blob | string>>((resolve) => {
+            if (!opt.init) {
+                opt.init = {};
+            }
+            if (opt.dir === undefined) {
+                opt.dir = location.href;
+            }
+            let list: Record<string, Blob | string> = {};
+            let count = 0;
+            for (let url of urls) {
+                url = this.urlResolve(opt.dir, url);
+                if (opt.files?.[url]) {
+                    ++count;
+                    if (count === urls.length) {
+                        resolve(list);
+                        return;
+                    }
+                    continue;
+                }
+                opt.load?.(url);
+                this.fetch(url, opt.init).then(function(res) {
+                    ++count;
+                    if (res) {
+                        list[url] = res;
+                        opt.loaded?.(url, 1);
+                        if (opt.files) {
+                            opt.files[url] = res;
+                        }
+                    }
+                    else {
+                        opt.loaded?.(url, 0);
+                    }
+                    if (count === urls.length) {
+                        resolve(list);
+                    }
+                }).catch(function() {
+                    ++count;
+                    opt.loaded?.(url, -1);
+                    if (count === urls.length) {
+                        resolve(list);
+                    }
+                });
+            }
+        });
+    },
+
+    sniffFiles: async function(urls: string | string[], opt: {
+        'init'?: RequestInit;
+        'load'?: (url: string) => void;
+        'loaded'?: (url: string, state: number) => void;
+        'dir'?: string;
+        'files'?: Record<string, Blob | string>;
+        'map'?: Record<string, string>;
+    } = {}): Promise<Record<string, Blob | string>> {
+        if (typeof urls === 'string') {
+            urls = [urls];
+        }
+        let list = await this.fetchFiles(urls, {
+            'init': opt.init,
+            'load': opt.load,
+            'loaded': opt.loaded,
+            'dir': opt.dir,
+            'files': opt.files
+        });
+        /** --- 下一层的文件 --- */
+        let nlayer: string[] = [];
+        for (let path in list) {
+            let item = list[path];
+            if (typeof item !== 'string') {
+                continue;
+            }
+            let reg: RegExp;
+            let match: RegExpExecArray | null;
+            let tmp = [];
+            if (path.endsWith('.css')) {
+                reg = /url\(["']{0,1}(.+?)["']{0,1}\)/ig;
+                while((match = reg.exec(item))) {
+                    if (match[1].startsWith('data:')) {
+                        continue;
+                    }
+                    tmp.push(match[1]);
+                }
+            }
+            else {
+                reg = /(from|import) +['"](.+?)['"]/g;
+                while((match = reg.exec(item))) {
+                    tmp.push(match[2]);
+                }
+                reg = /require\(['"](.+?)['"]\)/g;
+                while((match = reg.exec(item))) {
+                    tmp.push(match[1]);
+                }
+            }
+            for (let t of tmp) {
+                let mnr = this.moduleNameResolve(t, path, opt.map);
+                if (!nlayer.includes(mnr)) {
+                    nlayer.push(mnr);
+                }
+            }
+        }
+        if (nlayer.length > 0) {
+            Object.assign(list, await this.sniffFiles(nlayer, opt));
+        }
+        return list;
     },
 
     loadScript: function(el: HTMLElement, path: string): Promise<boolean> {
@@ -193,251 +519,314 @@ const loader: ILoader = {
         });
     },
 
-    getModule: function(path: string, dir: string, filesLoaded: {
-        [path: string]: ILoaderModule;
-    }): any {
-        path = this.moduleName2Path(path, dir);
-        let module!: ILoaderModule;
-        if (filesLoaded[path]) {
-            module = filesLoaded[path];
+    import: async function(url: string, files: Record<string, Blob | string>, executedFiles: Record<string, any>, opt: {
+        'map'?: Record<string, string>;
+        'dir'?: string;
+        'style'?: string;
+    } = {}): Promise<any> {
+        if (opt.dir === undefined) {
+            opt.dir = location.href;
         }
-        else if (this.loaded[path]) {
-            module = this.loaded[path];
-        }
-        if (!module) {
-            return null;
-        }
-        if (!module.first) {
-            module.first = true;
-            module.object = (new Function('__filesLoaded', module.func))(filesLoaded);
+        url = this.moduleNameResolve(url, opt.dir, opt.map);
+        if (files[url]) {
+            return this.require(url, files, executedFiles, opt)[0];
         }
         else {
-            if (!module.object) {
-                console.log('Loop containment is prohibited.');
-                return {};
-            }
+            // --- 从网络上请求 ---
+            await this.sniffFiles(url, {
+                'dir': opt.dir,
+                'files': files
+            });
+            return this.require(url, files, executedFiles, opt)[0];
         }
-        return module.object;
     },
 
     // --- 内部 ---
 
-    /**
-     * --- 通过网络、内存加载 module 但不自动执行，已经加载过的不会重新加载 ---
-     * @param path 模块地址、模块名或 code
-     * @param dir 当前目录地址
-     * @param files 内存中的文件列表
-     * @param filesLoaded files 中的代替 _loaded 的作用
-     */
-    loadModule: async function(path: string, dir: string, files: Record<string, Blob | string>, filesLoaded: {
-        [path: string]: ILoaderModule;
-    }): Promise<ILoaderModule | null> {
-        let inFiles: boolean = false;
-        // --- parse module 的 path  ---
-        path = this.moduleName2Path(path, dir);
-        // --- 判断是否加载过 ---
-        if (filesLoaded[path]) {
-            return filesLoaded[path];
-        }
-        else if (this.loaded[path]) {
-            return this.loaded[path];
-        }
-        // --- 加载文件 ---
-        let code: string;
-        if (files[path]) {
-            inFiles = true;
-            let blob = files[path];
-            if (typeof blob === 'string') {
-                code = blob;
-            }
-            else {
-                code = await this.blob2Text(blob);
-            }
-        }
-        else {
-            let text = await this.fetch(path + (this.config.after ?? ''));
-            if (!text) {
-                return null;
-            }
-            code = text;
-        }
-        // --- 处理文件内容 ---
-        code = code.replace(/^\s+|\s+$/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        if (code.startsWith('{') && code.endsWith('}')) {
-            // --- json 文件 ---
-            try {
-                let data = JSON.parse(code);
-                if (inFiles) {
-                    filesLoaded[path] = {
-                        'first': true,
-                        'func': '',
-                        'object': data
-                    };
-                }
-                else {
-                    this.loaded[path] = {
-                        'first': true,
-                        'func': '',
-                        'object': data
-                    };
-                }
-            }
-            catch {
-                return null;
-            }
-        }
-        else {
-            // --- js 文件 ---
-            if (inFiles) {
-                filesLoaded[path] = {
-                    'first': false,
-                    'func': '',
-                    'object': null
-                };
-            }
-            else {
-                this.loaded[path] = {
-                    'first': false,
-                    'func': '',
-                    'object': null
-                };
-            }
-            // --- 先去除严格模式字符串 ---
-            let strict = '';
-            if (code.indexOf('"use strict"') !== -1) {
-                strict = '"use strict"\n';
-                code = code.replace(/"use strict"\n?/, '');
-            }
-            /** --- 定义当前模块的 __dirname --- */
-            let fdirname: string = '';
-            let plio = path.lastIndexOf('/');
-            if (plio !== -1) {
-                fdirname = path.slice(0, plio);
-            }
-            // --- 处理 sourceMap ---
-            code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${fdirname}/$1`);
-            // --- 将 es6 module 语法转换为 require 模式 ---
-            // --- import * as x ---
-            code = code.replace(/import *\* *as +(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
-            // --- ( import { x } / export { x } ) from 'x' ---
-            code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function(t, t1: string, t2: string, t3: string, t4: string): string {
-                let tmpVar = 't' + t4.replace(/[^a-zA-Z]/g, '') + '_' + Math.round(Math.random() * 10000);
-                let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
-                let list = t2.split(',');
-                for (let i = 0; i < list.length; ++i) {
-                    list[i] = list[i].trim();
-                    txt += t1 === 'import' ? 'const ' : 'exports.';
-                    txt += `${list[i]} = ${tmpVar}.${list[i]};`;
-                }
-                return txt.slice(0, -1);
-            });
-            // --- export { a, b, c } ---
-            code = code.replace(/export *{(.+?)}/g, function(t, t1: string): string {
-                let txt = '';
-                let list = t1.split(',');
-                for (let i = 0; i < list.length; ++i) {
-                    list[i] = list[i].trim();
-                    txt += `exports.${list[i]} = ${list[i]};`;
-                }
-                return txt.slice(0, -1);
-            });
-            // --- export let a = 'qq' ---
-            code = code.replace(/export +(\w+ +)*(\w+) *=/g, 'exports.$2 =');
-            // --- export function a() {} ---
-            code = code.replace(/export +function +(\w+)/g, 'exports.$1 = function');
-            // --- 提取本文件的所有 require 同步函数并并行加载 ---
-            let match;
-            let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
-            let list: string[] = [];
-            while ((match = reg.exec(code))) {
-                list.push(match[1]);
-            }
-            if (list.length > 0) {
-                await new Promise<void>((resolve) => {
-                    let now = 0;
-                    for (let item of list) {
-                        this.loadModule(item, fdirname, files, filesLoaded).then(() => {
-                            ++now;
-                            if (now === list.length) {
-                                resolve();
-                            }
-                        }).catch(() => {
-                            ++now;
-                            if (now === list.length) {
-                                resolve();
-                            }
-                        });
-                    }
-                });
-            }
-
-            // --- 组合最终 function 的字符串 ---
-            code = `${strict}
-            var __dirname = '${fdirname}';
-            var __filename = '${path}';
-            var module = {
-                exports: {}
-            };
-            var exports = module.exports;
-
-            function require(path) {
-                var m = loader.getModule(path, __dirname, __filesLoaded);
-                if (m) {
-                    return m;
-                } else {
-                    throw 'Failed require.';
-                }
-            }
-
-            ${code}
-
-            return module.exports;`;
-            if (inFiles) {
-                filesLoaded[path].func = code;
-            }
-            else {
-                this.loaded[path].func = code;
-            }
-        }
-        if (inFiles) {
-            return filesLoaded[path];
-        }
-        else {
-            return this.loaded[path];
-        }
-    },
-
-    /**
-     * --- 相对路径、异常路径、模型名转换为最终实体 path ---
-     * @param path 原 path
-     * @param dirname 相对 __dirname
-     */
-    moduleName2Path: function(path: string, dirname: string): string {
-        let paths = this.config.paths;
+    moduleNameResolve: function(path: string, dir: string, map: Record<string, string> = {}): string {
         // --- 查询是否有映射 ---
-        if (paths?.[path]) {
-            path = paths[path];
+        if (map[path]) {
+            path = map[path];
         }
-        // --- 是否是相对路径 ---
-        if (path.slice(0, 8).indexOf('//') === -1 && !path.startsWith('/')) {
-            // --- 根据当前 dirname 的相对路径组合 ---
-            path = dirname + '/' + path;
-        }
+        path = this.urlResolve(dir, path);
         // --- 是否自动加 index ---
         if (path.endsWith('/')) {
             path += 'index';
         }
-        // --- 去除 ./ ---
-        path = path.replace(/\/\.\//g, '/');
-        // --- 去除 ../ ---
-        while (/\/(?!\.\.)[^/]+\/\.\.\//.test(path)) {
-            path = path.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
-        }
         // --- 看是否要增加 .js ---
-        if (!path.endsWith('.json') && !path.endsWith('.js')) {
+        let lio = path.lastIndexOf('/');
+        let fname = lio === -1 ? path : path.slice(lio + 1);
+        lio = fname.lastIndexOf('.');
+        let fext = lio === -1 ? '' : fname.slice(lio + 1);
+        if (!['js', 'json', 'css', 'ttf', 'png', 'gif', 'jpg', 'jpeg', 'svg'].includes(fext)) {
             path += '.js';
         }
         return path;
+    },
+
+    /**
+     * --- 传输 url 并解析为 IUrl 对象 ---
+     * @param url url 字符串
+     */
+    parseUrl: function(url: string): ILoaderUrl {
+        // --- test: https://ab-3dc:aak9()$@github.com:80/nodejs/node/blob/master/lib/url.js?mail=abc@def.com#223 ---
+        let u: ILoaderUrl = {
+            'auth': null,
+            'hash': null,
+            'host': null,
+            'hostname': null,
+            'pass': null,
+            'path': null,
+            'pathname': '/',
+            'protocol': null,
+            'port': null,
+            'query': null,
+            'user': null
+        };
+        // --- http:, https: ---
+        let protocol = /^(.+?)\/\//.exec(url);
+        if (protocol) {
+            u.protocol = protocol[1].toLowerCase();
+            url = url.slice(protocol[0].length);
+        }
+        // --- 获取 path 开头的 / 的位置 ---
+        let hostSp = url.indexOf('/');
+        let left = url;
+        if (hostSp !== -1) {
+            left = url.slice(0, hostSp);
+            url = url.slice(hostSp);
+        }
+        // --- auth: abc:def, abc ---
+        if (left) {
+            let leftArray = left.split('@');
+            let host = left;
+            if (leftArray[1]) {
+                let auth = leftArray[0].split(':');
+                u.user = auth[0];
+                if (auth[1]) {
+                    u.pass = auth[1];
+                }
+                u.auth = u.user + (u.pass ? ':' + u.pass : '');
+                host = leftArray[1];
+            }
+            // --- host: www.host.com, host.com ---
+            let hostArray = host.split(':');
+            u.hostname = hostArray[0].toLowerCase();
+            if (hostArray[1]) {
+                u.port = hostArray[1];
+            }
+            u.host = u.hostname + (u.port ? ':' + u.port : '');
+        }
+        // --- 是否有后面 ---
+        if (hostSp === -1) {
+            return u;
+        }
+        // --- path and query ---
+        let paqArray = url.split('?');
+        u.pathname = paqArray[0];
+        if (paqArray[1]) {
+            // --- query and hash ---
+            let qahArray = paqArray[1].split('#');
+            u.query = qahArray[0];
+            if (qahArray[1]) {
+                u.hash = qahArray[1];
+            }
+        }
+        u.path = u.pathname + (u.query ? '?' + u.query : '');
+        return u;
+    },
+
+    /**
+     * --- 将相对路径根据基准路径进行转换 ---
+     * @param from 基准路径
+     * @param to 相对路径
+     */
+    urlResolve: function(from: string, to: string): string {
+        from = from.replace(/\\/g, '/');
+        to = to.replace(/\\/g, '/');
+        // --- to 为空，直接返回 form ---
+        if (to === '') {
+            return from;
+        }
+        // --- 获取 from 的 scheme, host, path ---
+        let f = this.parseUrl(from);
+        // --- 以 // 开头的，加上 from 的 protocol 返回 ---
+        if (to.startsWith('//')) {
+            return f.protocol ? f.protocol + to : to;
+        }
+        if (f.protocol) {
+            // --- 获取小写的 protocol ---
+            from = f.protocol + from.slice(f.protocol.length);
+        }
+        // --- 获取 to 的 scheme, host, path ---
+        let t = this.parseUrl(to);
+        // --- 已经是绝对路径，直接返回 ---
+        if (t.protocol) {
+            // --- 获取小写的 protocol ---
+            return t.protocol + to.slice(t.protocol.length);
+        }
+        // --- # 或 ? 替换后返回 ---
+        if (to.startsWith('#') || to.startsWith('?')) {
+            let sp = from.indexOf(to[0]);
+            if (sp !== -1) {
+                return from.slice(0, sp) + to;
+            }
+            else {
+                return from + to;
+            }
+        }
+        // --- 处理后面的尾随路径 ---
+        let abs = (f.auth ? f.auth + '@' : '') + (f.host ? f.host : '');
+        if (to.startsWith('/')) {
+            // -- abs 类似是 /xx/xx ---
+            abs += to;
+        }
+        else {
+            // --- to 是 xx/xx 这样的 ---
+            // --- 移除基准 path 不是路径的部分，如 /ab/c 变成了 /ab，/ab 变成了 空 ---
+            let path = f.pathname.replace(/\/[^/]*$/g, '');
+            // --- abs 是 /xx/xx 了，因为如果 path 是空，则跟上了 /，如果 path 不为空，也是 / 开头 ---
+            abs += path + '/' + to;
+        }
+        // --- 删掉 ./ ---
+        abs = abs.replace(/\/\.\//g, '/');
+        // --- 删掉 ../ ---
+        while (/\/(?!\.\.)[^/]+\/\.\.\//.test(abs)) {
+            abs = abs.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
+        }
+        // --- 剩下的 ../ 就是无效的直接替换为空 ---
+        abs = abs.replace(/\.\.\//g, '');
+        // --- 返回最终结果 ---
+        if (f.protocol && !f.host) {
+            // --- 类似 c:/ ---
+            return f.protocol + abs;
+        }
+        else {
+            // --- 类似 http:// ---
+            return (f.protocol ? f.protocol + '//' : '') + abs;
+        }
+    },
+
+    isEscapeChar: function(index: number, code: string): boolean {
+        let preChar = code[index - 1];
+        let count = 0;
+        while (preChar === '\\') {
+            preChar = code[index - (++count) - 1];
+        }
+        return count % 2 === 0 ? false : true;
+    },
+
+    removeComment: function(code: string): string {
+        /** --- 是否是 /* * / 注释 --- */
+        let isComment: boolean = false;
+        /** --- 是否是 ` 字符串 --- */
+        let isLineString: boolean = false;
+        code = code.replace(/^\s+|\s+$/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        code = code.replace(/.*(\n|$)/g, (t: string): string => {
+            if (isComment && !t.includes('*/')) {
+                // --- 当前在 /* */ 中，但是当前行没有 */，直接返回空 ---
+                return '';
+            }
+            if (!isComment && !t.includes('/*') && !t.includes('//') && !t.includes('`')) {
+                // --- 既没有在 /* */ 中，也不含 /* // 或者 `，则无视 ---
+                return t;
+            }
+            /** --- 单行最终 code --- */
+            let overCode: string = '';
+            /** --- 是否是字符串 --- */
+            let isString: string = '';
+            /** --- 是否是正则 --- */
+            let isReg = '';
+            for (let i = 0; i < t.length; ++i) {
+                let char = t[i];
+                if (isLineString) {
+                    if ((char === '`') && !this.isEscapeChar(i, t)) {
+                        isLineString = false;
+                    }
+                    overCode += char;
+                }
+                else if (isReg !== '') {
+                    if (char === '[') {
+                        if (!this.isEscapeChar(i, t)) {
+                            isReg = '[';
+                        }
+                    }
+                    else if (char === ']') {
+                        if (!this.isEscapeChar(i, t) && (isReg === '[')) {
+                            isReg = '/';
+                        }
+                    }
+                    else if (char === '/') {
+                        if (!this.isEscapeChar(i, t) && (isReg === '/')) {
+                            isReg = '';
+                        }
+                    }
+                    overCode += char;
+                }
+                else if (isString !== '') {
+                    if ((char === isString) && !this.isEscapeChar(i, t)) {
+                        isString = '';
+                    }
+                    overCode += char;
+                }
+                else if (isComment) {
+                    if (char === '/' && (t[i - 1] === '*')) {
+                        isComment = false;
+                    }
+                }
+                else {
+                    switch (char) {
+                        case '"':
+                        case '\'': {
+                            isString = char;
+                            overCode += char;
+                            break;
+                        }
+                        case '`': {
+                            isLineString = true;
+                            overCode += char;
+                            break;
+                        }
+                        case '/': {
+                            if (t[i + 1] === '/') {
+                                return overCode + '\n';
+                            }
+                            else if (t[i + 1] === '*') {
+                                isComment = true;
+                            }
+                            else {
+                                // --- 判断是 reg 还是 / 除号 ---
+                                // --- 如果是 / 号前面必定有变量或数字，否则就是 reg ---
+                                for (let j = i - 1; j >= 0; --j) {
+                                    if (t[j] === ' ' || t[j] === '\t') {
+                                        continue;
+                                    }
+                                    if (t[j] === ')') {
+                                        break;
+                                    }
+                                    if ((t[j] === '\n') || (!/[\w$]/.test(t[j]))) {
+                                        isReg = char;
+                                        break;
+                                    }
+                                    // --- 是除号 ---
+                                    break;
+                                }
+                                overCode += char;
+                            }
+                            break;
+                        }
+                        default: {
+                            overCode += char;
+                        }
+                    }
+                }
+            }
+            return overCode;
+        });
+        while (code.includes('\n\n')) {
+            code = code.replace(/\n\n/, '\n');
+        }
+        return code;
     },
 
     /**
@@ -457,9 +846,49 @@ const loader: ILoader = {
             });
             fr.readAsText(blob);
         });
+    },
+
+    /**
+     * --- 将 blob 对象转换为 base64 url ---
+     * @param blob 对象
+     */
+    blob2DataUrl: function(blob: Blob): Promise<string> {
+        return new Promise(function(resove) {
+            let fr = new FileReader();
+            fr.addEventListener('load', function(e) {
+                if (e.target) {
+                    resove(e.target.result as string);
+                }
+                else {
+                    resove('');
+                }
+            });
+            fr.readAsDataURL(blob);
+        });
+    },
+
+    /**
+     * --- 在数组中找有没有相应的匹配值 ---
+     * @param arr 数组
+     * @param reg 正则
+     */
+    arrayTest: function(arr: string[], reg: RegExp): string | null {
+        for (let item of arr) {
+            if (reg.test(item)) {
+                return item;
+            }
+        }
+        return null;
     }
 
 };
 
+/** --- 获取当前 js 基路径 --- */
+(function() {
+    let temp = document.querySelectorAll('script');
+    let scriptEle = temp[temp.length - 1];
+    loader.scriptPath = scriptEle.src.slice(0, scriptEle.src.lastIndexOf('/') + 1);
+})();
+
 // --- 运行初始化函数 ---
-loader.run();
+loader.init();

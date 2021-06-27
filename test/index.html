@@ -13,47 +13,72 @@ input{padding:5px;}body,html{margin:0;}body{padding:10px;}
 </style>
 </head>
 <body>
-<div id="mask" style="position: absolute; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, .3); color: #FFF; display: flex; align-items: center; justify-content: center;">Loading...</div>
+<div id="mask" style="position: fixed; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, .3); color: #FFF; display: flex; align-items: center; justify-content: center; text-align: center;">Loading...</div>
 <div>Source code: sources/test-on-browser.ts.</div>
 <div style="display: flex; align-items: center; margin-top: 10px;">
     <div>Basic demo:</div>
     <input id="key" type="text" placeholder="Please input key" style="width: 200px; margin-left: 10px;">
-    <div style="margin-left: 10px;">Like: d1, f2, q3, ok, cancel, go.</div>
+    <div style="margin-left: 10px;">Like: d1, d2, d3, d4, hello, goodbye.</div>
 </div>
 <div style="margin-top: 10px;">
-    <input type="button" value="getData()" onclick="getData()">
-    <input type="button" value="getJson()" onclick="getJson()">
-    <input type="button" value="getRequire()" onclick="getRequire()">
-    <input type="button" value="requireModule3()" onclick="requireModule3()">
-    <input type="button" value="loadSeedrandom()" onclick="loadSeedrandom()">
-    <input type="button" value="Loop contained" onclick="loop()">
-</div>
-<div style="margin-top: 10px;">
-    <input type="button" value="loadES6Module()" onclick="loadES6Module()">
-    <input type="button" value="loadMemoryFile()" onclick="loadMemoryFile()" style="margin-left: 10px;">
-    <input type="button" value="loadMemoryFile() (state save)" onclick="loadMemoryFile(true)">
-    <input type="button" value="getLoadedPaths()" onclick="getLoadedPaths()" style="margin-left: 10px;">
-    <input type="button" value="setRandomAfter()" onclick="setRandomAfter()">
+    <input id="getData" type="button" value="getData()">
+    <input id="getJson" type="button" value="getJson()">
+    <input id="requireModule3" type="button" value="requireModule3()">
+    <input id="loadES6Module" type="button" value="loadES6Module()">
+    <input id="loadSeedrandom" type="button" value="loadSeedrandom()">
+    <input id="loadValFiles" type="button" value="loadValFiles()">
+    <input id="getFiles" type="button" value="getFiles()" style="margin-left: 10px;">
+    <input id="getExecutedFiles" type="button" value="getExecutedFiles()">
 </div>
 <hr>
+
 Run the test file under node directly, and the return value will be displayed below:
 <div style="margin-top: 10px;">
-    <input type="button" value="node dist/test-on-node" onclick="runTestOnNode()">
+    <input id="runTestOnNode" type="button" value="node dist/test-on-node">
 </div>
 <hr>
+
 Run @litert/typeguard on browser:
 <div style="margin-top: 10px;">
-    <input type="button" value="runTypeGuard()" onclick="runTypeGuard()"> (CommonJS)
+    <input id="runTypeGuard" type="button" value="runTypeGuard()"> (CommonJS)
 </div>
 <hr>
+
 Run @juggle/resize-observer on browser:
 <div style="margin-top: 10px;">
-    <input type="button" value="runResizeObserver()" onclick="runResizeObserver()"> (ES6 Module)
+    <input id="runResizeObserverESM" type="button" value="runResizeObserver()"> (ESM)
+    <input id="runResizeObserverUMD" type="button" value="runResizeObserver()"> (UMD)
 </div>
+<hr>
+
+Run monaco-editor on browser:
+<div style="margin-top: 10px;">
+    <div><input id="runMonacoEditor" type="button" value="runMonacoEditor()"> (ESM)</div>
+    <div id="monacoDiv" style="margin-top: 10px; height: 300px; border: solid 1px #000; display: flex; align-items: center; justify-content: center;">Waiting...</div>
+</div>
+<hr>
+
+Remove code comment: <input id="runRemoveComment" type="button" value="Run remove comment">
+<div style="margin-top: 10px; display: flex;">
+    <textarea id="removeComment1" style="flex: 1; height: 200px; resize: none; line-height: 1.5;">var a = 'abc//def';
+var b = 'abc/*def'; // comment
+// comment2
+// comment3
+// comment4
+var c = 'abc*/def;' /* oh!
+var d = 'abc//def'; // hehe
+var e = "abc/*def"; // ok
+var f = `abc`; */
+var g = `abc/*def
+hij//klm`; // en
+var h = "over";</textarea>
+<textarea id="removeComment2" readonly style="flex: 1; height: 200px; resize: none; margin-left: 10px; line-height: 1.5;">Waiting...</textarea>
+</div>
+
 <div style="height: 350px;"></div>
 
 <div style="position: fixed; bottom: 0; left: 0; width: 100%; height: 350px; box-shadow: 0 0 20px rgba(0, 0, 0, .3); padding: 10px; background-color: #FFF; display: flex; flex-direction: column;">
-    <div style="flex-shrink: 0;"><span style="cursor: pointer; text-decoration: underline;" onclick="consoleEl.innerHTML=''">[clear]</span> Console:</div>
+    <div style="flex-shrink: 0; display: flex;"><div style="flex: 1;">Console:</div><div id="clear" style="cursor: pointer; text-decoration: underline;">[clear]</div></div>
     <pre id="console" style="flex: 1; overflow-y: auto; margin: 10px 0 0 0;"></pre>
 </div>
 </body>

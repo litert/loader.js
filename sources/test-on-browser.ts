@@ -1,163 +1,331 @@
-let keyInput: HTMLInputElement;
-let consoleEl: HTMLDivElement;
-let mask: HTMLDivElement;
-let tmodule: any;
+loader.ready(async function(): Promise<void> {
+    /** --- 输入框 --- */
+    let keyInput = document.getElementById('key') as HTMLInputElement;
+    /** ---  --- */
+    let consoleDiv = document.getElementById('console') as HTMLDivElement;
+    /** --- 遮罩 --- */
+    let mask = document.getElementById('mask') as HTMLDivElement;
+    /** --- 已执行过的文件列表 --- */
+    let executedFiles: Record<string, any> = {};
+    /** --- tmodule 对象 --- */
+    let tmodule: any;
+    let files: Record<string, Blob | string> = await loader.fetchFiles([
+        '../dist/tjson.json',
+        '../dist/tloop.js',
+        '../dist/tloop2.js',
+        '../dist/tmodule.js',
+        '../dist/tmodule2.js',
+        '../dist/tmodule3.js'
+    ]);
+    mask.style.display = 'none';
+    tmodule = loader.require('../dist/tmodule', files, executedFiles)[0];
 
-/** --- 重写 log --- */
-let logx = console.log;
-console.log = function(...msg: any[]) {
-    let iHTML = '<div class="cl">';
-    for (let item of msg) {
-        iHTML += '<div style="padding-right:10px;">';
-        if (typeof item === 'string') {
-            iHTML += item;
+    /** --- 重写 log --- */
+    let parseConsoleData = function(val: any, level: number = 0): string {
+        let str = '';
+        let tp = typeof val;
+        if (tp === 'string') {
+            str = `"${val}"`;
         }
-        else {
-            let v = JSON.stringify(item, undefined, 4);
-            if (v) {
-                iHTML += v;
+        else if (tp === 'number') {
+            str = val;
+        }
+        else if (tp === 'boolean') {
+            str = val ? 'true' : 'false';
+        }
+        else if (tp === 'function') {
+            try {
+                let str = val.toString();
+                let match = /function.*?\(.*?\)/.exec(str.toLowerCase());
+                str = match ? match[0] + ' { ... }' : '[function]';
+            }
+            catch {
+                str = '[function]';
+            }
+        }
+        else if (tp === 'object') {
+            if (Array.isArray(val)) {
+                if (level <= 2) {
+                    str = '[\n';
+                    for (let item of val) {
+                        str += '    '.repeat(level + 1) + `${parseConsoleData(item, level + 1)},\n`;
+                    }
+                    if (str !== '[\n') {
+                        str = str.slice(0, -2);
+                    }
+                    str += '\n' + '    '.repeat(level) + ']';
+                }
+                else {
+                    str = '[array]';
+                }
             }
             else {
-                iHTML += item.toString();
+                if (level <= 2) {
+                    str = '{\n';
+                    for (let key in val) {
+                        str += '    '.repeat(level + 1) + `"${key}": ${parseConsoleData(val[key], level + 1)},\n`;
+                    }
+                    if (str !== '{\n') {
+                        str = str.slice(0, -2);
+                    }
+                    str += '\n' + '    '.repeat(level) + '}';
+                }
+                else {
+                    str = '[object]';
+                }
             }
         }
-        iHTML += '</div>';
-    }
-    consoleEl.innerHTML += `${iHTML}</div>`;
-    consoleEl.scrollTop = consoleEl.scrollHeight;
-};
-
-function getData(): void {
-    alert(tmodule.getData(keyInput.value));
-}
-
-function getJson(): void {
-    alert(tmodule.getJson(keyInput.value));
-}
-
-function getRequire(): void {
-    alert(tmodule.getRequire(keyInput.value));
-}
-
-function requireModule3(): void {
-    alert(tmodule.requireModule3());
-}
-
-function loadSeedrandom(): void {
-    mask.style.display = 'flex';
-    loader.require('seedrandom', function(sr) {
-        mask.style.display = 'none';
-        let rng = sr('hello');
-        console.log(rng());
-        rng = sr();
-        console.log(rng());
-    }) as unknown;
-}
-
-// --- 两个文件循环包含，不会陷入死循环 ---
-function loop(): void {
-    mask.style.display = 'flex';
-    loader.require('../dist/tloop', function() {
-        mask.style.display = 'none';
-    }) as unknown;
-}
-
-// --- 加载 es6 module ---
-function loadES6Module(): void {
-    mask.style.display = 'flex';
-    loader.require('./es6-module', function(e) {
-        mask.style.display = 'none';
-        console.log('a:', e.a, 'b:', e.b, 'c:', e.c, 'd:', e.d, 'e:', e.e);
-    }) as unknown;
-}
-
-let memoryFiles = {
-    '/main.js':
-        `var sub = require('./sub');
-        var sr = require('seedrandom');
-        function getData(key) {
-            return key + ', end.';
+        else {
+            str = `[${tp}]`;
         }
-        exports.getData = getData;
-
-        function getSubStr() {
-            return sub.str + '(count:' + sub.getCount() + ')';
+        return str;
+    };
+    let logx = console.log;
+    console.log = function(...msg: any[]) {
+        logx(msg);
+        let iHTML = '<div class="cl">';
+        for (let item of msg) {
+            iHTML += '<div style="padding-right:10px;">';
+            iHTML += parseConsoleData(item).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            iHTML += '</div>';
         }
-        exports.getSubStr = getSubStr;
-        
-        exports.getRand = function() {
-            var rng = sr('abc');
-            return rng();
-        }`,
-
-    '/sub.js': new Blob([
-        `var count = 0;
-        exports.str = "hehe";
-        
-        function getCount() {
-            return ++count;
-        }
-        exports.getCount = getCount;`
-    ])
-};
-let filesLoaded = {};
-async function loadMemoryFile(save: boolean = false) {
-    mask.style.display = 'flex';
-    let rtn = await loader.requireMemory('/main', memoryFiles, save ? filesLoaded : undefined);
-    mask.style.display = 'none';
-    if (!rtn) {
-        console.log('Load memory file failed.');
-        return;
-    }
-    let [main] = rtn;
-    console.log(main.getData('"rand: ' + Math.random() + '"'));
-    console.log('getSubStr:', main.getSubStr(), 'getRand:', main.getRand());
-}
-
-function getLoadedPaths(): void {
-    console.log(loader.getLoadedPaths());
-}
-
-function setRandomAfter(): void {
-    let rand = Math.random().toString();
-    loader.setAfter('?' + rand);
-    console.log('Set up to "?' + rand + '".');
-}
-
-function runTestOnNode(): void {
-    mask.style.display = 'flex';
-    loader.require('../dist/test-on-node', function() {
-        mask.style.display = 'none';
-    }) as unknown;
-}
-
-function runTypeGuard(): void {
-    mask.style.display = 'flex';
-    loader.require('../dist/trun-typeguard', function() {
-        mask.style.display = 'none';
-    }) as unknown;
-}
-
-function runResizeObserver(): void {
-    mask.style.display = 'flex';
-    loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', function(ro) {
-        mask.style.display = 'none';
-        logx(ro.ResizeObserver, ro.ResizeObserverEntry);
-        console.log(ro.ResizeObserver, ro.ResizeObserverEntry);
-    }) as unknown;
-}
-
-loader.ready(async function(): Promise<void> {
-    keyInput = document.getElementById('key') as HTMLInputElement;
-    consoleEl = document.getElementById('console') as HTMLDivElement;
-    mask = document.getElementById('mask') as HTMLDivElement;
-    loader.setPaths({
-        '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/',
-        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+        consoleDiv.innerHTML += `${iHTML}</div>`;
+        consoleDiv.scrollTop = consoleDiv.scrollHeight;
+    };
+    document.getElementById('clear')?.addEventListener('click', function() {
+        consoleDiv.innerHTML = '';
     });
-    loader.setAfter('?' + Math.random());
-    await loader.require('../dist/tmodule', function(t: any) {
-        mask.style.display = 'none';
-        tmodule = t;
+
+    // --- 第一行 ---
+    document.getElementById('getData')?.addEventListener('click', function() {
+        alert(tmodule.getData(keyInput.value));
+    });
+    document.getElementById('getJson')?.addEventListener('click', function() {
+        alert(tmodule.getJson(keyInput.value));
+    });
+    document.getElementById('requireModule3')?.addEventListener('click', function() {
+        alert(tmodule.requireModule3());
+    });
+    document.getElementById('loadES6Module')?.addEventListener('click', function() {
+        (async function() {
+            if (loader.arrayTest(Object.keys(files), /es6-module\.js/) === null) {
+                mask.style.display = 'flex';
+                await loader.fetchFiles([
+                    './es6-module-sub.js',
+                    './es6-module-sub2.js',
+                    './es6-module-sub3.js',
+                    './es6-module.js'
+                ], {
+                    'files': files
+                });
+                mask.style.display = 'none';
+            }
+            let es6 = loader.require('./es6-module', files, executedFiles)[0];
+            console.log(`a: ${es6.a}, b: ${es6.b}, c: ${es6.c}, d: ${es6.d}, e: ${es6.e}`);
+            es6.xx();
+        })() as unknown;
+    });
+    document.getElementById('loadSeedrandom')?.addEventListener('click', function() {
+        (async function() {
+            if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
+                mask.style.display = 'flex';
+                await loader.fetchFiles([
+                    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+                ], {
+                    'files': files
+                });
+                mask.style.display = 'none';
+            }
+            let sr = loader.require('seedrandom', files, executedFiles, {
+                'map': {
+                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                }
+            })[0];
+            let rng = sr('hello');
+            console.log(rng());
+            rng = sr();
+            console.log(rng());
+        })() as unknown;
+    });
+
+    let valFiles = {
+        '/main.js':
+            `var sub = require('./sub');
+            var sr = require('seedrandom');
+            function getData(key) {
+                return 'key: ' + key + '.';
+            }
+            exports.getData = getData;
+    
+            function getSubStr() {
+                return 'str: ' + sub.str + ', count: ' + sub.getCount() + '.';
+            }
+            exports.getSubStr = getSubStr;
+            
+            exports.getRand = function() {
+                var rng = sr('abc');
+                return rng();
+            }`,
+        '/sub.js':
+            `var count = 0;
+            exports.str = "substr";
+            
+            function getCount() {
+                return ++count;
+            }
+            exports.getCount = getCount;`
+    };
+    document.getElementById('loadValFiles')?.addEventListener('click', function() {
+        (async function() {
+            if (!Object.keys(files).includes('/main.js')) {
+                Object.assign(files, valFiles);
+            }
+            mask.style.display = 'flex';
+            await loader.fetchFiles([
+                'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+            ], {
+                'files': files
+            });
+            mask.style.display = 'none';
+            let m = loader.require('/main.js', files, executedFiles, {
+                'map': {
+                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                }
+            })[0];
+            console.log('getData: ' + m.getData(keyInput.value) + ', getSubStr: ' + m.getSubStr() + ', getRand: ' + m.getRand());
+        })() as unknown;
+    });
+
+    document.getElementById('getFiles')?.addEventListener('click', function() {
+        console.log(Object.keys(files));
+    });
+    document.getElementById('getExecutedFiles')?.addEventListener('click', function() {
+        console.log(executedFiles);
+    });
+
+    document.getElementById('runTestOnNode')?.addEventListener('click', function() {
+        (async function() {
+            mask.style.display = 'flex';
+            await loader.fetchFiles([
+                '../dist/test-on-node.js'
+            ], {
+                'files': files
+            });
+            mask.style.display = 'none';
+            loader.require('../dist/test-on-node', files, executedFiles);
+        })() as unknown;
+    });
+
+    document.getElementById('runTypeGuard')?.addEventListener('click', function() {
+        (async function() {
+            mask.style.display = 'flex';
+            await loader.fetchFiles([
+                '../dist/trun-typeguard.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/langs/JavaScript.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/BuiltInTypeCompiler.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/BuiltInTypes.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Common.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Compiler.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Context.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/FilterCompiler.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/index.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/InlineCompiler.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Internal.js',
+                'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Modifiers.js'
+            ], {
+                'files': files
+            });
+            mask.style.display = 'none';
+            loader.require('../dist/trun-typeguard', files, executedFiles, {
+                'map': {
+                    '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/'
+                }
+            });
+        })() as unknown;
+    });
+
+    document.getElementById('runResizeObserverESM')?.addEventListener('click', function() {
+        (async function() {
+            mask.style.display = 'flex';
+            await loader.sniffFiles([
+                'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.js'
+            ], {
+                'files': files
+            });
+            mask.style.display = 'none';
+            mask.innerHTML = 'Loading...';
+            let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, executedFiles)[0];
+            console.log(r);
+        })() as unknown;
+    });
+    document.getElementById('runResizeObserverUMD')?.addEventListener('click', function() {
+        (async function() {
+            mask.style.display = 'flex';
+            await loader.fetchFiles([
+                'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js'
+            ], {
+                'files': files
+            });
+            mask.style.display = 'none';
+            let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, executedFiles)[0];
+            console.log(r);
+        })() as unknown;
+    });
+
+    document.getElementById('runMonacoEditor')?.addEventListener('click', function() {
+        (async function() {
+            let monacoDiv = document.getElementById('monacoDiv') as HTMLDivElement;
+            if (monacoDiv.getAttribute('loaded') === 'loaded') {
+                alert('Cannot be loaded repeatedly.');
+                return;
+            }
+            monacoDiv.setAttribute('loaded', 'loaded');
+            monacoDiv.innerHTML = 'Loading...';
+            // --- 开始加载 ---
+            mask.style.display = 'flex';
+            await loader.sniffFiles([
+                'https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js'
+            ], {
+                'files': files,
+                'load': function(url: string) {
+                    mask.innerHTML = url + '<br>Loading...';
+                },
+                'loaded': function(url: string) {
+                    mask.innerHTML = url + '<br>Loaded.';
+                }
+            });
+            mask.style.display = 'none';
+            monacoDiv.innerHTML = '';
+            // --- 初始化 Monaco ---
+            let proxy = URL.createObjectURL(new Blob([`
+                self.MonacoEnvironment = {
+                    baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/min/'
+                };
+                importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/min/vs/base/worker/workerMain.js');
+            `], { type: 'text/javascript' }));
+            (window as any).MonacoEnvironment = { getWorkerUrl: () => proxy };
+            let monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, executedFiles, {
+                'style': 'monaco-editor'
+            });
+            const monacoInstance = monaco[0].editor.create(monacoDiv, {
+                'value': `<html>
+    <head>
+        <title>Monaco</title>
+    </head>
+    <body>
+        Hello Monaco Editor!
+    </body>
+</html>`,
+                'language': 'html'
+            });
+            window.addEventListener('resize', function() {
+                monacoInstance.layout();
+            });
+            console.log(monacoInstance);
+        })() as unknown;
+    });
+
+    document.getElementById('runRemoveComment')?.addEventListener('click', function() {
+        (document.getElementById('removeComment2') as HTMLTextAreaElement).value = loader.removeComment((document.getElementById('removeComment1') as HTMLTextAreaElement).value);
     });
 });

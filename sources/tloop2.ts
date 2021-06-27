@@ -1,6 +1,5 @@
-import * as loop from "./tloop";
+import * as loop from './tloop';
 
-export let msg = "loop2";
+export let msg = 'loop2';
 
-console.log("loop2 done(" + loop.msg + ").");
-
+console.log(`loop2 done(${loop.msg}).`);

@@ -1,9 +1,9 @@
-console.log("Run tmodule3.");
+console.log('Run tmodule3.');
 
 let a = 1;
 
-a += Math.floor(Math.random()*10);
+a += Math.floor(Math.random() * 10);
 
-export function getNum() {
+export function getNum(): number {
     return a;
 }

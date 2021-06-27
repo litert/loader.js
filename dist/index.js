@@ -11,18 +11,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 const loader = {
     isReady: false,
     readys: [],
-    dir: '',
-    config: {},
-    loaded: {},
-    run: function () {
-        let runFun = () => __awaiter(this, void 0, void 0, function* () {
-            if (window.location.href.endsWith('/')) {
-                this.dir = window.location.href.slice(0, -1);
-            }
-            else {
-                let lio = window.location.href.lastIndexOf('/');
-                this.dir = window.location.href.slice(0, lio);
-            }
+    scriptPath: '',
+    init: function () {
+        let run = () => __awaiter(this, void 0, void 0, function* () {
             if (typeof fetch !== 'function') {
                 yield this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
             }
@@ -37,12 +28,12 @@ const loader = {
             }
         });
         if (document.readyState === 'interactive' || document.readyState === 'complete') {
-            runFun().catch((e) => {
+            run().catch((e) => {
                 throw e;
             });
         }
         else {
-            document.addEventListener('DOMContentLoaded', runFun);
+            document.addEventListener('DOMContentLoaded', run);
         }
     },
     ready: function (callback) {
@@ -58,110 +49,409 @@ const loader = {
             this.readys.push(callback);
         }
     },
-    setConfig: function (config) {
-        if (config.after !== undefined) {
-            this.config.after = config.after;
+    require: function (paths, files, executedFiles, opt = {}) {
+        if (typeof paths === 'string') {
+            paths = [paths];
         }
-        if (config.paths !== undefined) {
-            this.config.paths = config.paths;
+        if (opt.dir === undefined) {
+            opt.dir = location.href;
         }
-    },
-    setAfter: function (after) {
-        this.config.after = after;
-    },
-    setPaths: function (paths) {
-        this.config.paths = paths;
-    },
-    addPath: function (name, path) {
-        if (this.config.paths) {
-            this.config.paths[name] = path;
-        }
-        else {
-            this.config.paths = {
-                [name]: path
-            };
-        }
-    },
-    getLoadedPaths: function () {
-        let paths = [];
-        for (let path in this.loaded) {
-            paths.push(path);
-        }
-        return paths;
-    },
-    require: function (paths, callback, error) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (typeof paths === 'string') {
-                paths = [paths];
-            }
-            let input = [];
-            for (let path of paths) {
-                let module = yield this.loadModule(path, this.dir, {}, {});
-                if (!module) {
-                    error === null || error === void 0 ? void 0 : error(path);
-                    return null;
+        let styleElement = null;
+        if (opt.style) {
+            styleElement = document.querySelector('style[name="' + opt.style + '"]');
+            if (!styleElement) {
+                styleElement = document.createElement('style');
+                styleElement.setAttribute('name', opt.style);
+                let headElement = document.getElementsByTagName('head')[0];
+                if (headElement) {
+                    headElement.append(styleElement);
                 }
-                if (!module.first) {
-                    module.first = true;
-                    module.object = (new Function('__filesLoaded', module.func))({});
+                else {
+                    document.append(styleElement);
                 }
-                input.push(module.object);
             }
-            callback === null || callback === void 0 ? void 0 : callback(...input);
-            return input;
-        });
-    },
-    requireMemory: function (paths, files, filesLoaded) {
-        return __awaiter(this, void 0, void 0, function* () {
-            if (typeof paths === 'string') {
-                paths = [paths];
+        }
+        let output = [];
+        for (let path of paths) {
+            path = this.moduleNameResolve(path, opt.dir, opt.map);
+            if (executedFiles[path]) {
+                output.push(executedFiles[path]);
+                continue;
             }
-            let input = [];
-            if (!filesLoaded) {
-                filesLoaded = {};
+            if (!files[path]) {
+                output.push(null);
+                continue;
             }
-            for (let path of paths) {
-                let module = yield this.loadModule(path, '', files, filesLoaded);
-                if (!module) {
-                    return null;
+            if (typeof files[path] !== 'string') {
+                output.push(null);
+                continue;
+            }
+            let code = files[path];
+            if (path.endsWith('.css')) {
+                if (styleElement) {
+                    (() => __awaiter(this, void 0, void 0, function* () {
+                        let reg = /url\(["']{0,1}(.+?)["']{0,1}\)/ig;
+                        let match = null;
+                        while ((match = reg.exec(code))) {
+                            let realPath = this.urlResolve(path, match[1]);
+                            let file = (files[realPath] && files[realPath] instanceof Blob) ? files[realPath] : null;
+                            if (file) {
+                                code = code.replace(match[0], `url('${yield this.blob2DataUrl(file)}')`);
+                            }
+                        }
+                        styleElement.append(code);
+                    }))().catch((e) => { throw e; });
                 }
-                if (!module.first) {
-                    module.first = true;
-                    module.object = (new Function('__filesLoaded', module.func))(filesLoaded);
-                }
-                input.push(module.object);
+                output.push(code);
             }
-            return input;
-        });
+            else if (code.startsWith('{') && code.endsWith('}')) {
+                try {
+                    let data = JSON.parse(code);
+                    executedFiles[path] = data;
+                    output.push(data);
+                }
+                catch (_a) {
+                    output.push(null);
+                }
+            }
+            else {
+                let needExports = [];
+                code = this.removeComment(code);
+                let strict = '';
+                if (code.includes('"use strict"')) {
+                    strict = '"use strict"\n';
+                    code = code.replace(/"use strict"\n?/, '');
+                }
+                let dirname = '';
+                let plio = path.lastIndexOf('/');
+                if (plio !== -1) {
+                    dirname = path.slice(0, plio);
+                }
+                code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${dirname}/$1`);
+                code = code.replace(/import *\* *as *(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
+                code = code.replace(/import *(\S+) *from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2).default');
+                code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function (t, t1, t2, t3, t4) {
+                    let tmpVar = 't' + t4.replace(/[^a-zA-Z]/g, '') + '_' + Math.round(Math.random() * 10000);
+                    let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
+                    let list = t2.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        txt += t1 === 'import' ? 'const ' : 'exports.';
+                        let reg = /^(.+) +as +(.+)$/.exec(list[i]);
+                        if (reg) {
+                            txt += `${reg[2]} = ${tmpVar}.${reg[1]};`;
+                        }
+                        else {
+                            txt += `${list[i]} = ${tmpVar}.${list[i]};`;
+                        }
+                    }
+                    return txt.slice(0, -1);
+                });
+                code = code.replace(/import *(['"].+?['"])/g, function (t, t1) {
+                    return `require(${t1})`;
+                });
+                code = code.replace(/import\((.+?)\)/g, function (t, t1) {
+                    return `importOverride(${t1})`;
+                });
+                code = code.replace(/export *{(.+?)}/g, function (t, t1) {
+                    let txt = '';
+                    let list = t1.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        txt += `exports.${list[i]} = ${list[i]};`;
+                    }
+                    return txt.slice(0, -1);
+                });
+                code = code.replace(/export *\* *from *(["'])(\S+)["']/g, function (t, t1, t2) {
+                    return `var lrTmpList = require(${t1}${t2}${t1});var lrTmpKey;for (lrTmpKey in lrTmpList) { exports[lrTmpKey] = lrTmpList[lrTmpKey]; }`;
+                });
+                while (true) {
+                    let match = /(export +)(class|function) +([\w$]+)[\s\S]+$/.exec(code);
+                    if (!match) {
+                        break;
+                    }
+                    let overCode = '';
+                    let bigCount = -1;
+                    let smallCount = 0;
+                    let isString = '';
+                    let i = 0;
+                    for (i = 0; i < match[0].length; ++i) {
+                        let char = match[0][i];
+                        if (isString !== '') {
+                            if ((char === isString) && (match[0][i - 1] !== '\\')) {
+                                isString = '';
+                            }
+                            overCode += char;
+                        }
+                        else {
+                            switch (char) {
+                                case '"':
+                                case '`':
+                                case '\'': {
+                                    isString = char;
+                                    overCode += char;
+                                    break;
+                                }
+                                case '{': {
+                                    if (smallCount <= 0) {
+                                        if (smallCount === 0) {
+                                            smallCount = -1;
+                                        }
+                                        if (bigCount === -1) {
+                                            bigCount = 1;
+                                        }
+                                        else {
+                                            ++bigCount;
+                                        }
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '}': {
+                                    if (smallCount <= 0) {
+                                        --bigCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '(': {
+                                    if (smallCount >= 0) {
+                                        ++smallCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case ')': {
+                                    if (smallCount >= 0) {
+                                        --smallCount;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                case '/': {
+                                    for (let j = i - 1; j >= 0; --j) {
+                                        if (match[0][j] === ' ' || match[0][j] === '\t') {
+                                            continue;
+                                        }
+                                        if (match[0][j] === ')') {
+                                            break;
+                                        }
+                                        if ((match[0][j] === '\n') || (!/\w/.test(match[0][j]))) {
+                                            isString = char;
+                                            break;
+                                        }
+                                        break;
+                                    }
+                                    overCode += char;
+                                    break;
+                                }
+                                default: {
+                                    overCode += char;
+                                }
+                            }
+                        }
+                        if (bigCount === 0) {
+                            break;
+                        }
+                    }
+                    code = code.slice(0, match.index) + overCode.slice(match[1].length) + `exports.${match[3]} = ${match[3]};` + code.slice(match.index + i + 1);
+                }
+                code = code.replace(/export default ([\w$]+)/g, 'exports.default = $1');
+                code = code.replace(/export +(\w+) *([{[])(.+?)([}\]])/g, function (t, t1, t2, t3, t4) {
+                    let list = t3.split(',');
+                    for (let i = 0; i < list.length; ++i) {
+                        list[i] = list[i].trim();
+                        needExports.push('exports.' + list[i] + ' = ' + list[i] + ';');
+                    }
+                    return t1 + ' ' + t2 + t3 + t4;
+                });
+                code = code.replace(/export +(\w+) +(\w+)/g, function (t, t1, t2) {
+                    if (!['let', 'var', 'const'].includes(t1)) {
+                        return t;
+                    }
+                    needExports.push('exports.' + t2 + ' = ' + t2 + ';');
+                    return t1 + ' ' + t2;
+                });
+                code = `${strict}
+                var __dirname = '${dirname}';
+                var __filename = '${path}';
+                var module = {
+                    exports: {}
+                };
+                var exports = module.exports;
+
+                let importOverride = function(url) {
+                    return loader.import(url, __files, __executedFiles, {
+                        'map': __map,
+                        'dir': __filename,
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                    });
+                }
+
+                function require(path) {
+                    var m = loader.require(path, __files, __executedFiles, {
+                        'map': __map,
+                        'dir': __filename,
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                    });
+                    if (m[0]) {
+                        return m[0];
+                    }
+                    else {
+                        throw 'Failed require "' + path + '" on "' + __filename + '".';
+                    }
+                }
+
+                ${code}
+
+                ${needExports.join('')}
+
+                return module.exports;`;
+                executedFiles[path] = (new Function('__files', '__executedFiles', '__map', code))(files, executedFiles, opt.map);
+                output.push(executedFiles[path]);
+            }
+        }
+        return output;
     },
     fetch: function (url, init = {}) {
+        let initClone = {};
+        Object.assign(initClone, init);
+        if (init.credentials === undefined) {
+            if (url.slice(0, 4).toLowerCase() === 'http') {
+                let m = /^(ht.+?\/\/.+?\/)/.exec(window.location.href.toLowerCase());
+                if (m && url.toLowerCase().startsWith(m[0])) {
+                    initClone.credentials = 'include';
+                }
+            }
+            else {
+                initClone.credentials = 'include';
+            }
+        }
+        return new Promise(function (resolve) {
+            fetch(url, init).then(function (res) {
+                var _a;
+                if (res.status === 200 || res.status === 304) {
+                    let typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
+                    for (let item of typeList) {
+                        if ((_a = res.headers.get('content-type')) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(item)) {
+                            return res.text();
+                        }
+                    }
+                    return res.blob();
+                }
+                else {
+                    resolve(null);
+                    return '';
+                }
+            }).then(function (text) {
+                resolve(text);
+            }).catch(function () {
+                resolve(null);
+            });
+        });
+    },
+    fetchFiles: function (urls, opt = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (init.credentials === undefined) {
-                if (url.slice(0, 4).toLowerCase() === 'http') {
-                    let m = /^(ht.+?\/\/.+?\/)/.exec(window.location.href.toLowerCase());
-                    if (m && url.toLowerCase().startsWith(m[0])) {
-                        init.credentials = 'include';
+            return new Promise((resolve) => {
+                var _a, _b;
+                if (!opt.init) {
+                    opt.init = {};
+                }
+                if (opt.dir === undefined) {
+                    opt.dir = location.href;
+                }
+                let list = {};
+                let count = 0;
+                for (let url of urls) {
+                    url = this.urlResolve(opt.dir, url);
+                    if ((_a = opt.files) === null || _a === void 0 ? void 0 : _a[url]) {
+                        ++count;
+                        if (count === urls.length) {
+                            resolve(list);
+                            return;
+                        }
+                        continue;
+                    }
+                    (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
+                    this.fetch(url, opt.init).then(function (res) {
+                        var _a, _b;
+                        ++count;
+                        if (res) {
+                            list[url] = res;
+                            (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                            if (opt.files) {
+                                opt.files[url] = res;
+                            }
+                        }
+                        else {
+                            (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                        }
+                        if (count === urls.length) {
+                            resolve(list);
+                        }
+                    }).catch(function () {
+                        var _a;
+                        ++count;
+                        (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                        if (count === urls.length) {
+                            resolve(list);
+                        }
+                    });
+                }
+            });
+        });
+    },
+    sniffFiles: function (urls, opt = {}) {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (typeof urls === 'string') {
+                urls = [urls];
+            }
+            let list = yield this.fetchFiles(urls, {
+                'init': opt.init,
+                'load': opt.load,
+                'loaded': opt.loaded,
+                'dir': opt.dir,
+                'files': opt.files
+            });
+            let nlayer = [];
+            for (let path in list) {
+                let item = list[path];
+                if (typeof item !== 'string') {
+                    continue;
+                }
+                let reg;
+                let match;
+                let tmp = [];
+                if (path.endsWith('.css')) {
+                    reg = /url\(["']{0,1}(.+?)["']{0,1}\)/ig;
+                    while ((match = reg.exec(item))) {
+                        if (match[1].startsWith('data:')) {
+                            continue;
+                        }
+                        tmp.push(match[1]);
                     }
                 }
                 else {
-                    init.credentials = 'include';
+                    reg = /(from|import) +['"](.+?)['"]/g;
+                    while ((match = reg.exec(item))) {
+                        tmp.push(match[2]);
+                    }
+                    reg = /require\(['"](.+?)['"]\)/g;
+                    while ((match = reg.exec(item))) {
+                        tmp.push(match[1]);
+                    }
+                }
+                for (let t of tmp) {
+                    let mnr = this.moduleNameResolve(t, path, opt.map);
+                    if (!nlayer.includes(mnr)) {
+                        nlayer.push(mnr);
+                    }
                 }
             }
-            return new Promise(function (resolve) {
-                fetch(url, init).then(function (res) {
-                    if (res.status === 200 || res.status === 304) {
-                        return res.text();
-                    }
-                    else {
-                        resolve(null);
-                        return '';
-                    }
-                }).then(function (text) {
-                    resolve(text);
-                }).catch(function () {
-                    resolve(null);
-                });
-            });
+            if (nlayer.length > 0) {
+                Object.assign(list, yield this.sniffFiles(nlayer, opt));
+            }
+            return list;
         });
     },
     loadScript: function (el, path) {
@@ -177,209 +467,255 @@ const loader = {
             el.appendChild(script);
         });
     },
-    getModule: function (path, dir, filesLoaded) {
-        path = this.moduleName2Path(path, dir);
-        let module;
-        if (filesLoaded[path]) {
-            module = filesLoaded[path];
-        }
-        else if (this.loaded[path]) {
-            module = this.loaded[path];
-        }
-        if (!module) {
-            return null;
-        }
-        if (!module.first) {
-            module.first = true;
-            module.object = (new Function('__filesLoaded', module.func))(filesLoaded);
-        }
-        else {
-            if (!module.object) {
-                console.log('Loop containment is prohibited.');
-                return {};
-            }
-        }
-        return module.object;
-    },
-    loadModule: function (path, dir, files, filesLoaded) {
-        var _a;
+    import: function (url, files, executedFiles, opt = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            let inFiles = false;
-            path = this.moduleName2Path(path, dir);
-            if (filesLoaded[path]) {
-                return filesLoaded[path];
+            if (opt.dir === undefined) {
+                opt.dir = location.href;
             }
-            else if (this.loaded[path]) {
-                return this.loaded[path];
-            }
-            let code;
-            if (files[path]) {
-                inFiles = true;
-                let blob = files[path];
-                if (typeof blob === 'string') {
-                    code = blob;
-                }
-                else {
-                    code = yield this.blob2Text(blob);
-                }
+            url = this.moduleNameResolve(url, opt.dir, opt.map);
+            if (files[url]) {
+                return this.require(url, files, executedFiles, opt)[0];
             }
             else {
-                let text = yield this.fetch(path + ((_a = this.config.after) !== null && _a !== void 0 ? _a : ''));
-                if (!text) {
-                    return null;
-                }
-                code = text;
-            }
-            code = code.replace(/^\s+|\s+$/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            if (code.startsWith('{') && code.endsWith('}')) {
-                try {
-                    let data = JSON.parse(code);
-                    if (inFiles) {
-                        filesLoaded[path] = {
-                            'first': true,
-                            'func': '',
-                            'object': data
-                        };
-                    }
-                    else {
-                        this.loaded[path] = {
-                            'first': true,
-                            'func': '',
-                            'object': data
-                        };
-                    }
-                }
-                catch (_b) {
-                    return null;
-                }
-            }
-            else {
-                if (inFiles) {
-                    filesLoaded[path] = {
-                        'first': false,
-                        'func': '',
-                        'object': null
-                    };
-                }
-                else {
-                    this.loaded[path] = {
-                        'first': false,
-                        'func': '',
-                        'object': null
-                    };
-                }
-                let strict = '';
-                if (code.indexOf('"use strict"') !== -1) {
-                    strict = '"use strict"\n';
-                    code = code.replace(/"use strict"\n?/, '');
-                }
-                let fdirname = '';
-                let plio = path.lastIndexOf('/');
-                if (plio !== -1) {
-                    fdirname = path.slice(0, plio);
-                }
-                code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${fdirname}/$1`);
-                code = code.replace(/import *\* *as +(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
-                code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function (t, t1, t2, t3, t4) {
-                    let tmpVar = 't' + t4.replace(/[^a-zA-Z]/g, '') + '_' + Math.round(Math.random() * 10000);
-                    let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
-                    let list = t2.split(',');
-                    for (let i = 0; i < list.length; ++i) {
-                        list[i] = list[i].trim();
-                        txt += t1 === 'import' ? 'const ' : 'exports.';
-                        txt += `${list[i]} = ${tmpVar}.${list[i]};`;
-                    }
-                    return txt.slice(0, -1);
+                yield this.sniffFiles(url, {
+                    'dir': opt.dir,
+                    'files': files
                 });
-                code = code.replace(/export *{(.+?)}/g, function (t, t1) {
-                    let txt = '';
-                    let list = t1.split(',');
-                    for (let i = 0; i < list.length; ++i) {
-                        list[i] = list[i].trim();
-                        txt += `exports.${list[i]} = ${list[i]};`;
-                    }
-                    return txt.slice(0, -1);
-                });
-                code = code.replace(/export +(\w+ +)*(\w+) *=/g, 'exports.$2 =');
-                code = code.replace(/export +function +(\w+)/g, 'exports.$1 = function');
-                let match;
-                let reg = /require\s*?\( *?["'`](.+?)["'`] *?\)/g;
-                let list = [];
-                while ((match = reg.exec(code))) {
-                    list.push(match[1]);
-                }
-                if (list.length > 0) {
-                    yield new Promise((resolve) => {
-                        let now = 0;
-                        for (let item of list) {
-                            this.loadModule(item, fdirname, files, filesLoaded).then(() => {
-                                ++now;
-                                if (now === list.length) {
-                                    resolve();
-                                }
-                            }).catch(() => {
-                                ++now;
-                                if (now === list.length) {
-                                    resolve();
-                                }
-                            });
-                        }
-                    });
-                }
-                code = `${strict}
-            var __dirname = '${fdirname}';
-            var __filename = '${path}';
-            var module = {
-                exports: {}
-            };
-            var exports = module.exports;
-
-            function require(path) {
-                var m = loader.getModule(path, __dirname, __filesLoaded);
-                if (m) {
-                    return m;
-                } else {
-                    throw 'Failed require.';
-                }
-            }
-
-            ${code}
-
-            return module.exports;`;
-                if (inFiles) {
-                    filesLoaded[path].func = code;
-                }
-                else {
-                    this.loaded[path].func = code;
-                }
-            }
-            if (inFiles) {
-                return filesLoaded[path];
-            }
-            else {
-                return this.loaded[path];
+                return this.require(url, files, executedFiles, opt)[0];
             }
         });
     },
-    moduleName2Path: function (path, dirname) {
-        let paths = this.config.paths;
-        if (paths === null || paths === void 0 ? void 0 : paths[path]) {
-            path = paths[path];
+    moduleNameResolve: function (path, dir, map = {}) {
+        if (map[path]) {
+            path = map[path];
         }
-        if (path.slice(0, 8).indexOf('//') === -1 && !path.startsWith('/')) {
-            path = dirname + '/' + path;
-        }
+        path = this.urlResolve(dir, path);
         if (path.endsWith('/')) {
             path += 'index';
         }
-        path = path.replace(/\/\.\//g, '/');
-        while (/\/(?!\.\.)[^/]+\/\.\.\//.test(path)) {
-            path = path.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
-        }
-        if (!path.endsWith('.json') && !path.endsWith('.js')) {
+        let lio = path.lastIndexOf('/');
+        let fname = lio === -1 ? path : path.slice(lio + 1);
+        lio = fname.lastIndexOf('.');
+        let fext = lio === -1 ? '' : fname.slice(lio + 1);
+        if (!['js', 'json', 'css', 'ttf', 'png', 'gif', 'jpg', 'jpeg', 'svg'].includes(fext)) {
             path += '.js';
         }
         return path;
+    },
+    parseUrl: function (url) {
+        let u = {
+            'auth': null,
+            'hash': null,
+            'host': null,
+            'hostname': null,
+            'pass': null,
+            'path': null,
+            'pathname': '/',
+            'protocol': null,
+            'port': null,
+            'query': null,
+            'user': null
+        };
+        let protocol = /^(.+?)\/\//.exec(url);
+        if (protocol) {
+            u.protocol = protocol[1].toLowerCase();
+            url = url.slice(protocol[0].length);
+        }
+        let hostSp = url.indexOf('/');
+        let left = url;
+        if (hostSp !== -1) {
+            left = url.slice(0, hostSp);
+            url = url.slice(hostSp);
+        }
+        if (left) {
+            let leftArray = left.split('@');
+            let host = left;
+            if (leftArray[1]) {
+                let auth = leftArray[0].split(':');
+                u.user = auth[0];
+                if (auth[1]) {
+                    u.pass = auth[1];
+                }
+                u.auth = u.user + (u.pass ? ':' + u.pass : '');
+                host = leftArray[1];
+            }
+            let hostArray = host.split(':');
+            u.hostname = hostArray[0].toLowerCase();
+            if (hostArray[1]) {
+                u.port = hostArray[1];
+            }
+            u.host = u.hostname + (u.port ? ':' + u.port : '');
+        }
+        if (hostSp === -1) {
+            return u;
+        }
+        let paqArray = url.split('?');
+        u.pathname = paqArray[0];
+        if (paqArray[1]) {
+            let qahArray = paqArray[1].split('#');
+            u.query = qahArray[0];
+            if (qahArray[1]) {
+                u.hash = qahArray[1];
+            }
+        }
+        u.path = u.pathname + (u.query ? '?' + u.query : '');
+        return u;
+    },
+    urlResolve: function (from, to) {
+        from = from.replace(/\\/g, '/');
+        to = to.replace(/\\/g, '/');
+        if (to === '') {
+            return from;
+        }
+        let f = this.parseUrl(from);
+        if (to.startsWith('//')) {
+            return f.protocol ? f.protocol + to : to;
+        }
+        if (f.protocol) {
+            from = f.protocol + from.slice(f.protocol.length);
+        }
+        let t = this.parseUrl(to);
+        if (t.protocol) {
+            return t.protocol + to.slice(t.protocol.length);
+        }
+        if (to.startsWith('#') || to.startsWith('?')) {
+            let sp = from.indexOf(to[0]);
+            if (sp !== -1) {
+                return from.slice(0, sp) + to;
+            }
+            else {
+                return from + to;
+            }
+        }
+        let abs = (f.auth ? f.auth + '@' : '') + (f.host ? f.host : '');
+        if (to.startsWith('/')) {
+            abs += to;
+        }
+        else {
+            let path = f.pathname.replace(/\/[^/]*$/g, '');
+            abs += path + '/' + to;
+        }
+        abs = abs.replace(/\/\.\//g, '/');
+        while (/\/(?!\.\.)[^/]+\/\.\.\//.test(abs)) {
+            abs = abs.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
+        }
+        abs = abs.replace(/\.\.\//g, '');
+        if (f.protocol && !f.host) {
+            return f.protocol + abs;
+        }
+        else {
+            return (f.protocol ? f.protocol + '//' : '') + abs;
+        }
+    },
+    isEscapeChar: function (index, code) {
+        let preChar = code[index - 1];
+        let count = 0;
+        while (preChar === '\\') {
+            preChar = code[index - (++count) - 1];
+        }
+        return count % 2 === 0 ? false : true;
+    },
+    removeComment: function (code) {
+        let isComment = false;
+        let isLineString = false;
+        code = code.replace(/^\s+|\s+$/g, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        code = code.replace(/.*(\n|$)/g, (t) => {
+            if (isComment && !t.includes('*/')) {
+                return '';
+            }
+            if (!isComment && !t.includes('/*') && !t.includes('//') && !t.includes('`')) {
+                return t;
+            }
+            let overCode = '';
+            let isString = '';
+            let isReg = '';
+            for (let i = 0; i < t.length; ++i) {
+                let char = t[i];
+                if (isLineString) {
+                    if ((char === '`') && !this.isEscapeChar(i, t)) {
+                        isLineString = false;
+                    }
+                    overCode += char;
+                }
+                else if (isReg !== '') {
+                    if (char === '[') {
+                        if (!this.isEscapeChar(i, t)) {
+                            isReg = '[';
+                        }
+                    }
+                    else if (char === ']') {
+                        if (!this.isEscapeChar(i, t) && (isReg === '[')) {
+                            isReg = '/';
+                        }
+                    }
+                    else if (char === '/') {
+                        if (!this.isEscapeChar(i, t) && (isReg === '/')) {
+                            isReg = '';
+                        }
+                    }
+                    overCode += char;
+                }
+                else if (isString !== '') {
+                    if ((char === isString) && !this.isEscapeChar(i, t)) {
+                        isString = '';
+                    }
+                    overCode += char;
+                }
+                else if (isComment) {
+                    if (char === '/' && (t[i - 1] === '*')) {
+                        isComment = false;
+                    }
+                }
+                else {
+                    switch (char) {
+                        case '"':
+                        case '\'': {
+                            isString = char;
+                            overCode += char;
+                            break;
+                        }
+                        case '`': {
+                            isLineString = true;
+                            overCode += char;
+                            break;
+                        }
+                        case '/': {
+                            if (t[i + 1] === '/') {
+                                return overCode + '\n';
+                            }
+                            else if (t[i + 1] === '*') {
+                                isComment = true;
+                            }
+                            else {
+                                for (let j = i - 1; j >= 0; --j) {
+                                    if (t[j] === ' ' || t[j] === '\t') {
+                                        continue;
+                                    }
+                                    if (t[j] === ')') {
+                                        break;
+                                    }
+                                    if ((t[j] === '\n') || (!/[\w$]/.test(t[j]))) {
+                                        isReg = char;
+                                        break;
+                                    }
+                                    break;
+                                }
+                                overCode += char;
+                            }
+                            break;
+                        }
+                        default: {
+                            overCode += char;
+                        }
+                    }
+                }
+            }
+            return overCode;
+        });
+        while (code.includes('\n\n')) {
+            code = code.replace(/\n\n/, '\n');
+        }
+        return code;
     },
     blob2Text: function (blob) {
         return new Promise(function (resove) {
@@ -394,6 +730,33 @@ const loader = {
             });
             fr.readAsText(blob);
         });
+    },
+    blob2DataUrl: function (blob) {
+        return new Promise(function (resove) {
+            let fr = new FileReader();
+            fr.addEventListener('load', function (e) {
+                if (e.target) {
+                    resove(e.target.result);
+                }
+                else {
+                    resove('');
+                }
+            });
+            fr.readAsDataURL(blob);
+        });
+    },
+    arrayTest: function (arr, reg) {
+        for (let item of arr) {
+            if (reg.test(item)) {
+                return item;
+            }
+        }
+        return null;
     }
 };
-loader.run();
+(function () {
+    let temp = document.querySelectorAll('script');
+    let scriptEle = temp[temp.length - 1];
+    loader.scriptPath = scriptEle.src.slice(0, scriptEle.src.lastIndexOf('/') + 1);
+})();
+loader.init();
