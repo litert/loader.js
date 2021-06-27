@@ -13,15 +13,15 @@ Simple browser module loader.
 
 ## Languages
 
-[简体中文](doc/README.zh-CN.md) | [繁體中文](doc/README.zh-TW.md)
+[简体中文](doc/README.zh-cn.md) | [繁體中文](doc/README.zh-tw.md)
 
 ## Features
 
+- [x] Supports running code in memory.  
 - [x] The configuration is simple and lightweight.  
 - [x] No intrusion and does not affect the script label.  
 - [x] Support the CommonJS / ES6 Module format.  
-- [x] The fetch function is automatically supported without additional loading.  
-- [x] Supports running code in memory.
+- [x] The fetch function is automatically supported without additional loading.
 
 ## Installation
 
@@ -43,56 +43,66 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js, which will reflect the latest version as soon as it is published to npm. You can also browse the source of the npm package at https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js, of course x.x.x is just an example and needs to be changed to the official version number, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@0.1.1/dist/index.min.js).
-
-For example:
-
-```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
-```
+Also available on [unpkg](https://unpkg.com/@litert/loader@x.x.x/dist/index.min.js).
 
 ## Usage
 
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@0.1.1/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js"></script>
 ```
 
-```javascript
-// Adding a map does not require a "js" extension.
-loader.setPaths({
-    "module": "https://xxx/xxx/index",
-    "module2": "../abc/in"
-});
-loader.addPath("module3", "./en");
-// You can append strings after a file, for example, to prevent caching.
-loader.setAfter("?" + Math.random());
+```typescript
 // All actions are written in the "ready" callback.
 loader.ready(function() {
-    loader.require(["../dist/tmodule", "module2"], function(t1, t2) {
-        // Do something, you can also not write callbacks.
-    });
-
-    // --- Load by memory ---
-    var [rtn] = await loader.requireMemory("main", {
-        "/main.js": `var sub = require("./sub");
-        function getData(key) {
-            return key + ", end.";
-        }
-        exports.getData = getData;
-
-        function getSubStr() {
-            return sub.str;
-        }
-        exports.getSubStr = getSubStr;`,
-        "/sub.js": `exports.str = "hehe";`
-    });
-    console.log(main.getData("rand: " + Math.random()));
-    console.log(main.getSubStr());
+    let files: Record<string, Blob | string> = { ... };
+    let executedFiles: Record<string, any> = {};
+    let tmodule: any, module2: any;
+    [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files, executedFiles);
 });
+```
+
+You can use the fetchFiles method to load network files into memory.
+
+```typescript
+let files: Record<string, Blob | string> = await loader.fetchFiles([
+    '../dist/tmodule.js',
+    './module2.js',
+    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+]);
+```
+
+Use sniffFiles to load network files into the memory, and sniff the inclusion relationship in the file, such as js import, require, etc., CSS url, etc.
+
+```typescript
+let files: Record<string, Blob | string> = {};
+await loader.sniffFiles([
+    'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.js'
+], {
+    'files': files
+});
+```
+
+Using the map option, you can specify the alias of the library, the alias of the import command is also based on this.
+
+```typescript
+let executedFiles: Record<string, any> = {};
+let files: Record<string, Blob | string> = {};
+if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
+    await loader.fetchFiles([
+        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+    ], {
+        'files': files
+    });
+}
+let sr = loader.require('seedrandom', files, executedFiles, {
+    'map': {
+        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+    }
+})[0];
 ```
 
 ## Test
@@ -103,7 +113,7 @@ After compiling the TS code, execute: node dist/test-on-node to observe the exec
 
 ### Browser
 
-Use your browser to access "test/" to see if the results are consistent with the node environment.
+Use the browser to visit "test/" to view the comparison results are the same as in the node environment.
 
 [You can also click here to access the example online.](https://litert.github.io/loader.js/test/)
 

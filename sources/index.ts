@@ -3,6 +3,7 @@
  * Date: 2020-3-14 22:00:31
  */
 
+// git config core.ignorecase false 大小写敏感
 // npm publish --access=public
 
 // --- 使用 loader 库则会自动支持 fetch 无需再做相关兼容性支持 ---
