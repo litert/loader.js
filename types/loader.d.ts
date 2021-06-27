@@ -61,9 +61,18 @@ interface ILoader {
     /**
      * --- 加载 script 标签 ---
      * @param el 在此标签中增加
-     * @param path 增加的 js 文件地址
+     * @param url 增加的 js 文件地址
      */
-    loadScript(el: HTMLElement, path: string): Promise<boolean>;
+    loadScript(el: HTMLElement, url: string): Promise<boolean>;
+    /**
+     * --- 加载多个 script 标签 ---
+     * @param el 在此标签中增加
+     * @param urls 增加的 js 文件地址列表
+     * @param opt loaded 回调函数
+     */
+    loadScripts(el: HTMLElement, urls: string[], opt?: {
+        'loaded'?: (url: string, state: number) => void;
+    }): Promise<void>;
     /**
      * --- 代码中异步加载文件 ---
      * @param url 路径或模型映射名，如 ./abc，echarts，../xx/xx

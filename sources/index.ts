@@ -506,7 +506,7 @@ const loader: ILoader = {
         return list;
     },
 
-    loadScript: function(el: HTMLElement, path: string): Promise<boolean> {
+    loadScript: function(el: HTMLElement, url: string): Promise<boolean> {
         return new Promise(function(resolve) {
             let script = document.createElement('script');
             script.addEventListener('load', function() {
@@ -515,8 +515,36 @@ const loader: ILoader = {
             script.addEventListener('error', function() {
                 resolve(false);
             });
-            script.src = path;
+            script.src = url;
             el.appendChild(script);
+        });
+    },
+
+    loadScripts: function(el: HTMLElement, urls: string[], opt: {
+        'loaded'?: (url: string, state: number) => void;
+    } = {}): Promise<void> {
+        return new Promise((resolve) => {
+            let count = 0;
+            for (let url of urls) {
+                this.loadScript(el, url).then(function(res) {
+                    ++count;
+                    if (res) {
+                        opt.loaded?.(url, 1);
+                    }
+                    else {
+                        opt.loaded?.(url, 0);
+                    }
+                    if (count === urls.length) {
+                        resolve();
+                    }
+                }).catch(function() {
+                    ++count;
+                    opt.loaded?.(url, -1);
+                    if (count === urls.length) {
+                        resolve();
+                    }
+                });
+            }
         });
     },
 
