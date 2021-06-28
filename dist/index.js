@@ -454,7 +454,7 @@ const loader = {
             return list;
         });
     },
-    loadScript: function (el, path) {
+    loadScript: function (el, url) {
         return new Promise(function (resolve) {
             let script = document.createElement('script');
             script.addEventListener('load', function () {
@@ -463,8 +463,35 @@ const loader = {
             script.addEventListener('error', function () {
                 resolve(false);
             });
-            script.src = path;
+            script.src = url;
             el.appendChild(script);
+        });
+    },
+    loadScripts: function (el, urls, opt = {}) {
+        return new Promise((resolve) => {
+            let count = 0;
+            for (let url of urls) {
+                this.loadScript(el, url).then(function (res) {
+                    var _a, _b;
+                    ++count;
+                    if (res) {
+                        (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                    }
+                    else {
+                        (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                    }
+                    if (count === urls.length) {
+                        resolve();
+                    }
+                }).catch(function () {
+                    var _a;
+                    ++count;
+                    (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                    if (count === urls.length) {
+                        resolve();
+                    }
+                });
+            }
         });
     },
     import: function (url, files, executedFiles, opt = {}) {
