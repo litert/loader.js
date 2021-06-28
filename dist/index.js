@@ -49,9 +49,12 @@ const loader = {
             this.readys.push(callback);
         }
     },
-    require: function (paths, files, executedFiles, opt = {}) {
+    require: function (paths, files, opt = {}) {
         if (typeof paths === 'string') {
             paths = [paths];
+        }
+        if (opt.executed === undefined) {
+            opt.executed = {};
         }
         if (opt.dir === undefined) {
             opt.dir = location.href;
@@ -74,8 +77,8 @@ const loader = {
         let output = [];
         for (let path of paths) {
             path = this.moduleNameResolve(path, opt.dir, opt.map);
-            if (executedFiles[path]) {
-                output.push(executedFiles[path]);
+            if (opt.executed[path]) {
+                output.push(opt.executed[path]);
                 continue;
             }
             if (!files[path]) {
@@ -107,7 +110,7 @@ const loader = {
             else if (code.startsWith('{') && code.endsWith('}')) {
                 try {
                     let data = JSON.parse(code);
-                    executedFiles[path] = data;
+                    opt.executed[path] = data;
                     output.push(data);
                 }
                 catch (_a) {
@@ -281,7 +284,8 @@ const loader = {
                 var exports = module.exports;
 
                 let importOverride = function(url) {
-                    return loader.import(url, __files, __executedFiles, {
+                    return loader.import(url, __files, {
+                        'executed': __executed,
                         'map': __map,
                         'dir': __filename,
                         'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
@@ -289,7 +293,8 @@ const loader = {
                 }
 
                 function require(path) {
-                    var m = loader.require(path, __files, __executedFiles, {
+                    var m = loader.require(path, __files, {
+                        'executed': __executed,
                         'map': __map,
                         'dir': __filename,
                         'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
@@ -307,8 +312,8 @@ const loader = {
                 ${needExports.join('')}
 
                 return module.exports;`;
-                executedFiles[path] = (new Function('__files', '__executedFiles', '__map', code))(files, executedFiles, opt.map);
-                output.push(executedFiles[path]);
+                opt.executed[path] = (new Function('__files', '__executed', '__map', code))(files, opt.executed, opt.map);
+                output.push(opt.executed[path]);
             }
         }
         return output;
@@ -494,21 +499,21 @@ const loader = {
             }
         });
     },
-    import: function (url, files, executedFiles, opt = {}) {
+    import: function (url, files, opt = {}) {
         return __awaiter(this, void 0, void 0, function* () {
             if (opt.dir === undefined) {
                 opt.dir = location.href;
             }
             url = this.moduleNameResolve(url, opt.dir, opt.map);
             if (files[url]) {
-                return this.require(url, files, executedFiles, opt)[0];
+                return this.require(url, files, opt)[0];
             }
             else {
                 yield this.sniffFiles(url, {
                     'dir': opt.dir,
                     'files': files
                 });
-                return this.require(url, files, executedFiles, opt)[0];
+                return this.require(url, files, opt)[0];
             }
         });
     },

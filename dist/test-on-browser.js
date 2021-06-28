@@ -14,7 +14,7 @@ loader.ready(function () {
         let keyInput = document.getElementById('key');
         let consoleDiv = document.getElementById('console');
         let mask = document.getElementById('mask');
-        let executedFiles = {};
+        let executed = {};
         let tmodule;
         let files = yield loader.fetchFiles([
             '../dist/tjson.json',
@@ -25,7 +25,9 @@ loader.ready(function () {
             '../dist/tmodule3.js'
         ]);
         mask.style.display = 'none';
-        tmodule = loader.require('../dist/tmodule', files, executedFiles)[0];
+        tmodule = loader.require('../dist/tmodule', files, {
+            'executed': executed
+        })[0];
         let parseConsoleData = function (val, level = 0) {
             let str = '';
             let tp = typeof val;
@@ -40,7 +42,7 @@ loader.ready(function () {
             }
             else if (tp === 'function') {
                 try {
-                    let str = val.toString();
+                    str = val.toString();
                     let match = /function.*?\(.*?\)/.exec(str.toLowerCase());
                     str = match ? match[0] + ' { ... }' : '[function]';
                 }
@@ -124,7 +126,9 @@ loader.ready(function () {
                         });
                         mask.style.display = 'none';
                     }
-                    let es6 = loader.require('./es6-module', files, executedFiles)[0];
+                    let es6 = loader.require('./es6-module', files, {
+                        'executed': executed
+                    })[0];
                     console.log(`a: ${es6.a}, b: ${es6.b}, c: ${es6.c}, d: ${es6.d}, e: ${es6.e}`);
                     es6.xx();
                 });
@@ -142,7 +146,8 @@ loader.ready(function () {
                         });
                         mask.style.display = 'none';
                     }
-                    let sr = loader.require('seedrandom', files, executedFiles, {
+                    let sr = loader.require('seedrandom', files, {
+                        'executed': executed,
                         'map': {
                             'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
                         }
@@ -192,7 +197,8 @@ loader.ready(function () {
                         'files': files
                     });
                     mask.style.display = 'none';
-                    let m = loader.require('/main.js', files, executedFiles, {
+                    let m = loader.require('/main.js', files, {
+                        'executed': executed,
                         'map': {
                             'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
                         }
@@ -204,8 +210,8 @@ loader.ready(function () {
         (_h = document.getElementById('getFiles')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', function () {
             console.log(Object.keys(files));
         });
-        (_j = document.getElementById('getExecutedFiles')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
-            console.log(executedFiles);
+        (_j = document.getElementById('getExecuted')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
+            console.log(executed);
         });
         (_k = document.getElementById('runTestOnNode')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
             (function () {
@@ -217,7 +223,9 @@ loader.ready(function () {
                         'files': files
                     });
                     mask.style.display = 'none';
-                    loader.require('../dist/test-on-node', files, executedFiles);
+                    loader.require('../dist/test-on-node', files, {
+                        'executed': executed
+                    });
                 });
             })();
         });
@@ -242,7 +250,8 @@ loader.ready(function () {
                         'files': files
                     });
                     mask.style.display = 'none';
-                    loader.require('../dist/trun-typeguard', files, executedFiles, {
+                    loader.require('../dist/trun-typeguard', files, {
+                        'executed': executed,
                         'map': {
                             '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/'
                         }
@@ -261,7 +270,9 @@ loader.ready(function () {
                     });
                     mask.style.display = 'none';
                     mask.innerHTML = 'Loading...';
-                    let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, executedFiles)[0];
+                    let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, {
+                        'executed': executed
+                    })[0];
                     console.log(r);
                 });
             })();
@@ -276,7 +287,9 @@ loader.ready(function () {
                         'files': files
                     });
                     mask.style.display = 'none';
-                    let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, executedFiles)[0];
+                    let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, {
+                        'executed': executed
+                    })[0];
                     console.log(r);
                 });
             })();
@@ -312,7 +325,8 @@ loader.ready(function () {
                 importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/min/vs/base/worker/workerMain.js');
             `], { type: 'text/javascript' }));
                     window.MonacoEnvironment = { getWorkerUrl: () => proxy };
-                    let monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, executedFiles, {
+                    let monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, {
+                        'executed': executed,
                         'style': 'monaco-editor'
                     });
                     const monacoInstance = monaco[0].editor.create(monacoDiv, {

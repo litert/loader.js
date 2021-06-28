@@ -55,13 +55,17 @@ const loader: ILoader = {
         }
     },
 
-    require: function(paths: string | string[], files: Record<string, Blob | string>, executedFiles: Record<string, any>, opt: {
+    require: function(paths: string | string[], files: Record<string, Blob | string>, opt: {
+        'executed'?: Record<string, any>;
         'map'?: Record<string, string>;
         'dir'?: string;
         'style'?: string;
     } = {}): any[] {
         if (typeof paths === 'string') {
             paths = [paths];
+        }
+        if (opt.executed === undefined) {
+            opt.executed = {};
         }
         if (opt.dir === undefined) {
             opt.dir = location.href;
@@ -86,8 +90,8 @@ const loader: ILoader = {
         for (let path of paths) {
             path = this.moduleNameResolve(path, opt.dir, opt.map);
             // --- 判断是否加载过 ---
-            if (executedFiles[path]) {
-                output.push(executedFiles[path]);
+            if (opt.executed[path]) {
+                output.push(opt.executed[path]);
                 continue;
             }
             // --- 未加载过 ---
@@ -122,7 +126,7 @@ const loader: ILoader = {
                 // --- json 文件 ---
                 try {
                     let data = JSON.parse(code);
-                    executedFiles[path] = data;
+                    opt.executed[path] = data;
                     output.push(data);
                 }
                 catch {
@@ -323,7 +327,8 @@ const loader: ILoader = {
                 var exports = module.exports;
 
                 let importOverride = function(url) {
-                    return loader.import(url, __files, __executedFiles, {
+                    return loader.import(url, __files, {
+                        'executed': __executed,
                         'map': __map,
                         'dir': __filename,
                         'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
@@ -331,7 +336,8 @@ const loader: ILoader = {
                 }
 
                 function require(path) {
-                    var m = loader.require(path, __files, __executedFiles, {
+                    var m = loader.require(path, __files, {
+                        'executed': __executed,
                         'map': __map,
                         'dir': __filename,
                         'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
@@ -349,8 +355,8 @@ const loader: ILoader = {
                 ${needExports.join('')}
 
                 return module.exports;`;
-                executedFiles[path] = (new Function('__files', '__executedFiles', '__map', code))(files, executedFiles, opt.map);
-                output.push(executedFiles[path]);
+                opt.executed[path] = (new Function('__files', '__executed', '__map', code))(files, opt.executed, opt.map);
+                output.push(opt.executed[path]);
             }
         }
         return output;
@@ -548,7 +554,8 @@ const loader: ILoader = {
         });
     },
 
-    import: async function(url: string, files: Record<string, Blob | string>, executedFiles: Record<string, any>, opt: {
+    import: async function(url: string, files: Record<string, Blob | string>, opt: {
+        'executed'?: Record<string, any>;
         'map'?: Record<string, string>;
         'dir'?: string;
         'style'?: string;
@@ -558,7 +565,7 @@ const loader: ILoader = {
         }
         url = this.moduleNameResolve(url, opt.dir, opt.map);
         if (files[url]) {
-            return this.require(url, files, executedFiles, opt)[0];
+            return this.require(url, files, opt)[0];
         }
         else {
             // --- 从网络上请求 ---
@@ -566,7 +573,7 @@ const loader: ILoader = {
                 'dir': opt.dir,
                 'files': files
             });
-            return this.require(url, files, executedFiles, opt)[0];
+            return this.require(url, files, opt)[0];
         }
     },
 

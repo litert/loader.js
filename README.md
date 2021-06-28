@@ -59,9 +59,8 @@ Here's a general how to use it:
 // All actions are written in the "ready" callback.
 loader.ready(function() {
     let files: Record<string, Blob | string> = { ... };
-    let executedFiles: Record<string, any> = {};
     let tmodule: any, module2: any;
-    [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files, executedFiles);
+    [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files);
 });
 ```
 
@@ -89,7 +88,7 @@ await loader.sniffFiles([
 Using the map option, you can specify the alias of the library, the alias of the import command is also based on this.
 
 ```typescript
-let executedFiles: Record<string, any> = {};
+let executed: Record<string, any> = {};
 let files: Record<string, Blob | string> = {};
 if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
     await loader.fetchFiles([
@@ -98,7 +97,8 @@ if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/
         'files': files
     });
 }
-let sr = loader.require('seedrandom', files, executedFiles, {
+let sr = loader.require('seedrandom', files, {
+    'executed': executed,
     'map': {
         'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
     }

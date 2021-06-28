@@ -58,9 +58,8 @@ $ npm i @litert/loader@dev --save
 // 所有操作請寫在回呼函數當中。
 loader.ready(function() {
     let files: Record<string, Blob | string> = { ... };
-    let executedFiles: Record<string, any> = {};
     let tmodule: any, module2: any;
-    [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files, executedFiles);
+    [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files);
 });
 ```
 
@@ -88,7 +87,7 @@ await loader.sniffFiles([
 使用 map 選項，可以指定庫的別名，import 命令的別名也以此為依據。
 
 ```typescript
-let executedFiles: Record<string, any> = {};
+let executed: Record<string, any> = {};
 let files: Record<string, Blob | string> = {};
 if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
     await loader.fetchFiles([
@@ -97,7 +96,8 @@ if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/
         'files': files
     });
 }
-let sr = loader.require('seedrandom', files, executedFiles, {
+let sr = loader.require('seedrandom', files, {
+    'executed': executed,
     'map': {
         'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
     }
