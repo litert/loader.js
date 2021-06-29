@@ -405,6 +405,7 @@ const loader: ILoader = {
         'loaded'?: (url: string, state: number) => void;
         'dir'?: string;
         'files'?: Record<string, Blob | string>;
+        'after'?: string;
     } = {}): Promise<Record<string, Blob | string>> {
         return new Promise<Record<string, Blob | string>>((resolve) => {
             if (!opt.init) {
@@ -412,6 +413,9 @@ const loader: ILoader = {
             }
             if (opt.dir === undefined) {
                 opt.dir = location.href;
+            }
+            if (opt.after === undefined) {
+                opt.after = '';
             }
             let list: Record<string, Blob | string> = {};
             let count = 0;
@@ -426,7 +430,7 @@ const loader: ILoader = {
                     continue;
                 }
                 opt.load?.(url);
-                this.fetch(url, opt.init).then(function(res) {
+                this.fetch(url + opt.after, opt.init).then(function(res) {
                     ++count;
                     if (res) {
                         list[url] = res;
@@ -459,6 +463,7 @@ const loader: ILoader = {
         'dir'?: string;
         'files'?: Record<string, Blob | string>;
         'map'?: Record<string, string>;
+        'after'?: string;
     } = {}): Promise<Record<string, Blob | string>> {
         if (typeof urls === 'string') {
             urls = [urls];
@@ -468,7 +473,8 @@ const loader: ILoader = {
             'load': opt.load,
             'loaded': opt.loaded,
             'dir': opt.dir,
-            'files': opt.files
+            'files': opt.files,
+            'after': opt.after
         });
         /** --- 下一层的文件 --- */
         let nlayer: string[] = [];

@@ -365,6 +365,9 @@ const loader = {
                 if (opt.dir === undefined) {
                     opt.dir = location.href;
                 }
+                if (opt.after === undefined) {
+                    opt.after = '';
+                }
                 let list = {};
                 let count = 0;
                 for (let url of urls) {
@@ -378,7 +381,7 @@ const loader = {
                         continue;
                     }
                     (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
-                    this.fetch(url, opt.init).then(function (res) {
+                    this.fetch(url + opt.after, opt.init).then(function (res) {
                         var _a, _b;
                         ++count;
                         if (res) {
@@ -416,7 +419,8 @@ const loader = {
                 'load': opt.load,
                 'loaded': opt.loaded,
                 'dir': opt.dir,
-                'files': opt.files
+                'files': opt.files,
+                'after': opt.after
             });
             let nlayer = [];
             for (let path in list) {

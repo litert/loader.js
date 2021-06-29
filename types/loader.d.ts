@@ -43,6 +43,7 @@ interface ILoader {
         'loaded'?: (url: string, state: number) => void;
         'dir'?: string;
         'files'?: Record<string, Blob | string>;
+        'after'?: string;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 嗅探文件序列 ---
@@ -56,6 +57,7 @@ interface ILoader {
         'dir'?: string;
         'files'?: Record<string, Blob | string>;
         'map'?: Record<string, string>;
+        'after'?: string;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 加载 script 标签 ---
