@@ -365,6 +365,9 @@ const loader = {
                 if (opt.dir === undefined) {
                     opt.dir = location.href;
                 }
+                if (opt.before === undefined) {
+                    opt.before = '';
+                }
                 if (opt.after === undefined) {
                     opt.after = '';
                 }
@@ -381,7 +384,7 @@ const loader = {
                         continue;
                     }
                     (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
-                    this.fetch(url + opt.after, opt.init).then(function (res) {
+                    this.fetch(opt.before + url + opt.after, opt.init).then(function (res) {
                         var _a, _b;
                         ++count;
                         if (res) {
@@ -420,6 +423,7 @@ const loader = {
                 'loaded': opt.loaded,
                 'dir': opt.dir,
                 'files': opt.files,
+                'before': opt.before,
                 'after': opt.after
             });
             let nlayer = [];
