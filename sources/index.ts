@@ -60,6 +60,7 @@ const loader: ILoader = {
         'map'?: Record<string, string>;
         'dir'?: string;
         'style'?: string;
+        'invoke'?: Record<string, any>;
     } = {}): any[] {
         if (typeof paths === 'string') {
             paths = [paths];
@@ -69,6 +70,9 @@ const loader: ILoader = {
         }
         if (opt.dir === undefined) {
             opt.dir = location.href;
+        }
+        if (opt.invoke === undefined) {
+            opt.invoke = {};
         }
         let styleElement: HTMLStyleElement | null = null;
         if (opt.style) {
@@ -142,7 +146,7 @@ const loader: ILoader = {
                 let strict = '';
                 if (code.includes('"use strict"')) {
                     strict = '"use strict"\n';
-                    code = code.replace(/"use strict"\n?/, '');
+                    code = code.replace(/"use strict"[\n;]{0,2}/, '');
                 }
                 /** --- 定义当前模块的 __dirname --- */
                 let dirname: string = '';
@@ -317,6 +321,10 @@ const loader: ILoader = {
                     return t1 + ' ' + t2;
                 });
 
+                // --- 查看注入的函数和变量 ---
+                for (let ikey in opt.invoke) {
+                    code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
+                }
                 // --- 组合最终 function 的字符串 ---
                 code = `${strict}
                 var __dirname = '${dirname}';
@@ -326,7 +334,7 @@ const loader: ILoader = {
                 };
                 var exports = module.exports;
 
-                let importOverride = function(url) {
+                function importOverride(url) {
                     return loader.import(url, __files, {
                         'executed': __executed,
                         'map': __map,
@@ -340,7 +348,8 @@ const loader: ILoader = {
                         'executed': __executed,
                         'map': __map,
                         'dir': __filename,
-                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'},
+                        'invoke': __invoke
                     });
                     if (m[0]) {
                         return m[0];
@@ -355,7 +364,7 @@ const loader: ILoader = {
                 ${needExports.join('')}
 
                 return module.exports;`;
-                opt.executed[path] = (new Function('__files', '__executed', '__map', code))(files, opt.executed, opt.map);
+                opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
                 output.push(opt.executed[path]);
             }
         }

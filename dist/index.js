@@ -59,6 +59,9 @@ const loader = {
         if (opt.dir === undefined) {
             opt.dir = location.href;
         }
+        if (opt.invoke === undefined) {
+            opt.invoke = {};
+        }
         let styleElement = null;
         if (opt.style) {
             styleElement = document.querySelector('style[name="' + opt.style + '"]');
@@ -123,7 +126,7 @@ const loader = {
                 let strict = '';
                 if (code.includes('"use strict"')) {
                     strict = '"use strict"\n';
-                    code = code.replace(/"use strict"\n?/, '');
+                    code = code.replace(/"use strict"[\n;]{0,2}/, '');
                 }
                 let dirname = '';
                 let plio = path.lastIndexOf('/');
@@ -275,6 +278,9 @@ const loader = {
                     needExports.push('exports.' + t2 + ' = ' + t2 + ';');
                     return t1 + ' ' + t2;
                 });
+                for (let ikey in opt.invoke) {
+                    code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
+                }
                 code = `${strict}
                 var __dirname = '${dirname}';
                 var __filename = '${path}';
@@ -283,7 +289,7 @@ const loader = {
                 };
                 var exports = module.exports;
 
-                let importOverride = function(url) {
+                function importOverride(url) {
                     return loader.import(url, __files, {
                         'executed': __executed,
                         'map': __map,
@@ -297,7 +303,8 @@ const loader = {
                         'executed': __executed,
                         'map': __map,
                         'dir': __filename,
-                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
+                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'},
+                        'invoke': __invoke
                     });
                     if (m[0]) {
                         return m[0];
@@ -312,7 +319,7 @@ const loader = {
                 ${needExports.join('')}
 
                 return module.exports;`;
-                opt.executed[path] = (new Function('__files', '__executed', '__map', code))(files, opt.executed, opt.map);
+                opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
                 output.push(opt.executed[path]);
             }
         }

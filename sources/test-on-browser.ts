@@ -1,27 +1,4 @@
 loader.ready(async function(): Promise<void> {
-    /** --- 输入框 --- */
-    let keyInput = document.getElementById('key') as HTMLInputElement;
-    /** ---  --- */
-    let consoleDiv = document.getElementById('console') as HTMLDivElement;
-    /** --- 遮罩 --- */
-    let mask = document.getElementById('mask') as HTMLDivElement;
-    /** --- 已执行过的文件列表 --- */
-    let executed: Record<string, any> = {};
-    /** --- tmodule 对象 --- */
-    let tmodule: any;
-    let files: Record<string, Blob | string> = await loader.fetchFiles([
-        '../dist/tjson.json',
-        '../dist/tloop.js',
-        '../dist/tloop2.js',
-        '../dist/tmodule.js',
-        '../dist/tmodule2.js',
-        '../dist/tmodule3.js'
-    ]);
-    mask.style.display = 'none';
-    tmodule = loader.require('../dist/tmodule', files, {
-        'executed': executed
-    })[0];
-
     /** --- 重写 log --- */
     let parseConsoleData = function(val: any, level: number = 0): string {
         let str = '';
@@ -94,6 +71,37 @@ loader.ready(async function(): Promise<void> {
         consoleDiv.innerHTML += `${iHTML}</div>`;
         consoleDiv.scrollTop = consoleDiv.scrollHeight;
     };
+
+    /** --- 输入框 --- */
+    let keyInput = document.getElementById('key') as HTMLInputElement;
+    /** ---  --- */
+    let consoleDiv = document.getElementById('console') as HTMLDivElement;
+    /** --- 遮罩 --- */
+    let mask = document.getElementById('mask') as HTMLDivElement;
+    /** --- 已执行过的文件列表 --- */
+    let executed: Record<string, any> = {};
+    /** --- tmodule 对象 --- */
+    let tmodule: any;
+    let files: Record<string, Blob | string> = await loader.fetchFiles([
+        '../dist/tjson.json',
+        '../dist/tloop.js',
+        '../dist/tloop2.js',
+        '../dist/tmodule.js',
+        '../dist/tmodule2.js',
+        '../dist/tmodule3.js'
+    ]);
+    mask.style.display = 'none';
+    tmodule = loader.require('../dist/tmodule', files, {
+        'executed': executed,
+        'invoke': {
+            'invokeVar': 'The invoke var.',
+            'invokeFunction': function() {
+                alert('The invoke function.');
+            },
+            'location': 'The override var.'
+        }
+    })[0];
+
     document.getElementById('clear')?.addEventListener('click', function() {
         consoleDiv.innerHTML = '';
     });
@@ -107,6 +115,9 @@ loader.ready(async function(): Promise<void> {
     });
     document.getElementById('requireModule3')?.addEventListener('click', function() {
         alert(tmodule.requireModule3());
+    });
+    document.getElementById('runInvokeFunction')?.addEventListener('click', function() {
+        tmodule.runInvokeFunction();
     });
     document.getElementById('loadES6Module')?.addEventListener('click', function() {
         (async function() {

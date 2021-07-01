@@ -9,25 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
     return __awaiter(this, void 0, void 0, function* () {
-        let keyInput = document.getElementById('key');
-        let consoleDiv = document.getElementById('console');
-        let mask = document.getElementById('mask');
-        let executed = {};
-        let tmodule;
-        let files = yield loader.fetchFiles([
-            '../dist/tjson.json',
-            '../dist/tloop.js',
-            '../dist/tloop2.js',
-            '../dist/tmodule.js',
-            '../dist/tmodule2.js',
-            '../dist/tmodule3.js'
-        ]);
-        mask.style.display = 'none';
-        tmodule = loader.require('../dist/tmodule', files, {
-            'executed': executed
-        })[0];
         let parseConsoleData = function (val, level = 0) {
             let str = '';
             let tp = typeof val;
@@ -99,6 +82,30 @@ loader.ready(function () {
             consoleDiv.innerHTML += `${iHTML}</div>`;
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
         };
+        let keyInput = document.getElementById('key');
+        let consoleDiv = document.getElementById('console');
+        let mask = document.getElementById('mask');
+        let executed = {};
+        let tmodule;
+        let files = yield loader.fetchFiles([
+            '../dist/tjson.json',
+            '../dist/tloop.js',
+            '../dist/tloop2.js',
+            '../dist/tmodule.js',
+            '../dist/tmodule2.js',
+            '../dist/tmodule3.js'
+        ]);
+        mask.style.display = 'none';
+        tmodule = loader.require('../dist/tmodule', files, {
+            'executed': executed,
+            'invoke': {
+                'invokeVar': 'The invoke var.',
+                'invokeFunction': function () {
+                    alert('The invoke function.');
+                },
+                'location': 'The override var.'
+            }
+        })[0];
         (_a = document.getElementById('clear')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function () {
             consoleDiv.innerHTML = '';
         });
@@ -111,7 +118,10 @@ loader.ready(function () {
         (_d = document.getElementById('requireModule3')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', function () {
             alert(tmodule.requireModule3());
         });
-        (_e = document.getElementById('loadES6Module')) === null || _e === void 0 ? void 0 : _e.addEventListener('click', function () {
+        (_e = document.getElementById('runInvokeFunction')) === null || _e === void 0 ? void 0 : _e.addEventListener('click', function () {
+            tmodule.runInvokeFunction();
+        });
+        (_f = document.getElementById('loadES6Module')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (loader.arrayTest(Object.keys(files), /es6-module\.js/) === null) {
@@ -134,7 +144,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_f = document.getElementById('loadSeedrandom')) === null || _f === void 0 ? void 0 : _f.addEventListener('click', function () {
+        (_g = document.getElementById('loadSeedrandom')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
@@ -184,7 +194,7 @@ loader.ready(function () {
             }
             exports.getCount = getCount;`
         };
-        (_g = document.getElementById('loadValFiles')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', function () {
+        (_h = document.getElementById('loadValFiles')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (!Object.keys(files).includes('/main.js')) {
@@ -207,13 +217,13 @@ loader.ready(function () {
                 });
             })();
         });
-        (_h = document.getElementById('getFiles')) === null || _h === void 0 ? void 0 : _h.addEventListener('click', function () {
+        (_j = document.getElementById('getFiles')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
             console.log(Object.keys(files));
         });
-        (_j = document.getElementById('getExecuted')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
+        (_k = document.getElementById('getExecuted')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
             console.log(executed);
         });
-        (_k = document.getElementById('runTestOnNode')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
+        (_l = document.getElementById('runTestOnNode')) === null || _l === void 0 ? void 0 : _l.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -229,7 +239,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_l = document.getElementById('runTypeGuard')) === null || _l === void 0 ? void 0 : _l.addEventListener('click', function () {
+        (_m = document.getElementById('runTypeGuard')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -259,7 +269,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_m = document.getElementById('runResizeObserverESM')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
+        (_o = document.getElementById('runResizeObserverESM')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -277,7 +287,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_o = document.getElementById('runResizeObserverUMD')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
+        (_p = document.getElementById('runResizeObserverUMD')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -294,7 +304,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_p = document.getElementById('runMonacoEditor')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
+        (_q = document.getElementById('runMonacoEditor')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     let monacoDiv = document.getElementById('monacoDiv');
@@ -347,7 +357,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_q = document.getElementById('runRemoveComment')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
+        (_r = document.getElementById('runRemoveComment')) === null || _r === void 0 ? void 0 : _r.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
         });
     });

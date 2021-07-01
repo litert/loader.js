@@ -23,3 +23,10 @@ export function requireModule3(): string {
     let t3 = require('./tmodule3');
     return t3.getNum();
 }
+
+export function runInvokeFunction() {
+    invokeFunction();
+}
+
+console.log('invokeVar:', invokeVar);
+console.log('location:', location);

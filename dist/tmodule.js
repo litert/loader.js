@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.requireModule3 = exports.getJson = exports.getData = void 0;
+exports.runInvokeFunction = exports.requireModule3 = exports.getJson = exports.getData = void 0;
 const tmodule2 = require("./tmodule2");
 let tjson = require('./tjson.json');
 function getData(key) {
@@ -18,3 +18,9 @@ function requireModule3() {
     return t3.getNum();
 }
 exports.requireModule3 = requireModule3;
+function runInvokeFunction() {
+    invokeFunction();
+}
+exports.runInvokeFunction = runInvokeFunction;
+console.log('invokeVar:', invokeVar);
+console.log('location:', location);
