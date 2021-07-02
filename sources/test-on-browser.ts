@@ -99,6 +99,10 @@ loader.ready(async function(): Promise<void> {
                 alert('The invoke function.');
             },
             'location': 'The override var.'
+        },
+        'preprocess': function(code: string, path: string): string {
+            console.log(`Replace file "${path}" content.`);
+            return code.replace('nothing', 'none');
         }
     })[0];
 

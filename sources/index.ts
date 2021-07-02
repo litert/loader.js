@@ -61,6 +61,7 @@ const loader: ILoader = {
         'dir'?: string;
         'style'?: string;
         'invoke'?: Record<string, any>;
+        'preprocess'?: (code: string, path: string) => string;
     } = {}): any[] {
         if (typeof paths === 'string') {
             paths = [paths];
@@ -140,6 +141,10 @@ const loader: ILoader = {
             else {
                 /** --- 代码末尾增加 exports.xxx = --- */
                 let needExports: string[] = [];
+                // --- 预处理代码 ---
+                if (opt.preprocess) {
+                    code = opt.preprocess(code, path);
+                }
                 // --- 去除 // 注释、/* 注释 ---
                 code = this.removeComment(code);
                 // --- 先去除严格模式字符串 ---

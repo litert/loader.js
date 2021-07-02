@@ -104,6 +104,10 @@ loader.ready(function () {
                     alert('The invoke function.');
                 },
                 'location': 'The override var.'
+            },
+            'preprocess': function (code, path) {
+                console.log(`Replace file "${path}" content.`);
+                return code.replace('nothing', 'none');
             }
         })[0];
         (_a = document.getElementById('clear')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function () {

@@ -122,6 +122,9 @@ const loader = {
             }
             else {
                 let needExports = [];
+                if (opt.preprocess) {
+                    code = opt.preprocess(code, path);
+                }
                 code = this.removeComment(code);
                 let strict = '';
                 if (code.includes('"use strict"')) {

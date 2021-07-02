@@ -26,6 +26,7 @@ interface ILoader {
         'dir'?: string;
         'style'?: string;
         'invoke'?: Record<string, any>;
+        'preprocess'?: (code: string, path: string) => string;
     }): any[];
     /**
      * --- 简单 fetch 获取网络数据 ---
