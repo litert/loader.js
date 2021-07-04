@@ -344,11 +344,14 @@ const loader = {
         }
         return new Promise(function (resolve) {
             fetch(url, init).then(function (res) {
-                var _a;
+                var _a, _b;
                 if (res.status === 200 || res.status === 304) {
+                    if ((_a = res.headers.get('content-type')) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes('image/')) {
+                        return res.blob();
+                    }
                     let typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
                     for (let item of typeList) {
-                        if ((_a = res.headers.get('content-type')) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes(item)) {
+                        if ((_b = res.headers.get('content-type')) === null || _b === void 0 ? void 0 : _b.toLowerCase().includes(item)) {
                             return res.text();
                         }
                     }

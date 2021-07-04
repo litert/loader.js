@@ -393,6 +393,9 @@ const loader: ILoader = {
         return new Promise(function(resolve) {
             fetch(url, init).then(function(res: Response): Promise<string | Blob> | string {
                 if (res.status === 200 || res.status === 304) {
+                    if (res.headers.get('content-type')?.toLowerCase().includes('image/')) {
+                        return res.blob();
+                    }
                     let typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
                     for (let item of typeList) {
                         if (res.headers.get('content-type')?.toLowerCase().includes(item)) {
