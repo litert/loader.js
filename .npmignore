@@ -4,6 +4,7 @@
 /node_modules/
 /sources/t*
 /test/
+/types/t*
 /.gitignore
 /.npmignore
 /tsconfig.json
