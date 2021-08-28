@@ -213,6 +213,7 @@ loader.ready(function () {
                     mask.style.display = 'none';
                     let m = loader.require('/main.js', files, {
                         'executed': executed,
+                        'dir': '/',
                         'map': {
                             'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
                         }
