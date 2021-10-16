@@ -12,13 +12,15 @@ const loader: ILoader = {
     isReady: false,
     readys: [],
     scriptPath: '',
+    head: undefined,
 
     init: function() {
         /** --- 文档装载完毕后需要执行的函数 --- */
         let run = async (): Promise<void> => {
+            this.head = document.getElementsByTagName('head')[0];
             // --- 判断 fetch 是否存在 ---
             if (typeof fetch !== 'function') {
-                await this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                await this.loadScript('https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
             }
             this.isReady = true;
             for (let func of this.readys) {
@@ -541,8 +543,17 @@ const loader: ILoader = {
         return list;
     },
 
-    loadScript: function(el: HTMLElement, url: string): Promise<boolean> {
-        return new Promise(function(resolve) {
+    loadScript: function(url: string, el?: HTMLElement): Promise<boolean> {
+        return new Promise((resolve) => {
+            if (!el) {
+                if (this.head) {
+                    el = this.head;
+                }
+                else {
+                    el = document.getElementsByTagName('head')[0];
+                    this.head = el;
+                }
+            }
             let script = document.createElement('script');
             script.addEventListener('load', function() {
                 resolve(true);
@@ -555,13 +566,14 @@ const loader: ILoader = {
         });
     },
 
-    loadScripts: function(el: HTMLElement, urls: string[], opt: {
+    loadScripts: function(urls: string[], opt: {
         'loaded'?: (url: string, state: number) => void;
+        'el'?: HTMLElement;
     } = {}): Promise<void> {
         return new Promise((resolve) => {
             let count = 0;
             for (let url of urls) {
-                this.loadScript(el, url).then(function(res) {
+                this.loadScript(url, opt.el).then(function(res) {
                     ++count;
                     if (res) {
                         opt.loaded?.(url, 1);

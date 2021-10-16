@@ -12,10 +12,12 @@ const loader = {
     isReady: false,
     readys: [],
     scriptPath: '',
+    head: undefined,
     init: function () {
         let run = () => __awaiter(this, void 0, void 0, function* () {
+            this.head = document.getElementsByTagName('head')[0];
             if (typeof fetch !== 'function') {
-                yield this.loadScript(document.getElementsByTagName('head')[0], 'https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                yield this.loadScript('https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
             }
             this.isReady = true;
             for (let func of this.readys) {
@@ -480,8 +482,17 @@ const loader = {
             return list;
         });
     },
-    loadScript: function (el, url) {
-        return new Promise(function (resolve) {
+    loadScript: function (url, el) {
+        return new Promise((resolve) => {
+            if (!el) {
+                if (this.head) {
+                    el = this.head;
+                }
+                else {
+                    el = document.getElementsByTagName('head')[0];
+                    this.head = el;
+                }
+            }
             let script = document.createElement('script');
             script.addEventListener('load', function () {
                 resolve(true);
@@ -493,11 +504,11 @@ const loader = {
             el.appendChild(script);
         });
     },
-    loadScripts: function (el, urls, opt = {}) {
+    loadScripts: function (urls, opt = {}) {
         return new Promise((resolve) => {
             let count = 0;
             for (let url of urls) {
-                this.loadScript(el, url).then(function (res) {
+                this.loadScript(url, opt.el).then(function (res) {
                     var _a, _b;
                     ++count;
                     if (res) {
