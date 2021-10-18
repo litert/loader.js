@@ -18,7 +18,7 @@ loader.ready(function () {
                 str = `"${val}"`;
             }
             else if (tp === 'number') {
-                str = val;
+                str = val.toString();
             }
             else if (tp === 'boolean') {
                 str = val ? 'true' : 'false';
