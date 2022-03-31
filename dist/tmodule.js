@@ -24,7 +24,7 @@ function getJson(key) {
 exports.getJson = getJson;
 function requireModule3() {
     return __awaiter(this, void 0, void 0, function* () {
-        let t3 = yield Promise.resolve().then(() => require('./tmodule3'));
+        const t3 = yield Promise.resolve().then(() => require('./tmodule3'));
         return t3.getNum();
     });
 }
@@ -33,5 +33,11 @@ function runInvokeFunction() {
     invokeFunction();
 }
 exports.runInvokeFunction = runInvokeFunction;
-console.log('invokeVar:', invokeVar);
-console.log('location:', location);
+try {
+    console.log('invokeVar:', invokeVar);
+    console.log('location:', location);
+}
+catch (_a) {
+    console.log('invokeVar:', undefined);
+    console.log('location:', undefined);
+}

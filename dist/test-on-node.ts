@@ -16,4 +16,8 @@ console.log(`getJson('hello'): ${tmodule.getJson('hello')}`);
 
 console.log(`getJson('goodbye'): ${tmodule.getJson('goodbye')}`);
 
-console.log(`requireModule3(): ${tmodule.requireModule3()}`);
+tmodule.requireModule3().then(function(n) {
+    console.log(`requireModule3(): ${n}`);
+}).catch(function(e) {
+    throw e;
+});

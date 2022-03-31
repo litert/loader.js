@@ -1,8 +1,16 @@
 loader.ready(async function(): Promise<void> {
+    /** --- 输入框 --- */
+    const keyInput = document.getElementById('key') as HTMLInputElement;
+    /** --- 控制台框 --- */
+    const consoleDiv = document.getElementById('console') as HTMLDivElement;
+    /** --- 遮罩 --- */
+    const mask = document.getElementById('mask') as HTMLDivElement;
+    mask.style.display = 'none';
+
     /** --- 重写 log --- */
-    let parseConsoleData = function(val: any, level: number = 0): string {
+    const parseConsoleData = function(val: any, level: number = 0): string {
         let str = '';
-        let tp = typeof val;
+        const tp = typeof val;
         if (tp === 'string') {
             str = `"${val}"`;
         }
@@ -15,7 +23,7 @@ loader.ready(async function(): Promise<void> {
         else if (tp === 'function') {
             try {
                 str = val.toString();
-                let match = /function.*?\(.*?\)/.exec(str.toLowerCase());
+                const match = /function.*?\(.*?\)/.exec(str.toLowerCase());
                 str = match ? match[0] + ' { ... }' : '[function]';
             }
             catch {
@@ -26,7 +34,7 @@ loader.ready(async function(): Promise<void> {
             if (Array.isArray(val)) {
                 if (level <= 2) {
                     str = '[\n';
-                    for (let item of val) {
+                    for (const item of val) {
                         str += '    '.repeat(level + 1) + `${parseConsoleData(item, level + 1)},\n`;
                     }
                     if (str !== '[\n') {
@@ -41,7 +49,7 @@ loader.ready(async function(): Promise<void> {
             else {
                 if (level <= 2) {
                     str = '{\n';
-                    for (let key in val) {
+                    for (const key in val) {
                         str += '    '.repeat(level + 1) + `"${key}": ${parseConsoleData(val[key], level + 1)},\n`;
                     }
                     if (str !== '{\n') {
@@ -59,11 +67,11 @@ loader.ready(async function(): Promise<void> {
         }
         return str;
     };
-    let logx = console.log;
+    const logx = console.log;
     console.log = function(...msg: any[]) {
         logx(msg);
         let iHTML = '<div class="cl">';
-        for (let item of msg) {
+        for (const item of msg) {
             iHTML += '<div style="padding-right:10px;">';
             iHTML += parseConsoleData(item).replace(/</g, '&lt;').replace(/>/g, '&gt;');
             iHTML += '</div>';
@@ -72,17 +80,10 @@ loader.ready(async function(): Promise<void> {
         consoleDiv.scrollTop = consoleDiv.scrollHeight;
     };
 
-    /** --- 输入框 --- */
-    let keyInput = document.getElementById('key') as HTMLInputElement;
-    /** ---  --- */
-    let consoleDiv = document.getElementById('console') as HTMLDivElement;
-    /** --- 遮罩 --- */
-    let mask = document.getElementById('mask') as HTMLDivElement;
     /** --- 已执行过的文件列表 --- */
-    let executed: Record<string, any> = {};
+    const executed: Record<string, any> = {};
     /** --- tmodule 对象 --- */
-    let tmodule: any;
-    let files: Record<string, Blob | string> = await loader.fetchFiles([
+    const files: Record<string, Blob | string> = await loader.fetchFiles([
         '../dist/tjson.json',
         '../dist/tloop.js',
         '../dist/tloop2.js',
@@ -90,8 +91,7 @@ loader.ready(async function(): Promise<void> {
         '../dist/tmodule2.js',
         '../dist/tmodule3.js'
     ]);
-    mask.style.display = 'none';
-    tmodule = loader.require('../dist/tmodule', files, {
+    const tmodule = loader.require('../dist/tmodule', files, {
         'executed': executed,
         'invoke': {
             'invokeVar': 'The invoke var.',
@@ -141,7 +141,7 @@ loader.ready(async function(): Promise<void> {
                 });
                 mask.style.display = 'none';
             }
-            let es6 = loader.require('./es6-module', files, {
+            const es6 = loader.require('./es6-module', files, {
                 'executed': executed
             })[0];
             console.log(`a: ${es6.a}, b: ${es6.b}, c: ${es6.c}, d: ${es6.d}, e: ${es6.e}`);
@@ -159,7 +159,7 @@ loader.ready(async function(): Promise<void> {
                 });
                 mask.style.display = 'none';
             }
-            let sr = loader.require('seedrandom', files, {
+            const sr = loader.require('seedrandom', files, {
                 'executed': executed,
                 'map': {
                     'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
@@ -213,14 +213,14 @@ loader.ready(async function(): Promise<void> {
                 'files': files
             });
             mask.style.display = 'none';
-            let m = loader.require('/main.js', files, {
+            const m = loader.require('/main.js', files, {
                 'executed': executed,
                 'dir': '/',
                 'map': {
                     'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
                 }
             })[0];
-            console.log('getData: ' + m.getData(keyInput.value) + ', getSubStr: ' + m.getSubStr() + ', getRand: ' + m.getRand());
+            console.log(`getData: ${m.getData(keyInput.value)}, getSubStr: ${m.getSubStr()}, getRand: ${m.getRand()}`);
         })() as unknown;
     });
 
@@ -285,7 +285,7 @@ loader.ready(async function(): Promise<void> {
             });
             mask.style.display = 'none';
             mask.innerHTML = 'Loading...';
-            let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, {
+            const r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, {
                 'executed': executed
             })[0];
             console.log(r);
@@ -300,7 +300,7 @@ loader.ready(async function(): Promise<void> {
                 'files': files
             });
             mask.style.display = 'none';
-            let r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, {
+            const r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, {
                 'executed': executed
             })[0];
             console.log(r);
@@ -309,7 +309,7 @@ loader.ready(async function(): Promise<void> {
 
     document.getElementById('runMonacoEditor')?.addEventListener('click', function() {
         (async function() {
-            let monacoDiv = document.getElementById('monacoDiv') as HTMLDivElement;
+            const monacoDiv = document.getElementById('monacoDiv') as HTMLDivElement;
             if (monacoDiv.getAttribute('loaded') === 'loaded') {
                 alert('Cannot be loaded repeatedly.');
                 return;
@@ -332,14 +332,14 @@ loader.ready(async function(): Promise<void> {
             mask.style.display = 'none';
             monacoDiv.innerHTML = '';
             // --- 初始化 Monaco ---
-            let proxy = URL.createObjectURL(new Blob([`
+            const proxy = URL.createObjectURL(new Blob([`
                 self.MonacoEnvironment = {
                     baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/min/'
                 };
                 importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/min/vs/base/worker/workerMain.js');
             `], { type: 'text/javascript' }));
             (window as any).MonacoEnvironment = { getWorkerUrl: () => proxy };
-            let monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, {
+            const monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, {
                 'executed': executed,
                 'style': 'monaco-editor'
             });

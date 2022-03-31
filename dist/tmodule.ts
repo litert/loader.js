@@ -20,7 +20,7 @@ export function getJson(key: string): string {
  * --- 执行 tmodule3 的函数 ---
  */
 export async function requireModule3(): Promise<number> {
-    let t3 = await import('./tmodule3');
+    const t3 = await import('./tmodule3');
     return t3.getNum();
 }
 
@@ -28,5 +28,11 @@ export function runInvokeFunction(): void {
     invokeFunction();
 }
 
-console.log('invokeVar:', invokeVar);
-console.log('location:', location);
+try {
+    console.log('invokeVar:', invokeVar);
+    console.log('location:', location);
+}
+catch {
+    console.log('invokeVar:', undefined);
+    console.log('location:', undefined);
+}
