@@ -120,7 +120,13 @@ loader.ready(function () {
             alert(tmodule.getJson(keyInput.value));
         });
         (_d = document.getElementById('requireModule3')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', function () {
-            alert(tmodule.requireModule3());
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    alert(yield tmodule.requireModule3());
+                });
+            })().catch(function (e) {
+                console.log(e);
+            });
         });
         (_e = document.getElementById('runInvokeFunction')) === null || _e === void 0 ? void 0 : _e.addEventListener('click', function () {
             tmodule.runInvokeFunction();

@@ -8,43 +8,44 @@
 [![GitHub Releases](https://img.shields.io/github/release/litert/loader.js.svg)](https://github.com/litert/loader.js/releases "Stable Release")
 [![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader.js/all.svg)](https://github.com/litert/loader.js/releases "Pre-Release")
 
-輕量易用的運行于瀏覽器的模組載入器。
+轻量易用的运行于浏览器的模块加载器。
 
-## 語言
+## 语言
 
-[English](../README.md) | [简体中文](README.zh-cn.md)
+[English](../README.md) | [繁體中文](README.tc.md)
 
 ## 特性
 
-- [x] 支援直接運行記憶體檔案代碼。  
-- [x] 庫輕量，配置簡單。  
-- [x] 無侵入，不會對您的 script 引入的其他庫造成任何影響。  
-- [x] 支援 CommonJS、ES6 Module 格式。  
-- [x] 自動支援 fetch 函數，無需額外載入。
+- [x] 支持直接运行内存中的文件代码。  
+- [x] 库轻量，配置简单。  
+- [x] 无侵入，不会对您的 script 引入的其他库造成任何影响。  
+- [x] 支持 CommonJS、ES6 Module 格式。  
+- [x] 自动支持 fetch 函数，无需额外加载。  
+- [x] 支持 TypeScript。
 
-## 安裝
+## 安装
 
-這是運行于瀏覽器的庫，因此只需要使用 script 標籤引用即可。
+这是运行于浏览器的库，因此只需要使用 script 标签引用即可。
 
 ### NPM
 
-可以直接使用 npm 下載庫到本地：
+可以直接使用 npm 下载库到本地：
 
 ```sh
 $ npm i @litert/loader --save
 ```
 
-可以安裝最新的開發版到本地：
+可以安装最新的开发版到本地：
 
 ```sh
 $ npm i @litert/loader@dev --save
 ```
 
-### CDN（推薦）
+### CDN（推荐）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js，當然 x.x.x 只是個例子需要改為正式版本號，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js，当然 x.x.x 只是个例子需要改为正式版本号，也可以此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@x.x.x/dist/index.min.js)。
+同样可使用 [unpkg](https://unpkg.com/@litert/loader@x.x.x/dist/index.min.js)。
 
 ## Usage
 
@@ -55,7 +56,7 @@ $ npm i @litert/loader@dev --save
 ```
 
 ```typescript
-// 所有操作請寫在回呼函數當中。
+// 所有操作请写在 ready 回调函数当中。
 loader.ready(function() {
     let files: Record<string, Blob | string> = { ... };
     let tmodule: any, module2: any;
@@ -63,7 +64,7 @@ loader.ready(function() {
 });
 ```
 
-你可以使用 fetchFiles 方法載入網路檔到記憶體。
+你可以使用 fetchFiles 方法加载网络文件到内存。
 
 ```typescript
 let files: Record<string, Blob | string> = await loader.fetchFiles([
@@ -73,7 +74,7 @@ let files: Record<string, Blob | string> = await loader.fetchFiles([
 ]);
 ```
 
-使用 sniffFiles 載入網路檔案到記憶體，會嗅探檔中的包含關係，例如 js 的 import、require 等，CSS 的 url 等。
+使用 sniffFiles 加载网络文件到内存，会嗅探文件中的包含关系，例如 js 的 import、require 等，CSS 的 url 等。
 
 ```typescript
 let files: Record<string, Blob | string> = {};
@@ -84,7 +85,7 @@ await loader.sniffFiles([
 });
 ```
 
-使用 map 選項，可以指定庫的別名，import 命令的別名也以此為依據。
+使用 map 选项，可以指定库的别名，import 命令的别名也以此为依据。
 
 ```typescript
 let executed: Record<string, any> = {};
@@ -104,18 +105,18 @@ let sr = loader.require('seedrandom', files, {
 })[0];
 ```
 
-## 測試
+## 测试
 
 ### Node
 
-編譯 TS 代碼之後，可以直接執行 node dist/test-on-node 來觀察在 node 環境中預設的運行結果。
+编译 TS 代码之后，可以直接执行 node dist/test-on-node 来观察在 node 环境中默认的运行结果。
 
-### 瀏覽器
+### 浏览器
 
-使用瀏覽器訪問「test/」來查看比對結果與 node 環境中相同。
+使用浏览器访问“test/”来查看比对结果与 node 环境中相同。
 
-[你也可以直接點這裡線上查看瀏覽器示例。](https://litert.github.io/loader.js/test/)
+[你也可以直接点这里在线查看浏览器示例。](https://litert.github.io/loader.js/test/)
 
-## 許可
+## 许可
 
-這個庫的許可為 [Apache-2.0](./LICENSE)。
+这个库的许可为 [Apache-2.0](./LICENSE)。

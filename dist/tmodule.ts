@@ -1,5 +1,5 @@
 import * as tmodule2 from './tmodule2';
-let tjson = require('./tjson.json');
+import * as tjson from './tjson.json';
 
 /**
  * --- 根据 key 获取 tmodule2 的值 ---
@@ -13,18 +13,18 @@ export function getData(key: string): string {
  * @param key 键
  */
 export function getJson(key: string): string {
-    return tjson[key] ?? 'know';
+    return (tjson as any)[key] ?? 'know';
 }
 
 /**
  * --- 执行 tmodule3 的函数 ---
  */
-export function requireModule3(): string {
-    let t3 = require('./tmodule3');
+export async function requireModule3(): Promise<number> {
+    let t3 = await import('./tmodule3');
     return t3.getNum();
 }
 
-export function runInvokeFunction() {
+export function runInvokeFunction(): void {
     invokeFunction();
 }
 

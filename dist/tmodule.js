@@ -1,8 +1,17 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.runInvokeFunction = exports.requireModule3 = exports.getJson = exports.getData = void 0;
 const tmodule2 = require("./tmodule2");
-let tjson = require('./tjson.json');
+const tjson = require("./tjson.json");
 function getData(key) {
     var _a;
     return (_a = tmodule2.data[key]) !== null && _a !== void 0 ? _a : 'nothing';
@@ -14,8 +23,10 @@ function getJson(key) {
 }
 exports.getJson = getJson;
 function requireModule3() {
-    let t3 = require('./tmodule3');
-    return t3.getNum();
+    return __awaiter(this, void 0, void 0, function* () {
+        let t3 = yield Promise.resolve().then(() => require('./tmodule3'));
+        return t3.getNum();
+    });
 }
 exports.requireModule3 = requireModule3;
 function runInvokeFunction() {

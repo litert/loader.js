@@ -1,6 +1,6 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
- * Date: 2020-3-14 22:00:31
+ * Date: 2020-3-14 22:00:31, 2022-3-31 00:38:08
  */
 
 // git config core.ignorecase false 大小写敏感
@@ -8,7 +8,7 @@
 
 // --- 使用 loader 库则会自动支持 fetch 无需再做相关兼容性支持 ---
 
-const loader: ILoader = {
+(window as any).loader = {
     isReady: false,
     readys: [],
     scriptPath: '',
@@ -333,6 +333,7 @@ const loader: ILoader = {
                     code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
                 }
                 // --- 组合最终 function 的字符串 ---
+                /*
                 code = `${strict}
                 var __dirname = '${dirname}';
                 var __filename = '${path}';
@@ -362,7 +363,7 @@ const loader: ILoader = {
                         return m[0];
                     }
                     else {
-                        throw 'Failed require "' + path + '" on "' + __filename + '".';
+                        throw 'Failed require "' + path + '" on "' + __filename + '" (Maybe file not found).';
                     }
                 }
 
@@ -371,6 +372,12 @@ const loader: ILoader = {
                 ${needExports.join('')}
 
                 return module.exports;`;
+                */
+                code = `${strict}
+var __dirname='${dirname}';var __filename='${path}';var module={exports:{}};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style?'\''+opt.style+'\'':'undefined'}});}function require(path){var m=loader.require(path,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style?'\''+opt.style+'\'':'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}
+${code}
+${needExports.join('')}
+return module.exports;`;
                 opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
                 output.push(opt.executed[path]);
             }
@@ -418,7 +425,7 @@ const loader: ILoader = {
         });
     },
 
-    fetchFiles: async function(urls: string[], opt: {
+    fetchFiles: async function(this: ILoader, urls: string[], opt: {
         'init'?: RequestInit;
         'load'?: (url: string) => void;
         'loaded'?: (url: string, state: number) => void;
@@ -543,7 +550,7 @@ const loader: ILoader = {
         return list;
     },
 
-    loadScript: function(url: string, el?: HTMLElement): Promise<boolean> {
+    loadScript: function(this: ILoader, url: string, el?: HTMLElement): Promise<boolean> {
         return new Promise((resolve) => {
             if (!el) {
                 if (this.head) {
@@ -566,7 +573,7 @@ const loader: ILoader = {
         });
     },
 
-    loadScripts: function(urls: string[], opt: {
+    loadScripts: function(this: ILoader, urls: string[], opt: {
         'loaded'?: (url: string, state: number) => void;
         'el'?: HTMLElement;
     } = {}): Promise<void> {

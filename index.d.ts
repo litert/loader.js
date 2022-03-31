@@ -85,9 +85,7 @@ interface ILoader {
      * --- 代码中异步加载文件 ---
      * @param url 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param files 文件 blob 列表
-     * @param executed 已执行（require）的文件
-     * @param dir 当前路径（dirname）
-     * @param map 模型映射表
+     * @param opt executed: 已执行（require）的文件, map: 模型映射表, dir: 当前路径（dirname）, style: css 文件被加载的页面唯一 name
      */
     import(url: string, files: Record<string, Blob | string>, opt?: {
         'executed'?: Record<string, any>;
@@ -156,4 +154,4 @@ interface ILoaderUrl {
     user: string | null;
 }
 
-// declare let loader: ILoader;
+declare const loader: ILoader;

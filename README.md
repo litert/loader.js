@@ -13,7 +13,7 @@ Simple browser module loader.
 
 ## Languages
 
-[简体中文](doc/README.zh-cn.md) | [繁體中文](doc/README.zh-tw.md)
+[简体中文](doc/README.sc.md) | [繁體中文](doc/README.tc.md)
 
 ## Features
 
@@ -21,7 +21,8 @@ Simple browser module loader.
 - [x] The configuration is simple and lightweight.  
 - [x] No intrusion and does not affect the script label.  
 - [x] Support the CommonJS / ES6 Module format.  
-- [x] The fetch function is automatically supported without additional loading.
+- [x] The fetch function is automatically supported without additional loading.  
+- [x] Support TypeScript.
 
 ## Installation
 

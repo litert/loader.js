@@ -8,7 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const loader = {
+window.loader = {
     isReady: false,
     readys: [],
     scriptPath: '',
@@ -287,43 +287,10 @@ const loader = {
                     code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
                 }
                 code = `${strict}
-                var __dirname = '${dirname}';
-                var __filename = '${path}';
-                var module = {
-                    exports: {}
-                };
-                var exports = module.exports;
-
-                function importOverride(url) {
-                    return loader.import(url, __files, {
-                        'executed': __executed,
-                        'map': __map,
-                        'dir': __filename,
-                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
-                    });
-                }
-
-                function require(path) {
-                    var m = loader.require(path, __files, {
-                        'executed': __executed,
-                        'map': __map,
-                        'dir': __filename,
-                        'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'},
-                        'invoke': __invoke
-                    });
-                    if (m[0]) {
-                        return m[0];
-                    }
-                    else {
-                        throw 'Failed require "' + path + '" on "' + __filename + '".';
-                    }
-                }
-
-                ${code}
-
-                ${needExports.join('')}
-
-                return module.exports;`;
+var __dirname='${dirname}';var __filename='${path}';var module={exports:{}};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}
+${code}
+${needExports.join('')}
+return module.exports;`;
                 opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
                 output.push(opt.executed[path]);
             }

@@ -12,7 +12,7 @@
 
 ## 語言
 
-[English](../README.md) | [简体中文](README.zh-cn.md)
+[English](../README.md) | [简体中文](README.sc.md)
 
 ## 特性
 
@@ -20,7 +20,8 @@
 - [x] 庫輕量，配置簡單。  
 - [x] 無侵入，不會對您的 script 引入的其他庫造成任何影響。  
 - [x] 支援 CommonJS、ES6 Module 格式。  
-- [x] 自動支援 fetch 函數，無需額外載入。
+- [x] 自動支援 fetch 函數，無需額外載入。  
+- [x] 支援 TypeScript。
 
 ## 安裝
 
