@@ -44,16 +44,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js, of course x.x.x is just an example and needs to be changed to the official version number, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.0.2/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@x.x.x/dist/index.min.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@3.0.2/dist/loader.min.js).
 
 ## Usage
 
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.2/dist/loader.min.js"></script>
 ```
 
 ```typescript
