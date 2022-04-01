@@ -43,16 +43,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推薦）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js，當然 x.x.x 只是個例子需要改為正式版本號，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.0.4/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@x.x.x/dist/index.min.js)。
+同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.0.4/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.4/dist/index.min.js"></script>
 ```
 
 代碼提示需要在「tsconfig.json」中添加：

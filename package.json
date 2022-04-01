@@ -1,6 +1,6 @@
 {
   "name": "@litert/loader",
-  "version": "3.0.2",
+  "version": "3.0.4",
   "description": "Simple browser module loader.",
   "keywords": [
     "litert",
@@ -8,7 +8,7 @@
     "loader",
     "require"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/loader.js",
   "author": "hanguoshuai",
   "license": "Apache-2.0",
   "repository": {

@@ -7,7 +7,8 @@ tsconfig.json
 .DS_Store
 /doc/
 /types/
+*.ts
 
-/dist/*.ts
+!/dist/index.d.ts
 /dist/t*
 /test/
