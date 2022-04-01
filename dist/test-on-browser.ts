@@ -172,8 +172,7 @@ loader.ready(async function(): Promise<void> {
         })() as unknown;
     });
 
-    /* eslint-disable */
-    let valFiles = {
+    const valFiles = {
         '/main.js':
             `var sub = require('./sub');
             var sr = require('seedrandom');
@@ -200,7 +199,6 @@ loader.ready(async function(): Promise<void> {
             }
             exports.getCount = getCount;`
     };
-    /* eslint-enable */
     document.getElementById('loadValFiles')?.addEventListener('click', function() {
         (async function() {
             if (!Object.keys(files).includes('/main.js')) {
@@ -269,7 +267,7 @@ loader.ready(async function(): Promise<void> {
             loader.require('../dist/trun-typeguard', files, {
                 'executed': executed,
                 'map': {
-                    '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/'    // eslint-disable-line
+                    '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/'
                 }
             });
         })() as unknown;
