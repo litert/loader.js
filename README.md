@@ -56,6 +56,20 @@ Here's a general how to use it:
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.2/dist/loader.min.js"></script>
 ```
 
+The code hint needs to be added in "tsconfig.json":
+
+```json
+{
+    "compilerOptions": {
+        ...
+        "typeRoots": [
+            "./node_modules/@types",
+            "./node_modules/@litert/loader"
+        ]
+    }
+}
+```
+
 ```typescript
 // All actions are written in the "ready" callback.
 loader.ready(function() {

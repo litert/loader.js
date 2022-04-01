@@ -55,6 +55,20 @@ $ npm i @litert/loader@dev --save
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@x.x.x/dist/index.min.js"></script>
 ```
 
+代码提示需要在“tsconfig.json”中添加：
+
+```json
+{
+    "compilerOptions": {
+        ...
+        "typeRoots": [
+            "./node_modules/@types",
+            "./node_modules/@litert/loader"
+        ]
+    }
+}
+```
+
 ```typescript
 // 所有操作请写在 ready 回调函数当中。
 loader.ready(function() {
