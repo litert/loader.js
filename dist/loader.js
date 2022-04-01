@@ -636,7 +636,7 @@ return module.exports;`;
                 abs = abs.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
             }
             abs = abs.replace(/\.\.\//g, '');
-            if (f.protocol && !f.host) {
+            if (f.protocol && (f.protocol !== 'file:') && !f.host) {
                 return f.protocol + abs;
             }
             else {

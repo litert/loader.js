@@ -178,7 +178,7 @@ loader.ready(function () {
                 });
             })();
         });
-        let valFiles = {
+        const valFiles = {
             '/main.js': `var sub = require('./sub');
             var sr = require('seedrandom');
             function getData(key) {

@@ -795,7 +795,7 @@ return module.exports;`;
             // --- 剩下的 ../ 就是无效的直接替换为空 ---
             abs = abs.replace(/\.\.\//g, '');
             // --- 返回最终结果 ---
-            if (f.protocol && !f.host) {
+            if (f.protocol && (f.protocol !== 'file:') && !f.host) {
                 // --- 类似 c:/ ---
                 return f.protocol + abs;
             }
