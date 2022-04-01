@@ -1,4 +1,4 @@
-# LiteRT/Loader
+<p align="center"><img src="[2022-04-01]logo.png" width="260" height="80" alt="Loader"></p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")
