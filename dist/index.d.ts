@@ -3,8 +3,6 @@ interface ILoader {
     isReady: boolean;
     /** --- 注册的 ready 事件 --- */
     readys: Array<() => void | Promise<void>>;
-    /** --- 当前 js 加载的基路径，一般为当前 JS 的路径 --- */
-    scriptPath: string;
     /** --- head element --- */
     head?: HTMLElement;
     /**

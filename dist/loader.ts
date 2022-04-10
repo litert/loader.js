@@ -1,6 +1,6 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
- * Date: 2020-3-14 22:00:31, 2022-3-31 00:38:08
+ * Date: 2020-3-14 22:00:31, 2022-3-31 00:38:08, 2022-4-10 01:45:38
  */
 
 // git config core.ignorecase false 大小写敏感
@@ -15,7 +15,6 @@
     const loader: ILoader = {
         isReady: false,
         readys: [],
-        scriptPath: scriptEle.src.slice(0, scriptEle.src.lastIndexOf('/') + 1),
         head: undefined,
 
         init: function() {
@@ -35,9 +34,26 @@
                         });
                     }
                 }
+                // --- 检查有没有要自动执行的 js ---
+                const srcSplit = scriptEle.src.lastIndexOf('?');
+                if (srcSplit !== -1) {
+                    const match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                    if (match) {
+                        let path = match[1];
+                        if (!path.endsWith('.js')) {
+                            path += '.js';
+                        }
+                        loader.sniffFiles([path]).then(function(files) {
+                            console.log('files', files);
+                            loader.require(path, files);
+                        }).catch(function(e) {
+                            throw e;
+                        });
+                    }
+                }
             };
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
-                run().catch((e) => {
+                run().catch(function(e) {
                     throw e;
                 });
             }

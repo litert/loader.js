@@ -43,16 +43,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推荐）
 
-推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@3.0.5/dist/index.min.js，也可以此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js，也可以此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同样可使用 [unpkg](https://unpkg.com/@litert/loader@3.0.5/dist/index.min.js)。
+同样可使用 [unpkg](https://unpkg.com/@litert/loader@3.0.6/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.5/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js"></script>
 ```
 
 代码提示需要在“tsconfig.json”中添加：
@@ -69,13 +69,20 @@ $ npm i @litert/loader@dev --save
 }
 ```
 
+所有操作请写在 ready 回调函数当中。
+
 ```typescript
-// 所有操作请写在 ready 回调函数当中。
 loader.ready(function() {
     let files: Record<string, Blob | string> = { ... };
     let tmodule: any, module2: any;
     [tmodule, module2] = loader.require(['../dist/tmodule', './module2'], files);
 });
+```
+
+或者使用 ?path= 直接加载入口 js 文件，js 后缀可省略。
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js?path=../lib/test"></script>
 ```
 
 你可以使用 fetchFiles 方法加载网络文件到内存。
@@ -84,7 +91,7 @@ loader.ready(function() {
 let files: Record<string, Blob | string> = await loader.fetchFiles([
     '../dist/tmodule.js',
     './module2.js',
-    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
 ]);
 ```
 
@@ -104,9 +111,9 @@ await loader.sniffFiles([
 ```typescript
 let executed: Record<string, any> = {};
 let files: Record<string, Blob | string> = {};
-if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
+if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js')) {
     await loader.fetchFiles([
-        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
     ], {
         'files': files
     });
@@ -114,7 +121,7 @@ if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/
 let sr = loader.require('seedrandom', files, {
     'executed': executed,
     'map': {
-        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
     }
 })[0];
 ```

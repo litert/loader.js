@@ -150,10 +150,10 @@ loader.ready(async function(): Promise<void> {
     });
     document.getElementById('loadSeedrandom')?.addEventListener('click', function() {
         (async function() {
-            if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
+            if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js')) {
                 mask.style.display = 'flex';
                 await loader.fetchFiles([
-                    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+                    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
                 ], {
                     'files': files
                 });
@@ -162,7 +162,7 @@ loader.ready(async function(): Promise<void> {
             const sr = loader.require('seedrandom', files, {
                 'executed': executed,
                 'map': {
-                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
                 }
             })[0];
             let rng = sr('hello');
@@ -206,7 +206,7 @@ loader.ready(async function(): Promise<void> {
             }
             mask.style.display = 'flex';
             await loader.fetchFiles([
-                'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+                'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
             ], {
                 'files': files
             });
@@ -215,7 +215,7 @@ loader.ready(async function(): Promise<void> {
                 'executed': executed,
                 'dir': '/',
                 'map': {
-                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                    'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
                 }
             })[0];
             console.log(`getData: ${m.getData(keyInput.value)}, getSubStr: ${m.getSubStr()}, getRand: ${m.getRand()}`);

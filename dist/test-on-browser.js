@@ -156,10 +156,10 @@ loader.ready(function () {
         (_g = document.getElementById('loadSeedrandom')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
-                    if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
+                    if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js')) {
                         mask.style.display = 'flex';
                         yield loader.fetchFiles([
-                            'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+                            'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
                         ], {
                             'files': files
                         });
@@ -168,7 +168,7 @@ loader.ready(function () {
                     const sr = loader.require('seedrandom', files, {
                         'executed': executed,
                         'map': {
-                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
                         }
                     })[0];
                     let rng = sr('hello');
@@ -211,7 +211,7 @@ loader.ready(function () {
                     }
                     mask.style.display = 'flex';
                     yield loader.fetchFiles([
-                        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
+                        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
                     ], {
                         'files': files
                     });
@@ -220,7 +220,7 @@ loader.ready(function () {
                         'executed': executed,
                         'dir': '/',
                         'map': {
-                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
+                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
                         }
                     })[0];
                     console.log(`getData: ${m.getData(keyInput.value)}, getSubStr: ${m.getSubStr()}, getRand: ${m.getRand()}`);

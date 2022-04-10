@@ -14,7 +14,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     const loader = {
         isReady: false,
         readys: [],
-        scriptPath: scriptEle.src.slice(0, scriptEle.src.lastIndexOf('/') + 1),
         head: undefined,
         init: function () {
             const run = () => __awaiter(this, void 0, void 0, function* () {
@@ -31,9 +30,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         });
                     }
                 }
+                const srcSplit = scriptEle.src.lastIndexOf('?');
+                if (srcSplit !== -1) {
+                    const match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                    if (match) {
+                        let path = match[1];
+                        if (!path.endsWith('.js')) {
+                            path += '.js';
+                        }
+                        loader.sniffFiles([path]).then(function (files) {
+                            console.log('files', files);
+                            loader.require(path, files);
+                        }).catch(function (e) {
+                            throw e;
+                        });
+                    }
+                }
             });
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
-                run().catch((e) => {
+                run().catch(function (e) {
                     throw e;
                 });
             }
