@@ -91,7 +91,7 @@ loader.ready(function() {
 let files: Record<string, Blob | string> = await loader.fetchFiles([
     '../dist/tmodule.js',
     './module2.js',
-    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
+    'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
 ]);
 ```
 
@@ -109,19 +109,19 @@ await loader.sniffFiles([
 使用 map 选项，可以指定库的别名，import 命令的别名也以此为依据。
 
 ```typescript
-let executed: Record<string, any> = {};
+let cache: Record<string, any> = {};
 let files: Record<string, Blob | string> = {};
-if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js')) {
+if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js')) {
     await loader.fetchFiles([
-        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
+        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
     ], {
         'files': files
     });
 }
 let sr = loader.require('seedrandom', files, {
-    'executed': executed,
+    'cache': cache,
     'map': {
-        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
+        'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
     }
 })[0];
 ```

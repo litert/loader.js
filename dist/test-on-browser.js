@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -18,8 +18,23 @@ loader.ready(function () {
         const parseConsoleData = function (val, level = 0) {
             let str = '';
             const tp = typeof val;
-            if (tp === 'string') {
-                str = `"${val}"`;
+            if (tp === 'undefined') {
+                if (level > 0) {
+                    str = '<span style="color:rgb(130,145,145);">';
+                }
+                str += 'undefined';
+                if (level > 0) {
+                    str += '</span>';
+                }
+            }
+            else if (tp === 'string') {
+                if (level > 0) {
+                    str = '<span style="color:rgb(18,188,121);">\'';
+                }
+                str += val.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                if (level > 0) {
+                    str += '\'</span>';
+                }
             }
             else if (tp === 'number') {
                 str = val.toString();
@@ -30,7 +45,7 @@ loader.ready(function () {
             else if (tp === 'function') {
                 try {
                     str = val.toString();
-                    const match = /function.*?\(.*?\)/.exec(str.toLowerCase());
+                    const match = /function.*?\(.*?\)/.exec(str.toLowerCase().replace(/</g, '&lt;').replace(/>/g, '&gt;'));
                     str = match ? match[0] + ' { ... }' : '[function]';
                 }
                 catch (_a) {
@@ -40,14 +55,14 @@ loader.ready(function () {
             else if (tp === 'object') {
                 if (Array.isArray(val)) {
                     if (level <= 2) {
-                        str = '[\n';
+                        str = '[ ';
                         for (const item of val) {
-                            str += '    '.repeat(level + 1) + `${parseConsoleData(item, level + 1)},\n`;
+                            str += `${parseConsoleData(item, level + 1)}, `;
                         }
-                        if (str !== '[\n') {
+                        if (str !== '[ ') {
                             str = str.slice(0, -2);
                         }
-                        str += '\n' + '    '.repeat(level) + ']';
+                        str += ' ]';
                     }
                     else {
                         str = '[array]';
@@ -55,14 +70,14 @@ loader.ready(function () {
                 }
                 else {
                     if (level <= 2) {
-                        str = '{\n';
+                        str = '{ ';
                         for (const key in val) {
-                            str += '    '.repeat(level + 1) + `"${key}": ${parseConsoleData(val[key], level + 1)},\n`;
+                            str += `${key.replace(/</g, '&lt;').replace(/>/g, '&gt;')}: ${parseConsoleData(val[key], level + 1)}, `;
                         }
-                        if (str !== '{\n') {
+                        if (str !== '{ ') {
                             str = str.slice(0, -2);
                         }
-                        str += '\n' + '    '.repeat(level) + '}';
+                        str += ' }';
                     }
                     else {
                         str = '[object]';
@@ -80,23 +95,21 @@ loader.ready(function () {
             let iHTML = '<div class="cl">';
             for (const item of msg) {
                 iHTML += '<div style="padding-right:10px;">';
-                iHTML += parseConsoleData(item).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                iHTML += parseConsoleData(item);
                 iHTML += '</div>';
             }
             consoleDiv.innerHTML += `${iHTML}</div>`;
             consoleDiv.scrollTop = consoleDiv.scrollHeight;
         };
-        const executed = {};
+        const cache = {};
         const files = yield loader.fetchFiles([
             '../dist/tjson.json',
-            '../dist/tloop.js',
-            '../dist/tloop2.js',
             '../dist/tmodule.js',
             '../dist/tmodule2.js',
             '../dist/tmodule3.js'
         ]);
         const tmodule = loader.require('../dist/tmodule', files, {
-            'executed': executed,
+            'cache': cache,
             'invoke': {
                 'invokeVar': 'The invoke var.',
                 'invokeFunction': function () {
@@ -135,6 +148,7 @@ loader.ready(function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (loader.arrayTest(Object.keys(files), /es6-module\.js/) === null) {
                         mask.style.display = 'flex';
+                        mask.innerHTML = 'Loading...';
                         yield loader.fetchFiles([
                             './es6-module-sub.js',
                             './es6-module-sub2.js',
@@ -146,7 +160,7 @@ loader.ready(function () {
                         mask.style.display = 'none';
                     }
                     const es6 = loader.require('./es6-module', files, {
-                        'executed': executed
+                        'cache': cache
                     })[0];
                     console.log(`a: ${es6.a}, b: ${es6.b}, c: ${es6.c}, d: ${es6.d}, e: ${es6.e}`);
                     es6.xx();
@@ -156,19 +170,20 @@ loader.ready(function () {
         (_g = document.getElementById('loadSeedrandom')) === null || _g === void 0 ? void 0 : _g.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
-                    if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js')) {
+                    if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js')) {
                         mask.style.display = 'flex';
-                        yield loader.fetchFiles([
-                            'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
+                        mask.innerHTML = 'Loading...';
+                        yield loader.sniffFiles([
+                            'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js'
                         ], {
                             'files': files
                         });
                         mask.style.display = 'none';
                     }
                     const sr = loader.require('seedrandom', files, {
-                        'executed': executed,
+                        'cache': cache,
                         'map': {
-                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
+                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index'
                         }
                     })[0];
                     let rng = sr('hello');
@@ -210,17 +225,18 @@ loader.ready(function () {
                         Object.assign(files, valFiles);
                     }
                     mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
                     yield loader.fetchFiles([
-                        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min.js'
+                        'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min.js'
                     ], {
                         'files': files
                     });
                     mask.style.display = 'none';
                     const m = loader.require('/main.js', files, {
-                        'executed': executed,
+                        'cache': cache,
                         'dir': '/',
                         'map': {
-                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.6/seedrandom.min'
+                            'seedrandom': 'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/seedrandom.min'
                         }
                     })[0];
                     console.log(`getData: ${m.getData(keyInput.value)}, getSubStr: ${m.getSubStr()}, getRand: ${m.getRand()}`);
@@ -230,13 +246,14 @@ loader.ready(function () {
         (_j = document.getElementById('getFiles')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
             console.log(Object.keys(files));
         });
-        (_k = document.getElementById('getExecuted')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
-            console.log(executed);
+        (_k = document.getElementById('getCache')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
+            console.log(cache);
         });
         (_l = document.getElementById('runTestOnNode')) === null || _l === void 0 ? void 0 : _l.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
                     yield loader.fetchFiles([
                         '../dist/test-on-node.js'
                     ], {
@@ -244,15 +261,33 @@ loader.ready(function () {
                     });
                     mask.style.display = 'none';
                     loader.require('../dist/test-on-node', files, {
-                        'executed': executed
+                        'cache': cache
                     });
                 });
             })();
         });
-        (_m = document.getElementById('runTypeGuard')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
+        (_m = document.getElementById('runTestOnNodeLoop')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
+                    yield loader.sniffFiles([
+                        '../dist/test-on-node-loop.js',
+                    ], {
+                        'files': files
+                    });
+                    mask.style.display = 'none';
+                    loader.require('../dist/test-on-node-loop.js', files, {
+                        'cache': cache
+                    });
+                });
+            })();
+        });
+        (_o = document.getElementById('runTypeGuard')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
                     yield loader.fetchFiles([
                         '../dist/trun-typeguard.js',
                         'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/langs/JavaScript.js',
@@ -271,7 +306,7 @@ loader.ready(function () {
                     });
                     mask.style.display = 'none';
                     loader.require('../dist/trun-typeguard', files, {
-                        'executed': executed,
+                        'cache': cache,
                         'map': {
                             '@litert/typeguard': 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/'
                         }
@@ -279,28 +314,29 @@ loader.ready(function () {
                 });
             })();
         });
-        (_o = document.getElementById('runResizeObserverESM')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
+        (_p = document.getElementById('runResizeObserverESM')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
                     yield loader.sniffFiles([
                         'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.js'
                     ], {
                         'files': files
                     });
                     mask.style.display = 'none';
-                    mask.innerHTML = 'Loading...';
                     const r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer', files, {
-                        'executed': executed
+                        'cache': cache
                     })[0];
                     console.log(r);
                 });
             })();
         });
-        (_p = document.getElementById('runResizeObserverUMD')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
+        (_q = document.getElementById('runResizeObserverUMD')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
+                    mask.innerHTML = 'Loading...';
                     yield loader.fetchFiles([
                         'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js'
                     ], {
@@ -308,13 +344,13 @@ loader.ready(function () {
                     });
                     mask.style.display = 'none';
                     const r = loader.require('https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/lib/exports/resize-observer.umd.js', files, {
-                        'executed': executed
+                        'cache': cache
                     })[0];
                     console.log(r);
                 });
             })();
         });
-        (_q = document.getElementById('runMonacoEditor')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
+        (_r = document.getElementById('runMonacoEditor')) === null || _r === void 0 ? void 0 : _r.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const monacoDiv = document.getElementById('monacoDiv');
@@ -346,7 +382,7 @@ loader.ready(function () {
             `], { type: 'text/javascript' }));
                     window.MonacoEnvironment = { getWorkerUrl: () => proxy };
                     const monaco = loader.require('https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js', files, {
-                        'executed': executed,
+                        'cache': cache,
                         'style': 'monaco-editor'
                     });
                     const monacoInstance = monaco[0].editor.create(monacoDiv, {
@@ -367,7 +403,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_r = document.getElementById('runRemoveComment')) === null || _r === void 0 ? void 0 : _r.addEventListener('click', function () {
+        (_s = document.getElementById('runRemoveComment')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
         });
     });

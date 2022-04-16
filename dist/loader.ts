@@ -44,7 +44,6 @@
                             path += '.js';
                         }
                         loader.sniffFiles([path]).then(function(files) {
-                            console.log('files', files);
                             loader.require(path, files);
                         }).catch(function(e) {
                             throw e;
@@ -78,7 +77,7 @@
         },
 
         require: function(paths: string | string[], files: Record<string, Blob | string>, opt: {
-            'executed'?: Record<string, any>;
+            'cache'?: Record<string, any>;
             'map'?: Record<string, string>;
             'dir'?: string;
             'style'?: string;
@@ -88,8 +87,8 @@
             if (typeof paths === 'string') {
                 paths = [paths];
             }
-            if (opt.executed === undefined) {
-                opt.executed = {};
+            if (opt.cache === undefined) {
+                opt.cache = {};
             }
             if (opt.dir === undefined) {
                 opt.dir = location.href;
@@ -116,18 +115,14 @@
             const output: any[] = [];
             for (let path of paths) {
                 path = this.moduleNameResolve(path, opt.dir, opt.map);
-                // --- 判断是否加载过 ---
-                if (opt.executed[path]) {
-                    output.push(opt.executed[path]);
-                    continue;
-                }
-                // --- 未加载过 ---
-                if (!files[path]) {
+                // --- 文件压根不存在 ---
+                if (!files[path] || typeof files[path] !== 'string') {
                     output.push(null);
                     continue;
                 }
-                if (typeof files[path] !== 'string') {
-                    output.push(null);
+                // --- 判断是否执行过 ---
+                if (opt.cache[path]) {
+                    output.push(opt.cache[path]);
                     continue;
                 }
                 // --- 获取文本内容 string ---
@@ -154,7 +149,7 @@
                     // --- json 文件 ---
                     try {
                         const data = JSON.parse(code);
-                        opt.executed[path] = data;
+                        opt.cache[path] = data;
                         output.push(data);
                     }
                     catch {
@@ -162,7 +157,7 @@
                     }
                 }
                 else {
-                    /** --- 代码末尾增加 exports.xxx = --- */
+                    /** --- 代码末尾需增加 exports.xxx = --- */
                     const needExports: string[] = [];
                     // --- 预处理代码 ---
                     if (opt.preprocess) {
@@ -366,13 +361,13 @@
                     var __dirname = '${dirname}';
                     var __filename = '${path}';
                     var module = {
-                        exports: {}
+                        exports: __cache['${path}']
                     };
                     var exports = module.exports;
 
                     function importOverride(url) {
                         return loader.import(url, __files, {
-                            'executed': __executed,
+                            'cache': __cache,
                             'map': __map,
                             'dir': __filename,
                             'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'}
@@ -381,7 +376,7 @@
 
                     function require(path) {
                         var m = loader.require(path, __files, {
-                            'executed': __executed,
+                            'cache': __cache,
                             'map': __map,
                             'dir': __filename,
                             'style': ${opt.style ? '\'' + opt.style + '\'' : 'undefined'},
@@ -394,6 +389,10 @@
                             throw 'Failed require "' + path + '" on "' + __filename + '" (Maybe file not found).';
                         }
                     }
+                    require.cache = __cache;
+                    require.resolve = function(name) {
+                        return loader.moduleNameResolve(name, __dirname, __map);
+                    };
 
                     ${code}
 
@@ -402,12 +401,15 @@
                     return module.exports;`;
                     */
                     code = `${strict}
-var __dirname='${dirname}';var __filename='${path}';var module={exports:{}};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}
+var __dirname='${dirname}';var __filename='${path}';var module={exports:__cache['${path}']};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}require.cache=__cache;
+require.resolve=function(name){return loader.moduleNameResolve(name,__dirname,__map);};
 ${code}
 ${needExports.join('')}
 return module.exports;`;
-                    opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
-                    output.push(opt.executed[path]);
+                    /** --- 先创建本文件的 cache 对象，以防止不断重复创建，模拟 node 创建流程 --- */
+                    opt.cache[path] = {};
+                    opt.cache[path] = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    output.push(opt.cache[path]);
                 }
             }
             return output;
@@ -527,6 +529,9 @@ return module.exports;`;
             if (typeof urls === 'string') {
                 urls = [urls];
             }
+            if (!opt.files) {
+                opt.files = {};
+            }
             const list = await this.fetchFiles(urls, {
                 'init': opt.init,
                 'load': opt.load,
@@ -631,7 +636,7 @@ return module.exports;`;
         },
 
         import: async function(url: string, files: Record<string, Blob | string>, opt: {
-            'executed'?: Record<string, any>;
+            'cache'?: Record<string, any>;
             'map'?: Record<string, string>;
             'dir'?: string;
             'style'?: string;

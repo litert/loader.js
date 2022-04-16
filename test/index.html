@@ -7,9 +7,13 @@
 <script src="../dist/loader.js?path=../dist/tauto"></script>
 <script src="../dist/test-on-browser.js"></script>
 <style>
-*{font-family:-apple-system,BlinkMacSystemFont,opensans,Optima,"Microsoft Yahei",sans-serif;line-height: 1.5;font-size:12px;box-sizing:border-box;}pre{background-color:rgba(0,0,0,.05);}hr{margin:20px 0;border-color:#000;border-style:dashed;border-width:1px 0 0 0;}
+*{box-sizing:border-box;}
+body,html,input{font-family:-apple-system,BlinkMacSystemFont,opensans,Optima,"Microsoft Yahei",sans-serif;line-height:1.5;font-size:12px;}
+pre{background-color:rgb(30,30,30);color:rgb(204,204,204);font-size:14px;padding:5px;line-height:1.5;white-space: pre-wrap;cursor:text;}
+pre ::selection{background:#565656;}
+hr{margin:20px 0;border-color:#333;border-style:dashed;border-width:1px 0 0 0;}
 input{padding:5px;}body,html{margin:0;}body{padding:10px;}
-.cl{padding: 5px;border-bottom:solid 1px rgba(0,0,0,.1);display:flex;}
+.cl{display:flex;}
 </style>
 </head>
 <body>
@@ -29,13 +33,19 @@ input{padding:5px;}body,html{margin:0;}body{padding:10px;}
     <input id="loadSeedrandom" type="button" value="loadSeedrandom()">
     <input id="loadValFiles" type="button" value="loadValFiles()">
     <input id="getFiles" type="button" value="getFiles()" style="margin-left: 10px;">
-    <input id="getExecuted" type="button" value="getExecuted()">
+    <input id="getCache" type="button" value="getCache()">
 </div>
 <hr>
 
 Run the test file under node directly, and the return value will be displayed below:
 <div style="margin-top: 10px;">
     <input id="runTestOnNode" type="button" value="node dist/test-on-node">
+</div>
+<hr>
+
+Sniff and run loop files:
+<div style="margin-top: 10px;">
+    <input id="runTestOnNodeLoop" type="button" value="node dist/test-on-node-loop">
 </div>
 <hr>
 
@@ -78,7 +88,7 @@ var h = "over";</textarea>
 
 <div style="height: 350px;"></div>
 
-<div style="position: fixed; bottom: 0; left: 0; width: 100%; height: 350px; box-shadow: 0 0 20px rgba(0, 0, 0, .3); padding: 10px; background-color: #FFF; display: flex; flex-direction: column;">
+<div style="position: fixed; bottom: 0; left: 0; width: 100%; height: 350px; box-shadow: 0 0 20px rgba(0, 0, 0, .3); padding: 10px; display: flex; flex-direction: column; background: #FFF;">
     <div style="flex-shrink: 0; display: flex;"><div style="flex: 1;">Console:</div><div id="clear" style="cursor: pointer; text-decoration: underline;">[clear]</div></div>
     <pre id="console" style="flex: 1; overflow-y: auto; margin: 10px 0 0 0;"></pre>
 </div>

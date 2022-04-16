@@ -39,7 +39,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                             path += '.js';
                         }
                         loader.sniffFiles([path]).then(function (files) {
-                            console.log('files', files);
                             loader.require(path, files);
                         }).catch(function (e) {
                             throw e;
@@ -73,8 +72,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
             if (typeof paths === 'string') {
                 paths = [paths];
             }
-            if (opt.executed === undefined) {
-                opt.executed = {};
+            if (opt.cache === undefined) {
+                opt.cache = {};
             }
             if (opt.dir === undefined) {
                 opt.dir = location.href;
@@ -100,16 +99,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
             const output = [];
             for (let path of paths) {
                 path = this.moduleNameResolve(path, opt.dir, opt.map);
-                if (opt.executed[path]) {
-                    output.push(opt.executed[path]);
-                    continue;
-                }
-                if (!files[path]) {
+                if (!files[path] || typeof files[path] !== 'string') {
                     output.push(null);
                     continue;
                 }
-                if (typeof files[path] !== 'string') {
-                    output.push(null);
+                if (opt.cache[path]) {
+                    output.push(opt.cache[path]);
                     continue;
                 }
                 let code = files[path];
@@ -134,7 +129,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 else if (code.startsWith('{') && code.endsWith('}')) {
                     try {
                         const data = JSON.parse(code);
-                        opt.executed[path] = data;
+                        opt.cache[path] = data;
                         output.push(data);
                     }
                     catch (_a) {
@@ -307,12 +302,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
                     }
                     code = `${strict}
-var __dirname='${dirname}';var __filename='${path}';var module={exports:{}};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'executed':__executed,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}
+var __dirname='${dirname}';var __filename='${path}';var module={exports:__cache['${path}']};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}require.cache=__cache;
+require.resolve=function(name){return loader.moduleNameResolve(name,__dirname,__map);};
 ${code}
 ${needExports.join('')}
 return module.exports;`;
-                    opt.executed[path] = (new Function('__files', '__executed', '__map', '__invoke', code))(files, opt.executed, opt.map, opt.invoke);
-                    output.push(opt.executed[path]);
+                    opt.cache[path] = {};
+                    opt.cache[path] = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    output.push(opt.cache[path]);
                 }
             }
             return output;
@@ -418,6 +415,9 @@ return module.exports;`;
             return __awaiter(this, void 0, void 0, function* () {
                 if (typeof urls === 'string') {
                     urls = [urls];
+                }
+                if (!opt.files) {
+                    opt.files = {};
                 }
                 const list = yield this.fetchFiles(urls, {
                     'init': opt.init,
