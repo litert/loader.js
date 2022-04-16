@@ -43,16 +43,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推薦）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.0.6/dist/index.min.js)。
+同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.1.0/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/index.min.js"></script>
 ```
 
 代碼提示需要在「tsconfig.json」中添加：
@@ -82,7 +82,7 @@ loader.ready(function() {
 或者使用 ?path= 直接載入入口 js 檔，js 後綴可省略。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/index.min.js?path=../lib/test"></script>
 ```
 
 你可以使用 fetchFiles 方法載入網路檔到記憶體。

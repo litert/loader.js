@@ -84,7 +84,7 @@ loader.ready(async function(): Promise<void> {
     };
     const logx = console.log;
     console.log = function(...msg: any[]) {
-        logx(msg);
+        logx(...msg);
         let iHTML = '<div class="cl">';
         for (const item of msg) {
             iHTML += '<div style="padding-right:10px;">';
@@ -166,11 +166,16 @@ loader.ready(async function(): Promise<void> {
         (async function() {
             if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js')) {
                 mask.style.display = 'flex';
-                mask.innerHTML = 'Loading...';
                 await loader.sniffFiles([
                     'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js'
                 ], {
-                    'files': files
+                    'files': files,
+                    'load': function(url: string) {
+                        mask.innerHTML = url + '<br>Loading...';
+                    },
+                    'loaded': function(url: string) {
+                        mask.innerHTML = url + '<br>Loaded.';
+                    }
                 });
                 mask.style.display = 'none';
             }

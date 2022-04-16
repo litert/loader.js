@@ -91,7 +91,7 @@ loader.ready(function () {
         };
         const logx = console.log;
         console.log = function (...msg) {
-            logx(msg);
+            logx(...msg);
             let iHTML = '<div class="cl">';
             for (const item of msg) {
                 iHTML += '<div style="padding-right:10px;">';
@@ -172,11 +172,16 @@ loader.ready(function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     if (!Object.keys(files).includes('https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js')) {
                         mask.style.display = 'flex';
-                        mask.innerHTML = 'Loading...';
                         yield loader.sniffFiles([
                             'https://cdn.jsdelivr.net/npm/seedrandom@3.0.5/index.js'
                         ], {
-                            'files': files
+                            'files': files,
+                            'load': function (url) {
+                                mask.innerHTML = url + '<br>Loading...';
+                            },
+                            'loaded': function (url) {
+                                mask.innerHTML = url + '<br>Loaded.';
+                            }
                         });
                         mask.style.display = 'none';
                     }

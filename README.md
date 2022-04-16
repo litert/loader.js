@@ -44,16 +44,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@3.0.6/dist/loader.min.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@3.1.0/dist/loader.min.js).
 
 ## Usage
 
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/loader.min.js"></script>
 ```
 
 The code hint needs to be added in "tsconfig.json":
@@ -83,7 +83,7 @@ loader.ready(function() {
 Alternatively, use ?path= to load the ingress file directly, the js file extension can be omitted.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.0.6/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.1.0/dist/index.min.js?path=../lib/test"></script>
 ```
 
 You can use the fetchFiles method to load network files into memory.
