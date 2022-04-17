@@ -18,12 +18,30 @@
         head: undefined,
 
         init: function() {
+            const srcSplit = scriptEle.src.lastIndexOf('?');
+            let path: string = '', cdn: string = '';
+            if (srcSplit !== -1) {
+                let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                if (match) {
+                    path = match[1];
+                    if (!path.endsWith('.js')) {
+                        path += '.js';
+                    }
+                }
+                match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                if (match) {
+                    cdn = match[1];
+                }
+            }
+            if (!cdn) {
+                cdn = 'https://cdn.jsdelivr.net';
+            }
             /** --- 文档装载完毕后需要执行的函数 --- */
             const run = async (): Promise<void> => {
                 this.head = document.getElementsByTagName('head')[0];
                 // --- 判断 fetch 是否存在 ---
                 if (typeof fetch !== 'function') {
-                    await this.loadScript('https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                    await this.loadScript(cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
                 }
                 this.isReady = true;
                 for (const func of this.readys) {
@@ -35,20 +53,12 @@
                     }
                 }
                 // --- 检查有没有要自动执行的 js ---
-                const srcSplit = scriptEle.src.lastIndexOf('?');
-                if (srcSplit !== -1) {
-                    const match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
-                    if (match) {
-                        let path = match[1];
-                        if (!path.endsWith('.js')) {
-                            path += '.js';
-                        }
-                        loader.sniffFiles([path]).then(function(files) {
-                            loader.require(path, files);
-                        }).catch(function(e) {
-                            throw e;
-                        });
-                    }
+                if (path) {
+                    loader.sniffFiles([path]).then(function(files) {
+                        loader.require(path, files);
+                    }).catch(function(e) {
+                        throw e;
+                    });
                 }
             };
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
@@ -408,7 +418,10 @@ ${needExports.join('')}
 return module.exports;`;
                     /** --- 先创建本文件的 cache 对象，以防止不断重复创建，模拟 node 创建流程 --- */
                     opt.cache[path] = {};
-                    opt.cache[path] = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    const rtn = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    if (rtn !== opt.cache[path]) {
+                        opt.cache[path] = rtn;
+                    }
                     output.push(opt.cache[path]);
                 }
             }

@@ -16,10 +16,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         readys: [],
         head: undefined,
         init: function () {
+            const srcSplit = scriptEle.src.lastIndexOf('?');
+            let path = '', cdn = '';
+            if (srcSplit !== -1) {
+                let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                if (match) {
+                    path = match[1];
+                    if (!path.endsWith('.js')) {
+                        path += '.js';
+                    }
+                }
+                match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                if (match) {
+                    cdn = match[1];
+                }
+            }
+            if (!cdn) {
+                cdn = 'https://cdn.jsdelivr.net';
+            }
             const run = () => __awaiter(this, void 0, void 0, function* () {
                 this.head = document.getElementsByTagName('head')[0];
                 if (typeof fetch !== 'function') {
-                    yield this.loadScript('https://cdn.jsdelivr.net/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                    yield this.loadScript(cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
                 }
                 this.isReady = true;
                 for (const func of this.readys) {
@@ -30,20 +48,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         });
                     }
                 }
-                const srcSplit = scriptEle.src.lastIndexOf('?');
-                if (srcSplit !== -1) {
-                    const match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
-                    if (match) {
-                        let path = match[1];
-                        if (!path.endsWith('.js')) {
-                            path += '.js';
-                        }
-                        loader.sniffFiles([path]).then(function (files) {
-                            loader.require(path, files);
-                        }).catch(function (e) {
-                            throw e;
-                        });
-                    }
+                if (path) {
+                    loader.sniffFiles([path]).then(function (files) {
+                        loader.require(path, files);
+                    }).catch(function (e) {
+                        throw e;
+                    });
                 }
             });
             if (document.readyState === 'interactive' || document.readyState === 'complete') {
@@ -308,7 +318,10 @@ ${code}
 ${needExports.join('')}
 return module.exports;`;
                     opt.cache[path] = {};
-                    opt.cache[path] = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    const rtn = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    if (rtn !== opt.cache[path]) {
+                        opt.cache[path] = rtn;
+                    }
                     output.push(opt.cache[path]);
                 }
             }
