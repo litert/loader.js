@@ -307,7 +307,9 @@ loader.ready(function () {
                         'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Internal.js',
                         'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/Modifiers.js'
                     ], {
-                        'files': files
+                        'files': files,
+                        'after': '?' + Math.random().toString(),
+                        'afterIgnore': /.+Built.+/
                     });
                     mask.style.display = 'none';
                     loader.require('../dist/trun-typeguard', files, {

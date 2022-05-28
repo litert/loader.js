@@ -370,7 +370,7 @@ return module.exports;`;
         fetchFiles: function (urls, opt = {}) {
             return __awaiter(this, void 0, void 0, function* () {
                 return new Promise((resolve) => {
-                    var _a, _b;
+                    var _a, _b, _c;
                     if (!opt.init) {
                         opt.init = {};
                     }
@@ -396,7 +396,7 @@ return module.exports;`;
                             continue;
                         }
                         (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
-                        this.fetch(opt.before + url + opt.after, opt.init).then(function (res) {
+                        this.fetch(opt.before + url + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then(function (res) {
                             var _a, _b;
                             ++count;
                             if (res) {
@@ -439,7 +439,8 @@ return module.exports;`;
                     'dir': opt.dir,
                     'files': opt.files,
                     'before': opt.before,
-                    'after': opt.after
+                    'after': opt.after,
+                    'afterIgnore': opt.afterIgnore
                 });
                 const nlayer = [];
                 for (const path in list) {

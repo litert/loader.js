@@ -476,6 +476,7 @@ return module.exports;`;
             'files'?: Record<string, Blob | string>;
             'before'?: string;
             'after'?: string;
+            'afterIgnore'?: RegExp;
         } = {}): Promise<Record<string, Blob | string>> {
             return new Promise<Record<string, Blob | string>>((resolve) => {
                 if (!opt.init) {
@@ -503,7 +504,7 @@ return module.exports;`;
                         continue;
                     }
                     opt.load?.(url);
-                    this.fetch(opt.before + url + opt.after, opt.init).then(function(res) {
+                    this.fetch(opt.before + url + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then(function(res) {
                         ++count;
                         if (res) {
                             list[url] = res;
@@ -538,6 +539,7 @@ return module.exports;`;
             'map'?: Record<string, string>;
             'before'?: string;
             'after'?: string;
+            'afterIgnore'?: RegExp;
         } = {}): Promise<Record<string, Blob | string>> {
             if (typeof urls === 'string') {
                 urls = [urls];
@@ -552,7 +554,8 @@ return module.exports;`;
                 'dir': opt.dir,
                 'files': opt.files,
                 'before': opt.before,
-                'after': opt.after
+                'after': opt.after,
+                'afterIgnore': opt.afterIgnore
             });
             /** --- 下一层的文件 --- */
             const nlayer: string[] = [];

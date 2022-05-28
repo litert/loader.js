@@ -47,6 +47,7 @@ interface ILoader {
         'files'?: Record<string, Blob | string>;
         'before'?: string;
         'after'?: string;
+        'afterIgnore'?: RegExp;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 嗅探文件序列 ---
@@ -62,6 +63,7 @@ interface ILoader {
         'map'?: Record<string, string>;
         'before'?: string;
         'after'?: string;
+        'afterIgnore'?: RegExp;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 加载 script 标签 ---
