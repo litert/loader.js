@@ -284,7 +284,6 @@ loader.ready(async function(): Promise<void> {
     document.getElementById('runTypeGuard')?.addEventListener('click', function() {
         (async function() {
             mask.style.display = 'flex';
-            mask.innerHTML = 'Loading...';
             await loader.fetchFiles([
                 '../dist/trun-typeguard.js',
                 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/langs/JavaScript.js',
@@ -301,7 +300,13 @@ loader.ready(async function(): Promise<void> {
             ], {
                 'files': files,
                 'after': '?' + Math.random().toString(),
-                'afterIgnore': /.+Built.+/
+                'afterIgnore': /.+Built.+/,
+                load: function(url: string) {
+                    mask.innerHTML = url + '<br>Loading...';
+                },
+                loaded: function(url: string) {
+                    mask.innerHTML = url + '<br>Loaded.';
+                }
             });
             mask.style.display = 'none';
             loader.require('../dist/trun-typeguard', files, {
@@ -361,10 +366,10 @@ loader.ready(async function(): Promise<void> {
                 'https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js'
             ], {
                 'files': files,
-                'load': function(url: string) {
+                load: function(url: string) {
                     mask.innerHTML = url + '<br>Loading...';
                 },
-                'loaded': function(url: string) {
+                loaded: function(url: string) {
                     mask.innerHTML = url + '<br>Loaded.';
                 }
             });

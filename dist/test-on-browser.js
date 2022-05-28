@@ -292,7 +292,6 @@ loader.ready(function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
-                    mask.innerHTML = 'Loading...';
                     yield loader.fetchFiles([
                         '../dist/trun-typeguard.js',
                         'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/lib/langs/JavaScript.js',
@@ -309,7 +308,13 @@ loader.ready(function () {
                     ], {
                         'files': files,
                         'after': '?' + Math.random().toString(),
-                        'afterIgnore': /.+Built.+/
+                        'afterIgnore': /.+Built.+/,
+                        load: function (url) {
+                            mask.innerHTML = url + '<br>Loading...';
+                        },
+                        loaded: function (url) {
+                            mask.innerHTML = url + '<br>Loaded.';
+                        }
                     });
                     mask.style.display = 'none';
                     loader.require('../dist/trun-typeguard', files, {
@@ -372,10 +377,10 @@ loader.ready(function () {
                         'https://cdn.jsdelivr.net/npm/monaco-editor@0.25.0/esm/vs/editor/editor.main.js'
                     ], {
                         'files': files,
-                        'load': function (url) {
+                        load: function (url) {
                             mask.innerHTML = url + '<br>Loading...';
                         },
-                        'loaded': function (url) {
+                        loaded: function (url) {
                             mask.innerHTML = url + '<br>Loaded.';
                         }
                     });
