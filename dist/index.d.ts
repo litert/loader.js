@@ -5,6 +5,8 @@ interface ILoader {
     readys: Array<() => void | Promise<void>>;
     /** --- head element --- */
     head?: HTMLElement;
+    /** --- cdn 值 --- */
+    cdn: string;
     /**
      * --- 初始化函数 ---
      */

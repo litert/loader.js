@@ -12,12 +12,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     const temp = document.querySelectorAll('script');
     const scriptEle = temp[temp.length - 1];
     const loader = {
-        isReady: false,
-        readys: [],
-        head: undefined,
+        'isReady': false,
+        'readys': [],
+        'head': undefined,
+        'cdn': 'https://cdn.jsdelivr.net',
         init: function () {
             const srcSplit = scriptEle.src.lastIndexOf('?');
-            let path = '', cdn = '';
+            let path = '';
             if (srcSplit !== -1) {
                 let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
                 if (match) {
@@ -28,16 +29,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 }
                 match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
                 if (match) {
-                    cdn = match[1];
+                    this.cdn = match[1];
                 }
-            }
-            if (!cdn) {
-                cdn = 'https://cdn.jsdelivr.net';
             }
             const run = () => __awaiter(this, void 0, void 0, function* () {
                 this.head = document.getElementsByTagName('head')[0];
                 if (typeof fetch !== 'function') {
-                    yield this.loadScript(cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                    yield this.loadScript(this.cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
                 }
                 this.isReady = true;
                 for (const func of this.readys) {
@@ -162,10 +160,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                     if (plio !== -1) {
                         dirname = path.slice(0, plio);
                     }
-                    code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${dirname}/$1`);
-                    code = code.replace(/import *\* *as *(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
-                    code = code.replace(/import *(\S+) *from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2).default');
-                    code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g, function (t, t1, t2, t3, t4) {
+                    code = code.replace(/sourceMappingURL=([\w/.\-"'`]+)/, `sourceMappingURL=${dirname}/$1`);
+                    code = code.replace(/import *\* *as *(\w+) +from *(["'`])([\w/.-]+)["'`]/g, 'const $1 = require($2$3$2)');
+                    code = code.replace(/import *(\w+) *from *(["'`])([\w/.-]+)["'`]/g, 'const $1 = require($2$3$2).default');
+                    code = code.replace(/(import|export) *{(.+?)} *from *(["'`])([\w/.-]+)["'`]/g, function (t, t1, t2, t3, t4) {
                         const tmpVar = `t${t4.replace(/[^a-zA-Z]/g, '')}_${Math.round(Math.random() * 10000)}`;
                         let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
                         const list = t2.split(',');
@@ -182,8 +180,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         }
                         return txt.slice(0, -1);
                     });
-                    code = code.replace(/import *(['"].+?['"])/g, function (t, t1) {
-                        return `require(${t1})`;
+                    code = code.replace(/(^|[\n; ])import *(['"].+?['"])/g, function (t, t1, t2) {
+                        return `${t1}require(${t2})`;
                     });
                     code = code.replace(/import\((.+?)\)/g, function (t, t1) {
                         return `importOverride(${t1})`;
@@ -197,7 +195,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         }
                         return txt.slice(0, -1);
                     });
-                    code = code.replace(/export *\* *from *(["'])(\S+)["']/g, function (t, t1, t2) {
+                    code = code.replace(/export *\* *from *(["'`])([\w/.-]+)["'`]/g, function (t, t1, t2) {
                         return `var lrTmpList=require(${t1}${t2}${t1});var lrTmpKey;for(lrTmpKey in lrTmpList){exports[lrTmpKey]=lrTmpList[lrTmpKey];}`;
                     });
                     while (true) {
@@ -396,7 +394,11 @@ return module.exports;`;
                             continue;
                         }
                         (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
-                        this.fetch(opt.before + url + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then(function (res) {
+                        let ourl = url;
+                        if (ourl.startsWith(this.cdn) && ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                            ourl = ourl.slice(0, -3) + '.min.js';
+                        }
+                        this.fetch(opt.before + ourl + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then(function (res) {
                             var _a, _b;
                             ++count;
                             if (res) {
@@ -461,17 +463,17 @@ return module.exports;`;
                         }
                     }
                     else {
-                        reg = /(from|import) +['"](.+?)['"]/g;
+                        reg = /(^|[ *}\n;])(from|import) *['"`]([\w/.-]+?)['"`]/g;
+                        while ((match = reg.exec(item))) {
+                            tmp.push(match[3]);
+                        }
+                        reg = /(^|[ *}\n;])require\(['"](.+?)['"]\)/g;
                         while ((match = reg.exec(item))) {
                             tmp.push(match[2]);
                         }
-                        reg = /require\(['"](.+?)['"]\)/g;
-                        while ((match = reg.exec(item))) {
-                            tmp.push(match[1]);
-                        }
                     }
                     for (const t of tmp) {
-                        if (/^[\w-_]+$/.test(t) && (!opt.map || !opt.map[t])) {
+                        if (/^[\w-]+$/.test(t) && (!opt.map || !opt.map[t])) {
                             continue;
                         }
                         const mnr = this.moduleNameResolve(t, path, opt.map);

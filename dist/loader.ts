@@ -13,13 +13,14 @@
     const temp = document.querySelectorAll('script');
     const scriptEle = temp[temp.length - 1];
     const loader: ILoader = {
-        isReady: false,
-        readys: [],
-        head: undefined,
+        'isReady': false,
+        'readys': [],
+        'head': undefined,
+        'cdn': 'https://cdn.jsdelivr.net',
 
         init: function() {
             const srcSplit = scriptEle.src.lastIndexOf('?');
-            let path: string = '', cdn: string = '';
+            let path: string = '';
             if (srcSplit !== -1) {
                 let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
                 if (match) {
@@ -30,18 +31,15 @@
                 }
                 match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
                 if (match) {
-                    cdn = match[1];
+                    this.cdn = match[1];
                 }
-            }
-            if (!cdn) {
-                cdn = 'https://cdn.jsdelivr.net';
             }
             /** --- 文档装载完毕后需要执行的函数 --- */
             const run = async (): Promise<void> => {
                 this.head = document.getElementsByTagName('head')[0];
                 // --- 判断 fetch 是否存在 ---
                 if (typeof fetch !== 'function') {
-                    await this.loadScript(cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
+                    await this.loadScript(this.cdn + '/npm/whatwg-fetch@3.0.0/fetch.min.js');
                 }
                 this.isReady = true;
                 for (const func of this.readys) {
@@ -173,7 +171,7 @@
                     if (opt.preprocess) {
                         code = opt.preprocess(code, path);
                     }
-                    // --- 去除 // 注释、/* 注释 ---
+                    // --- 去除 // 注释、/* 注释，换行统一为 \n ---
                     code = this.removeComment(code);
                     // --- 先去除严格模式字符串 ---
                     let strict = '';
@@ -188,14 +186,14 @@
                         dirname = path.slice(0, plio);
                     }
                     // --- 处理 sourceMap ---
-                    code = code.replace(/sourceMappingURL=([\S]+)/, `sourceMappingURL=${dirname}/$1`);
+                    code = code.replace(/sourceMappingURL=([\w/.\-"'`]+)/, `sourceMappingURL=${dirname}/$1`);
                     // --- 将 es6 module 语法转换为 require 模式 ---
-                    // --- import * as x ---
-                    code = code.replace(/import *\* *as *(\S+) +from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2)');
+                    // --- import * as x from 'x' ---
+                    code = code.replace(/import *\* *as *(\w+) +from *(["'`])([\w/.-]+)["'`]/g, 'const $1 = require($2$3$2)');
                     // --- import x from 'x' ---
-                    code = code.replace(/import *(\S+) *from *(["'])(\S+)["']/g, 'const $1 = require($2$3$2).default');
+                    code = code.replace(/import *(\w+) *from *(["'`])([\w/.-]+)["'`]/g, 'const $1 = require($2$3$2).default');
                     // --- ( import { x, x as y } / export { x, x as y } ) from 'x' ---
-                    code = code.replace(/(import|export) *{(.+?)} *from *(["'])(\S+)["']/g
+                    code = code.replace(/(import|export) *{(.+?)} *from *(["'`])([\w/.-]+)["'`]/g
                         , function(t, t1: string, t2: string, t3: string, t4: string): string {
                             const tmpVar = `t${t4.replace(/[^a-zA-Z]/g, '')}_${Math.round(Math.random() * 10000)}`;
                             let txt = `const ${tmpVar} = require(${t3}${t4}${t3});`;
@@ -215,9 +213,11 @@
                         }
                     );
                     // --- import x ---
-                    code = code.replace(/import *(['"].+?['"])/g, function(t: string, t1: string): string {
-                        return `require(${t1})`;
-                    });
+                    code = code.replace(/(^|[\n; ])import *(['"].+?['"])/g,
+                        function(t: string, t1: string, t2: string): string {
+                            return `${t1}require(${t2})`;
+                        }
+                    );
                     // --- import(x) ---
                     code = code.replace(/import\((.+?)\)/g, function(t: string, t1: string): string {
                         return `importOverride(${t1})`;
@@ -233,7 +233,7 @@
                         return txt.slice(0, -1);
                     });
                     // --- expoer * from x ---
-                    code = code.replace(/export *\* *from *(["'])(\S+)["']/g,
+                    code = code.replace(/export *\* *from *(["'`])([\w/.-]+)["'`]/g,
                         function(t: string, t1: string, t2: string): string {
                             return `var lrTmpList=require(${t1}${t2}${t1});var lrTmpKey;for(lrTmpKey in lrTmpList){exports[lrTmpKey]=lrTmpList[lrTmpKey];}`;
                         }
@@ -504,7 +504,11 @@ return module.exports;`;
                         continue;
                     }
                     opt.load?.(url);
-                    this.fetch(opt.before + url + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then(function(res) {
+                    let ourl = url;
+                    if (ourl.startsWith(this.cdn) && ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                        ourl = ourl.slice(0, -3) + '.min.js';
+                    }
+                    this.fetch(opt.before + ourl + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then(function(res) {
                         ++count;
                         if (res) {
                             list[url] = res;
@@ -577,17 +581,17 @@ return module.exports;`;
                     }
                 }
                 else {
-                    reg = /(from|import) +['"](.+?)['"]/g;
+                    reg = /(^|[ *}\n;])(from|import) *['"`]([\w/.-]+?)['"`]/g;
+                    while ((match = reg.exec(item))) {
+                        tmp.push(match[3]);
+                    }
+                    reg = /(^|[ *}\n;])require\(['"](.+?)['"]\)/g;
                     while ((match = reg.exec(item))) {
                         tmp.push(match[2]);
                     }
-                    reg = /require\(['"](.+?)['"]\)/g;
-                    while ((match = reg.exec(item))) {
-                        tmp.push(match[1]);
-                    }
                 }
                 for (const t of tmp) {
-                    if (/^[\w-_]+$/.test(t) && (!opt.map || !opt.map[t])) {
+                    if (/^[\w-]+$/.test(t) && (!opt.map || !opt.map[t])) {
                         continue;
                     }
                     const mnr = this.moduleNameResolve(t, path, opt.map);

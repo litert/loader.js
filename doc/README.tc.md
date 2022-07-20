@@ -1,4 +1,4 @@
-<p align="center"><img src="[2022-04-01]logo.png" width="260" height="80" alt="Loader"></p>
+<p align="center"><img src="doc/icon.png" width="256" height="256" alt="Loader"></p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")
@@ -43,16 +43,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推薦）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.2.0/dist/index.min.js)。
+同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.3.0/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js"></script>
 ```
 
 代碼提示需要在「tsconfig.json」中添加：
@@ -82,13 +82,13 @@ loader.ready(function() {
 或者使用 ?path= 直接載入入口 js 檔，js 後綴可省略。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?path=../lib/test"></script>
 ```
 
 使用 ?cdn= 參數設置三方庫載入的源地址，預設為：https://cdn.jsdelivr.net。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
 你可以使用 fetchFiles 方法載入網路檔到記憶體。

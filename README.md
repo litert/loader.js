@@ -1,4 +1,4 @@
-<p align="center"><img src="doc/[2022-04-01]logo.png" width="260" height="80" alt="Loader"></p>
+<p align="center"><img src="doc/icon.png" width="256" height="256" alt="Loader"></p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev)](https://www.npmjs.com/package/@litert/loader "Development Version")
@@ -44,16 +44,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@3.2.0/dist/loader.min.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@3.3.0/dist/loader.min.js).
 
 ## Usage
 
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/loader.min.js"></script>
 ```
 
 The code hint needs to be added in "tsconfig.json":
@@ -83,13 +83,13 @@ loader.ready(function() {
 Alternatively, use ?path= to load the ingress file directly, the js file extension can be omitted.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?path=../lib/test"></script>
 ```
 
 Use the ?cdn= parameter to set the source address of the third library load, default is: https://cdn.jsdelivr.net.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.2.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
 You can use the fetchFiles method to load network files into memory.
