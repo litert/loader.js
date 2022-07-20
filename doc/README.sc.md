@@ -1,4 +1,4 @@
-<p align="center"><img src="doc/icon.png" width="256" height="256" alt="Loader"></p>
+<p align="center"><img src="doc/icon.png" width="100" height="100" alt="Loader"></p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")

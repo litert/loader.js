@@ -47,8 +47,24 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                     }
                 }
                 if (path) {
-                    loader.sniffFiles([path]).then(function (files) {
-                        loader.require(path, files);
+                    let map = {};
+                    const match = /[?&]map=([\w./"'@:{}-]+)/.exec(decodeURIComponent(scriptEle.src.slice(srcSplit)));
+                    if (match) {
+                        match[1] = match[1].replace(/'/g, '"');
+                        const json = match[1];
+                        try {
+                            map = JSON.parse(json);
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    loader.sniffFiles([path], {
+                        'map': map
+                    }).then(function (files) {
+                        loader.require(path, files, {
+                            'map': map
+                        });
                     }).catch(function (e) {
                         throw e;
                     });
@@ -467,7 +483,7 @@ return module.exports;`;
                         while ((match = reg.exec(item))) {
                             tmp.push(match[3]);
                         }
-                        reg = /(^|[ *}\n;])require\(['"](.+?)['"]\)/g;
+                        reg = /(^|[ *}\n;=])require\(['"](.+?)['"]\)/g;
                         while ((match = reg.exec(item))) {
                             tmp.push(match[2]);
                         }
