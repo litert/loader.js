@@ -460,7 +460,7 @@ return module.exports;`;
                                 ourl = ourl.slice(0, -3) + '.min.js';
                             }
                             else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
-                                ourl = ourl.slice(0, -3) + '.min.css';
+                                ourl = ourl.slice(0, -4) + '.min.css';
                             }
                         }
                         this.fetch(opt.before + ourl + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then((res) => {
