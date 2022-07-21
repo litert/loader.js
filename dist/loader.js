@@ -18,16 +18,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         'cdn': 'https://cdn.jsdelivr.net',
         init: function () {
             const srcSplit = scriptEle.src.lastIndexOf('?');
+            const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                let match = /[?&]path=([/-\w.]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
                         path += '.js';
                     }
                 }
-                match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                match = /[?&]cdn=([/-\w.]+)/.exec(srcSearch);
                 if (match) {
                     this.cdn = match[1];
                 }
@@ -47,26 +48,64 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                     }
                 }
                 if (path) {
-                    let map = {};
-                    const match = /[?&]map=([\w./"'@:{}-]+)/.exec(decodeURIComponent(scriptEle.src.slice(srcSplit)));
+                    const map = {};
+                    const files = {};
+                    let match = /[?&]npm=([\w./"'@:{}-]+)/.exec(srcSearch);
                     if (match) {
-                        match[1] = match[1].replace(/'/g, '"');
-                        const json = match[1];
                         try {
-                            map = JSON.parse(json);
+                            match[1] = match[1].replace(/'/g, '"');
+                            const ls = JSON.parse(match[1]);
+                            const npms = [];
+                            for (const name in ls) {
+                                npms.push(`${this.cdn}/npm/${name}@${ls[name]}/package.json`);
+                            }
+                            const npmFiles = yield this.fetchFiles(npms, {
+                                'files': files
+                            });
+                            const sniffFiles = [];
+                            for (const name in ls) {
+                                const file = npmFiles[`${this.cdn}/npm/${name}@${ls[name]}/package.json`];
+                                if (typeof file !== 'string') {
+                                    continue;
+                                }
+                                try {
+                                    const json = JSON.parse(file);
+                                    const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${ls[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${ls[name]}/${json.main}`;
+                                    sniffFiles.push(main);
+                                    map[name] = main;
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                }
+                            }
+                            yield this.sniffFiles(sniffFiles, {
+                                'files': files,
+                                'map': map
+                            });
                         }
                         catch (e) {
                             console.log(e);
                         }
                     }
-                    loader.sniffFiles([path], {
+                    match = /[?&]map=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    if (match) {
+                        match[1] = match[1].replace(/'/g, '"');
+                        try {
+                            const m = JSON.parse(match[1]);
+                            for (const name in m) {
+                                map[name] = m[name];
+                            }
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    yield loader.sniffFiles([path], {
+                        'files': files,
                         'map': map
-                    }).then(function (files) {
-                        loader.require(path, files, {
-                            'map': map
-                        });
-                    }).catch(function (e) {
-                        throw e;
+                    });
+                    loader.require(path, files, {
+                        'map': map
                     });
                 }
             });
@@ -409,31 +448,56 @@ return module.exports;`;
                             }
                             continue;
                         }
-                        (_b = opt.load) === null || _b === void 0 ? void 0 : _b.call(opt, url);
-                        let ourl = url;
-                        if (ourl.startsWith(this.cdn) && ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
-                            ourl = ourl.slice(0, -3) + '.min.js';
+                        if (opt.load) {
+                            opt.load(url);
                         }
-                        this.fetch(opt.before + ourl + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then(function (res) {
+                        else {
+                            (_b = this.load) === null || _b === void 0 ? void 0 : _b.call(this, url);
+                        }
+                        let ourl = url;
+                        if (ourl.startsWith(this.cdn)) {
+                            if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                                ourl = ourl.slice(0, -3) + '.min.js';
+                            }
+                            else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
+                                ourl = ourl.slice(0, -3) + '.min.css';
+                            }
+                        }
+                        this.fetch(opt.before + ourl + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then((res) => {
                             var _a, _b;
                             ++count;
                             if (res) {
                                 list[url] = res;
-                                (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                                if (opt.loaded) {
+                                    opt.loaded(url, 1);
+                                }
+                                else {
+                                    (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, 1);
+                                }
                                 if (opt.files) {
                                     opt.files[url] = res;
                                 }
                             }
                             else {
-                                (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                                if (opt.loaded) {
+                                    opt.loaded(url, 0);
+                                }
+                                else {
+                                    (_b = this.loaded) === null || _b === void 0 ? void 0 : _b.call(this, url, 0);
+                                }
                             }
                             if (count === urls.length) {
                                 resolve(list);
                             }
-                        }).catch(function () {
+                        }).catch(() => {
                             var _a;
                             ++count;
-                            (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                            if (opt.loaded) {
+                                opt.loaded(url, -1);
+                            }
+                            else {
+                                (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, -1);
+                            }
                             if (count === urls.length) {
                                 resolve(list);
                             }
@@ -530,22 +594,37 @@ return module.exports;`;
             return new Promise((resolve) => {
                 let count = 0;
                 for (const url of urls) {
-                    this.loadScript(url, opt.el).then(function (res) {
+                    this.loadScript(url, opt.el).then((res) => {
                         var _a, _b;
                         ++count;
                         if (res) {
-                            (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                            if (opt.loaded) {
+                                opt.loaded(url, 1);
+                            }
+                            else {
+                                (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, 1);
+                            }
                         }
                         else {
-                            (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                            if (opt.loaded) {
+                                opt.loaded(url, 0);
+                            }
+                            else {
+                                (_b = this.loaded) === null || _b === void 0 ? void 0 : _b.call(this, url, 0);
+                            }
                         }
                         if (count === urls.length) {
                             resolve();
                         }
-                    }).catch(function () {
+                    }).catch(() => {
                         var _a;
                         ++count;
-                        (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                        if (opt.loaded) {
+                            opt.loaded(url, -1);
+                        }
+                        else {
+                            (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, -1);
+                        }
                         if (count === urls.length) {
                             resolve();
                         }

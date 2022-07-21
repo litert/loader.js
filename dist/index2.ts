@@ -7,4 +7,4 @@ html.push('<br>');
 rng = sr();
 html.push(rng().toString());
 
-document.getElementById('result')!.innerHTML = html.join('');
+document.getElementById('result')!.innerHTML += '<br>' + html.join('');

@@ -1,8 +1,12 @@
 interface ILoader {
     /** --- 是否已加载完成 --- */
-    isReady: boolean;
+    'isReady': boolean;
     /** --- 注册的 ready 事件 --- */
-    readys: Array<() => void | Promise<void>>;
+    'readys': Array<() => void | Promise<void>>;
+    /** --- 文件加载前触发，有 opt.load 以 opt 为准 --- */
+    'load'?: (url: string) => void;
+    /** --- 文件加载过程的进度，有 opt.loaded 以 opt 为准 --- */
+    'loaded'?: (url: string, state: number) => void;
     /** --- head element --- */
     head?: HTMLElement;
     /** --- cdn 值 --- */

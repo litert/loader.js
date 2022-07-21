@@ -20,16 +20,17 @@
 
         init: function() {
             const srcSplit = scriptEle.src.lastIndexOf('?');
+            const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path: string = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                let match = /[?&]path=([/-\w.]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
                         path += '.js';
                     }
                 }
-                match = /[?&]cdn=([/-\w.]+)/.exec(scriptEle.src.slice(srcSplit));
+                match = /[?&]cdn=([/-\w.]+)/.exec(srcSearch);
                 if (match) {
                     this.cdn = match[1];
                 }
@@ -52,26 +53,67 @@
                 }
                 // --- 检查有没有要自动执行的 js ---
                 if (path) {
-                    let map: Record<string, string> = {};
-                    const match = /[?&]map=([\w./"'@:{}-]+)/.exec(decodeURIComponent(scriptEle.src.slice(srcSplit)));
+                    const map: Record<string, string> = {};
+                    const files: Record<string, any> = {};
+                    // --- URL 传入的 npm 版本号 ---
+                    let match = /[?&]npm=([\w./"'@:{}-]+)/.exec(srcSearch);
                     if (match) {
-                        match[1] = match[1].replace(/'/g, '"');
-                        const json = match[1];
                         try {
-                            map = JSON.parse(json);
+                            match[1] = match[1].replace(/'/g, '"');
+                            const ls = JSON.parse(match[1]);
+                            const npms: string[] = [];
+                            for (const name in ls) {
+                                npms.push(`${this.cdn}/npm/${name}@${ls[name]}/package.json`);
+                            }
+                            const npmFiles = await this.fetchFiles(npms, {
+                                'files': files
+                            });
+                            /** --- 将要嗅探的文件 --- */
+                            const sniffFiles: string[] = [];
+                            for (const name in ls) {
+                                const file = npmFiles[`${this.cdn}/npm/${name}@${ls[name]}/package.json`];
+                                if (typeof file !== 'string') {
+                                    continue;
+                                }
+                                try {
+                                    const json = JSON.parse(file);
+                                    const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${ls[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${ls[name]}/${json.main}`;
+                                    sniffFiles.push(main);
+                                    map[name] = main;
+                                }
+                                catch (e) {
+                                    console.log(e);
+                                }
+                            }
+                            await this.sniffFiles(sniffFiles, {
+                                'files': files,
+                                'map': map
+                            });
                         }
                         catch (e) {
                             console.log(e);
                         }
                     }
-                    loader.sniffFiles([path], {
+                    // --- URL 传入的 map 参数 ---
+                    match = /[?&]map=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    if (match) {
+                        match[1] = match[1].replace(/'/g, '"');
+                        try {
+                            const m = JSON.parse(match[1]);
+                            for (const name in m) {
+                                map[name] = m[name];
+                            }
+                        }
+                        catch (e) {
+                            console.log(e);
+                        }
+                    }
+                    await loader.sniffFiles([path], {
+                        'files': files,
                         'map': map
-                    }).then(function(files) {
-                        loader.require(path, files, {
-                            'map': map
-                        });
-                    }).catch(function(e) {
-                        throw e;
+                    });
+                    loader.require(path, files, {
+                        'map': map
                     });
                 }
             };
@@ -519,29 +561,54 @@ return module.exports;`;
                         }
                         continue;
                     }
-                    opt.load?.(url);
-                    let ourl = url;
-                    if (ourl.startsWith(this.cdn) && ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
-                        ourl = ourl.slice(0, -3) + '.min.js';
+                    if (opt.load) {
+                        opt.load(url);
                     }
-                    this.fetch(opt.before + ourl + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then(function(res) {
+                    else {
+                        this.load?.(url);
+                    }
+                    let ourl = url;
+                    if (ourl.startsWith(this.cdn)) {
+                        if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                            ourl = ourl.slice(0, -3) + '.min.js';
+                        }
+                        else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
+                            ourl = ourl.slice(0, -3) + '.min.css';
+                        }
+                    }
+                    this.fetch(opt.before + ourl + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then((res) => {
                         ++count;
                         if (res) {
                             list[url] = res;
-                            opt.loaded?.(url, 1);
+                            if (opt.loaded) {
+                                opt.loaded(url, 1);
+                            }
+                            else {
+                                this.loaded?.(url, 1);
+                            }
                             if (opt.files) {
                                 opt.files[url] = res;
                             }
                         }
                         else {
-                            opt.loaded?.(url, 0);
+                            if (opt.loaded) {
+                                opt.loaded(url, 0);
+                            }
+                            else {
+                                this.loaded?.(url, 0);
+                            }
                         }
                         if (count === urls.length) {
                             resolve(list);
                         }
-                    }).catch(function() {
+                    }).catch(() => {
                         ++count;
-                        opt.loaded?.(url, -1);
+                        if (opt.loaded) {
+                            opt.loaded(url, -1);
+                        }
+                        else {
+                            this.loaded?.(url, -1);
+                        }
                         if (count === urls.length) {
                             resolve(list);
                         }
@@ -652,20 +719,35 @@ return module.exports;`;
             return new Promise((resolve) => {
                 let count = 0;
                 for (const url of urls) {
-                    this.loadScript(url, opt.el).then(function(res) {
+                    this.loadScript(url, opt.el).then((res) => {
                         ++count;
                         if (res) {
-                            opt.loaded?.(url, 1);
+                            if (opt.loaded) {
+                                opt.loaded(url, 1);
+                            }
+                            else {
+                                this.loaded?.(url, 1);
+                            }
                         }
                         else {
-                            opt.loaded?.(url, 0);
+                            if (opt.loaded) {
+                                opt.loaded(url, 0);
+                            }
+                            else {
+                                this.loaded?.(url, 0);
+                            }
                         }
                         if (count === urls.length) {
                             resolve();
                         }
-                    }).catch(function() {
+                    }).catch(() => {
                         ++count;
-                        opt.loaded?.(url, -1);
+                        if (opt.loaded) {
+                            opt.loaded(url, -1);
+                        }
+                        else {
+                            this.loaded?.(url, -1);
+                        }
                         if (count === urls.length) {
                             resolve();
                         }
