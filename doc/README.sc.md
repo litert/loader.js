@@ -91,6 +91,18 @@ loader.ready(function() {
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
+使用 ?map= 参数设置第三方库的路径，JSON 字符串，仅在含有 path 参数下有效。
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
+```
+
+使用 ?npm= 参数 loader 将自动去 npm 查找相关的库进行嗅探加载，JSON 字符串，模块名跟版本号，仅在含有 path 参数下有效。
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
+```
+
 你可以使用 fetchFiles 方法加载网络文件到内存。
 
 ```typescript

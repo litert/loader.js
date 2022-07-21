@@ -92,6 +92,18 @@ Use the ?cdn= parameter to set the source address of the third library load, def
 <script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
+Use the ?map= parameter to set the path to the third-party library, a JSON string, that is valid only with the path parameter.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
+```
+
+Using the ?npm= parameter loader will automatically go to npm to find the relevant library for sniffing loading, JSON string, module name and version number, only valid with the path parameter.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.3.0/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
+```
+
 You can use the fetchFiles method to load network files into memory.
 
 ```typescript
