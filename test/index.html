@@ -86,8 +86,32 @@ hij//klm`; // en
 var h = "over";</textarea>
 <textarea id="removeComment2" readonly style="flex: 1; height: 200px; resize: none; margin-left: 10px; line-height: 1.5;">Waiting...</textarea>
 </div>
+<hr>
 
-<div style="height: 350px;"></div>
+<div style="display: flex; align-items: center;">
+    <div>Parse URL:</div>
+    <input id="runParseUrl" type="button" value="Run parseUrl" style="margin-left: 10px;">
+    <input id="runParseUrl1" value="https://ab-3dc:aak9()$@github.com:80/nodejs/node/blob/master/lib/url.js?mail=abc@def.com#223" style="flex: 1; margin-left: 10px;">
+</div>
+<div style="display: flex; margin-top: 10px;">
+    <textarea id="runParseUrl2" readonly style="flex: 1; height: 200px; resize: none; line-height: 1.5;"></textarea>
+</div>
+<hr>
+
+<div style="display: flex; align-items: center;">
+    <div>URL Resolve:</div>
+    <select id="urlResolveSelect" style="margin-left: 10px;">
+        <option>1</option>
+        <option>2</option>
+        <option>3</option>
+    </select>
+    <input id="urlResolve" type="button" value="Run urlResolve" style="margin-left: 10px;">
+    <input id="urlResolve1" value="https://www.url.com/view/path/oh" style="flex: 1; margin-left: 10px;">
+    <input id="urlResolve2" value="../ok/./index.js" style="flex: 1; margin-left: 10px;">
+</div>
+<div id="urlResolve3" style="display: flex; margin-top: 10px;">Waiting...</div>
+
+<div style="height: 360px;"></div>
 
 <div style="position: fixed; bottom: 0; left: 0; width: 100%; height: 350px; box-shadow: 0 0 20px rgba(0, 0, 0, .3); padding: 10px; display: flex; flex-direction: column; background: #FFF;">
     <div style="flex-shrink: 0; display: flex;"><div style="flex: 1;">Console:</div><div id="clear" style="cursor: pointer; text-decoration: underline;">[clear]</div></div>

@@ -810,70 +810,74 @@ return module.exports;`;
          */
         parseUrl: function(url: string): ILoaderUrl {
             // --- test: https://ab-3dc:aak9()$@github.com:80/nodejs/node/blob/master/lib/url.js?mail=abc@def.com#223 ---
-            const u: ILoaderUrl = {
+            const rtn: ILoaderUrl = {
+                'protocol': null,
                 'auth': null,
-                'hash': null,
+                'user': null,
+                'pass': null,
                 'host': null,
                 'hostname': null,
-                'pass': null,
-                'path': null,
-                'pathname': '/',
-                'protocol': null,
                 'port': null,
+                'pathname': '/',
+                'path': null,
                 'query': null,
-                'user': null
+                'hash': null
             };
-            // --- http:, https: ---
-            const protocol = /^(.+?)\/\//.exec(url);
-            if (protocol) {
-                u.protocol = protocol[1].toLowerCase();
-                url = url.slice(protocol[0].length);
+            const hash = url.indexOf('#');
+            if (hash > -1) {
+                rtn['hash'] = url.slice(hash + 1);
+                url = url.slice(0, hash);
             }
-            // --- 获取 path 开头的 / 的位置 ---
-            const hostSp = url.indexOf('/');
-            let left = url;
-            if (hostSp !== -1) {
-                left = url.slice(0, hostSp);
-                url = url.slice(hostSp);
+            const query = url.indexOf('?');
+            if (query > -1) {
+                rtn['query'] = url.slice(query + 1);
+                url = url.slice(0, query);
             }
-            // --- auth: abc:def, abc ---
-            if (left) {
-                const leftArray = left.split('@');
-                let host = left;
-                if (leftArray[1]) {
-                    const auth = leftArray[0].split(':');
-                    u.user = auth[0];
-                    if (auth[1]) {
-                        u.pass = auth[1];
-                    }
-                    u.auth = u.user + (u.pass ? ':' + u.pass : '');
-                    host = leftArray[1];
+            const protocol = url.indexOf(':');
+            if (protocol > -1) {
+                rtn['protocol'] = url.slice(0, protocol + 1);
+                url = url.slice(protocol + 1);
+            }
+            if (url.startsWith('//')) {
+                url = url.slice(2);
+            }
+            let path = url.indexOf('/');
+            if (path === -1) {
+                path = url.indexOf('\\');
+            }
+            if (path > -1) {
+                rtn['pathname'] = url.slice(path);
+                url = url.slice(0, path);
+            }
+            const auth = url.indexOf('@');
+            if (auth > -1) {
+                const authStr = url.slice(0, auth);
+                const authSplit = authStr.indexOf(':');
+                if (authSplit > -1) {
+                    // --- 有密码 ---
+                    rtn['user'] = authStr.slice(0, authSplit);
+                    rtn['pass'] = authStr.slice(authSplit + 1);
+                    rtn['auth'] = rtn['user'] + ':' + rtn['pass'];
                 }
-                // --- host: www.host.com, host.com ---
-                const hostArray = host.split(':');
-                u.hostname = hostArray[0].toLowerCase();
-                if (hostArray[1]) {
-                    u.port = hostArray[1];
+                else {
+                    rtn['user'] = authStr;
+                    rtn['auth'] = authStr;
                 }
-                u.host = u.hostname + (u.port ? ':' + u.port : '');
+                url = url.slice(auth + 1);
             }
-            // --- 是否有后面 ---
-            if (hostSp === -1) {
-                return u;
+            const port = url.indexOf(':');
+            if (port > -1) {
+                rtn['hostname'] = url.slice(0, port);
+                rtn['port'] = url.slice(port + 1);
+                rtn['host'] = rtn['hostname'] + (rtn['port'] ? ':' + rtn['port'] : '');
             }
-            // --- path and query ---
-            const paqArray = url.split('?');
-            u.pathname = paqArray[0];
-            if (paqArray[1]) {
-                // --- query and hash ---
-                const qahArray = paqArray[1].split('#');
-                u.query = qahArray[0];
-                if (qahArray[1]) {
-                    u.hash = qahArray[1];
-                }
+            else {
+                rtn['hostname'] = url;
+                rtn['host'] = url;
             }
-            u.path = u.pathname + (u.query ? '?' + u.query : '');
-            return u;
+            // --- 组合 ---
+            rtn['path'] = rtn['pathname'] + (rtn['query'] ? '?' + rtn['query'] : '');
+            return rtn;
         },
 
         /**

@@ -408,4 +408,34 @@ loader.ready(async function(): Promise<void> {
     document.getElementById('runRemoveComment')?.addEventListener('click', function() {
         (document.getElementById('removeComment2') as HTMLTextAreaElement).value = loader.removeComment((document.getElementById('removeComment1') as HTMLTextAreaElement).value);
     });
+
+    document.getElementById('runParseUrl')?.addEventListener('click', function() {
+        (document.getElementById('runParseUrl2') as HTMLTextAreaElement).value = JSON.stringify(loader.parseUrl((document.getElementById('runParseUrl1') as HTMLInputElement).value), null, 4);
+    });
+
+    const urlResolve1 = document.getElementById('urlResolve1') as HTMLInputElement;
+    const urlResolve2 = document.getElementById('urlResolve2') as HTMLInputElement;
+    const urlResolveSelect = document.getElementById('urlResolveSelect') as HTMLSelectElement;
+    urlResolveSelect.addEventListener('change', function() {
+        switch (urlResolveSelect.value) {
+            case '1': {
+                urlResolve1.value = 'https://www.url.com/view/path/oh';
+                urlResolve2.value = '../ok/./index.js';
+                break;
+            }
+            case '2': {
+                urlResolve1.value = 'C:\\Windows\\Misc';
+                urlResolve2.value = '/xxx/yyy';
+                break;
+            }
+            case '3': {
+                urlResolve1.value = 'file:///D:/sync/oh/ho/yeah/index.html';
+                urlResolve2.value = '../../abc.html';
+                break;
+            }
+        }
+    });
+    document.getElementById('urlResolve')?.addEventListener('click', function() {
+        document.getElementById('urlResolve3')!.innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
+    });
 });

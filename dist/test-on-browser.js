@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -417,6 +417,34 @@ loader.ready(function () {
         });
         (_s = document.getElementById('runRemoveComment')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
+        });
+        (_t = document.getElementById('runParseUrl')) === null || _t === void 0 ? void 0 : _t.addEventListener('click', function () {
+            document.getElementById('runParseUrl2').value = JSON.stringify(loader.parseUrl(document.getElementById('runParseUrl1').value), null, 4);
+        });
+        const urlResolve1 = document.getElementById('urlResolve1');
+        const urlResolve2 = document.getElementById('urlResolve2');
+        const urlResolveSelect = document.getElementById('urlResolveSelect');
+        urlResolveSelect.addEventListener('change', function () {
+            switch (urlResolveSelect.value) {
+                case '1': {
+                    urlResolve1.value = 'https://www.url.com/view/path/oh';
+                    urlResolve2.value = '../ok/./index.js';
+                    break;
+                }
+                case '2': {
+                    urlResolve1.value = 'C:\\Windows\\Misc';
+                    urlResolve2.value = '/xxx/yyy';
+                    break;
+                }
+                case '3': {
+                    urlResolve1.value = 'file:///D:/sync/oh/ho/yeah/index.html';
+                    urlResolve2.value = '../../abc.html';
+                    break;
+                }
+            }
+        });
+        (_u = document.getElementById('urlResolve')) === null || _u === void 0 ? void 0 : _u.addEventListener('click', function () {
+            document.getElementById('urlResolve3').innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
         });
     });
 });
