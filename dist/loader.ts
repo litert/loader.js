@@ -535,6 +535,7 @@ return module.exports;`;
             'before'?: string;
             'after'?: string;
             'afterIgnore'?: RegExp;
+            'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
         } = {}): Promise<Record<string, Blob | string>> {
             return new Promise<Record<string, Blob | string>>((resolve) => {
                 if (!opt.init) {
@@ -576,7 +577,13 @@ return module.exports;`;
                             ourl = ourl.slice(0, -4) + '.min.css';
                         }
                     }
-                    this.fetch(opt.before + ourl + (opt.afterIgnore?.test(url) ? '' : opt.after), opt.init).then((res) => {
+                    if (opt.before) {
+                        ourl = opt.before + ourl;
+                    }
+                    if (!opt.afterIgnore?.test(url)) {
+                        ourl += opt.after;
+                    }
+                    const success = (res: string | Blob | null): void => {
                         ++count;
                         if (res) {
                             list[url] = res;
@@ -601,7 +608,8 @@ return module.exports;`;
                         if (count === urls.length) {
                             resolve(list);
                         }
-                    }).catch(() => {
+                    };
+                    const fail = (): void => {
                         ++count;
                         if (opt.loaded) {
                             opt.loaded(url, -1);
@@ -612,7 +620,27 @@ return module.exports;`;
                         if (count === urls.length) {
                             resolve(list);
                         }
-                    });
+                    };
+                    if (opt.adapter) {
+                        const r = opt.adapter(ourl);
+                        if (r instanceof Promise) {
+                            r.then((res) => {
+                                success(res);
+                            }).catch(() => {
+                                fail();
+                            });
+                        }
+                        else {
+                            success(r);
+                        }
+                    }
+                    else {
+                        this.fetch(opt.before + ourl, opt.init).then((res) => {
+                            success(res);
+                        }).catch(() => {
+                            fail();
+                        });
+                    }
                 }
             });
         },
@@ -627,6 +655,7 @@ return module.exports;`;
             'before'?: string;
             'after'?: string;
             'afterIgnore'?: RegExp;
+            'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
         } = {}): Promise<Record<string, Blob | string>> {
             if (typeof urls === 'string') {
                 urls = [urls];
@@ -642,7 +671,8 @@ return module.exports;`;
                 'files': opt.files,
                 'before': opt.before,
                 'after': opt.after,
-                'afterIgnore': opt.afterIgnore
+                'afterIgnore': opt.afterIgnore,
+                'adapter': opt.adapter
             });
             /** --- 下一层的文件 --- */
             const nlayer: string[] = [];

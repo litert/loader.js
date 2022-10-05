@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -415,10 +415,65 @@ loader.ready(function () {
                 });
             })();
         });
-        (_s = document.getElementById('runRemoveComment')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
+        (_s = document.getElementById('AddFetchFilesAdapter')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const tmpFiles = {};
+                    mask.style.display = 'flex';
+                    yield loader.fetchFiles([
+                        '/current/lib/langs/JavaScript.js',
+                        '/current/lib/BuiltInTypeCompiler.js',
+                        '/current/BuiltInTypes.js',
+                        '/current/lib/Common.js'
+                    ], {
+                        'files': tmpFiles,
+                        'after': '?' + Math.random().toString(),
+                        'dir': '/',
+                        load: function (url) {
+                            mask.innerHTML = url + '<br>Loading...';
+                        },
+                        loaded: function (url) {
+                            mask.innerHTML = url + '<br>Loaded.';
+                        },
+                        adapter: (url) => __awaiter(this, void 0, void 0, function* () {
+                            url = url.replace('/current/', 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/');
+                            return loader.fetch(url);
+                        })
+                    });
+                    mask.style.display = 'none';
+                    console.log('tmpFiles', Object.keys(tmpFiles));
+                });
+            })();
+        });
+        (_t = document.getElementById('AddSniffFilesAdapter')) === null || _t === void 0 ? void 0 : _t.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const tmpFiles = {};
+                    mask.style.display = 'flex';
+                    yield loader.sniffFiles('/test/abc/lib/exports/resize-observer.js', {
+                        'files': tmpFiles,
+                        'after': '?' + Math.random().toString(),
+                        'dir': '/',
+                        load: function (url) {
+                            mask.innerHTML = url + '<br>Loading...';
+                        },
+                        loaded: function (url) {
+                            mask.innerHTML = url + '<br>Loaded.';
+                        },
+                        adapter: (url) => __awaiter(this, void 0, void 0, function* () {
+                            url = url.replace('/test/abc/', 'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/');
+                            return loader.fetch(url);
+                        })
+                    });
+                    mask.style.display = 'none';
+                    console.log('tmpFiles', Object.keys(tmpFiles));
+                });
+            })();
+        });
+        (_u = document.getElementById('runRemoveComment')) === null || _u === void 0 ? void 0 : _u.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
         });
-        (_t = document.getElementById('runParseUrl')) === null || _t === void 0 ? void 0 : _t.addEventListener('click', function () {
+        (_v = document.getElementById('runParseUrl')) === null || _v === void 0 ? void 0 : _v.addEventListener('click', function () {
             document.getElementById('runParseUrl2').value = JSON.stringify(loader.parseUrl(document.getElementById('runParseUrl1').value), null, 4);
         });
         const urlResolve1 = document.getElementById('urlResolve1');
@@ -443,7 +498,7 @@ loader.ready(function () {
                 }
             }
         });
-        (_u = document.getElementById('urlResolve')) === null || _u === void 0 ? void 0 : _u.addEventListener('click', function () {
+        (_w = document.getElementById('urlResolve')) === null || _w === void 0 ? void 0 : _w.addEventListener('click', function () {
             document.getElementById('urlResolve3').innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
         });
     });

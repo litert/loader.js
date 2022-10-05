@@ -54,6 +54,7 @@ interface ILoader {
         'before'?: string;
         'after'?: string;
         'afterIgnore'?: RegExp;
+        'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 嗅探文件序列 ---
@@ -70,6 +71,7 @@ interface ILoader {
         'before'?: string;
         'after'?: string;
         'afterIgnore'?: RegExp;
+        'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
     }): Promise<Record<string, Blob | string>>;
     /**
      * --- 加载 script 标签 ---

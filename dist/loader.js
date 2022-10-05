@@ -463,7 +463,13 @@ return module.exports;`;
                                 ourl = ourl.slice(0, -4) + '.min.css';
                             }
                         }
-                        this.fetch(opt.before + ourl + (((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) ? '' : opt.after), opt.init).then((res) => {
+                        if (opt.before) {
+                            ourl = opt.before + ourl;
+                        }
+                        if (!((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url))) {
+                            ourl += opt.after;
+                        }
+                        const success = (res) => {
                             var _a, _b;
                             ++count;
                             if (res) {
@@ -489,7 +495,8 @@ return module.exports;`;
                             if (count === urls.length) {
                                 resolve(list);
                             }
-                        }).catch(() => {
+                        };
+                        const fail = () => {
                             var _a;
                             ++count;
                             if (opt.loaded) {
@@ -501,7 +508,27 @@ return module.exports;`;
                             if (count === urls.length) {
                                 resolve(list);
                             }
-                        });
+                        };
+                        if (opt.adapter) {
+                            const r = opt.adapter(ourl);
+                            if (r instanceof Promise) {
+                                r.then((res) => {
+                                    success(res);
+                                }).catch(() => {
+                                    fail();
+                                });
+                            }
+                            else {
+                                success(r);
+                            }
+                        }
+                        else {
+                            this.fetch(opt.before + ourl, opt.init).then((res) => {
+                                success(res);
+                            }).catch(() => {
+                                fail();
+                            });
+                        }
                     }
                 });
             });
@@ -522,7 +549,8 @@ return module.exports;`;
                     'files': opt.files,
                     'before': opt.before,
                     'after': opt.after,
-                    'afterIgnore': opt.afterIgnore
+                    'afterIgnore': opt.afterIgnore,
+                    'adapter': opt.adapter
                 });
                 const nlayer = [];
                 for (const path in list) {

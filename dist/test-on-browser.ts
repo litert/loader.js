@@ -405,6 +405,59 @@ loader.ready(async function(): Promise<void> {
         })() as unknown;
     });
 
+    document.getElementById('AddFetchFilesAdapter')?.addEventListener('click', function() {
+        (async function() {
+            const tmpFiles: Record<string, string | Blob> = {};
+            mask.style.display = 'flex';
+            await loader.fetchFiles([
+                '/current/lib/langs/JavaScript.js',
+                '/current/lib/BuiltInTypeCompiler.js',
+                '/current/BuiltInTypes.js',
+                '/current/lib/Common.js'
+            ], {
+                'files': tmpFiles,
+                'after': '?' + Math.random().toString(),
+                'dir': '/',
+                load: function(url: string) {
+                    mask.innerHTML = url + '<br>Loading...';
+                },
+                loaded: function(url: string) {
+                    mask.innerHTML = url + '<br>Loaded.';
+                },
+                adapter: async (url: string): Promise<string | Blob | null> => {
+                    url = url.replace('/current/', 'https://cdn.jsdelivr.net/npm/@litert/typeguard@1.0.1/');
+                    return loader.fetch(url);
+                }
+            });
+            mask.style.display = 'none';
+            console.log('tmpFiles', Object.keys(tmpFiles));
+        })() as unknown;
+    });
+
+    document.getElementById('AddSniffFilesAdapter')?.addEventListener('click', function() {
+        (async function() {
+            const tmpFiles: Record<string, string | Blob> = {};
+            mask.style.display = 'flex';
+            await loader.sniffFiles('/test/abc/lib/exports/resize-observer.js', {
+                'files': tmpFiles,
+                'after': '?' + Math.random().toString(),
+                'dir': '/',
+                load: function(url: string) {
+                    mask.innerHTML = url + '<br>Loading...';
+                },
+                loaded: function(url: string) {
+                    mask.innerHTML = url + '<br>Loaded.';
+                },
+                adapter: async (url: string): Promise<string | Blob | null> => {
+                    url = url.replace('/test/abc/', 'https://cdn.jsdelivr.net/npm/@juggle/resize-observer@3.2.0/');
+                    return loader.fetch(url);
+                }
+            });
+            mask.style.display = 'none';
+            console.log('tmpFiles', Object.keys(tmpFiles));
+        })() as unknown;
+    });
+
     document.getElementById('runRemoveComment')?.addEventListener('click', function() {
         (document.getElementById('removeComment2') as HTMLTextAreaElement).value = loader.removeComment((document.getElementById('removeComment1') as HTMLTextAreaElement).value);
     });
