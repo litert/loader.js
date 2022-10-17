@@ -102,7 +102,8 @@ loader.ready(async function(): Promise<void> {
         '../dist/tjson.json',
         '../dist/tmodule.js',
         '../dist/tmodule2.js',
-        '../dist/tmodule3.js'
+        '../dist/tmodule3.js',
+        '../dist/tmodule4.js'
     ]);
     const tmodule = loader.require('../dist/tmodule', files, {
         'cache': cache,
@@ -242,6 +243,12 @@ loader.ready(async function(): Promise<void> {
             console.log(`getData: ${m.getData(keyInput.value)}, getSubStr: ${m.getSubStr()}, getRand: ${m.getRand()}`);
         })() as unknown;
     });
+    document.getElementById('loadDefault')?.addEventListener('click', function() {
+        const m = loader.require('../dist/tmodule4.js', files, {
+            'cache': cache
+        });
+        console.log(m);
+    });
     document.getElementById('getFiles')?.addEventListener('click', function() {
         console.log(Object.keys(files));
     });
@@ -279,6 +286,17 @@ loader.ready(async function(): Promise<void> {
                 'cache': cache
             });
         })() as unknown;
+    });
+
+    document.getElementById('runThe1ToThe4')?.addEventListener('click', function() {
+        const cache1 = {};
+        const m = loader.require('../dist/tmodule.js', files, {
+            'cache': cache1,
+            'preprocess': (code) => {
+                return code.replace(/'the1'/g, '\'the4\'');
+            }
+        });
+        console.log('filename:', m[0].tm2fn, 'd1:', m[0].getData('d1'));
     });
 
     document.getElementById('runTypeGuard')?.addEventListener('click', function() {

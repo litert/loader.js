@@ -365,13 +365,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         code = 'let ' + ikey + ' = __invoke.' + ikey + ';' + code;
                     }
                     code = `${strict}
-var __dirname='${dirname}';var __filename='${path}';var module={exports:__cache['${path}']};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'}});}function require(path){var m=loader.require(path,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}require.cache=__cache;
+var __dirname='${dirname}';var __filename='${path}';var module={exports:__cache['${path}']};var exports = module.exports;function importOverride(url){return loader.import(url,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke,'preprocess':__preprocess});}function require(path){var m=loader.require(path,__files,{'cache':__cache,'map':__map,'dir':__filename,'style':${opt.style ? '\'' + opt.style + '\'' : 'undefined'},'invoke':__invoke,'preprocess':__preprocess});if(m[0]){return m[0];}else{throw 'Failed require "'+path+'" on "'+__filename+'" (Maybe file not found).';}}require.cache=__cache;
 require.resolve=function(name){return loader.moduleNameResolve(name,__dirname,__map);};
 ${code}
 ${needExports.join('')}
 return module.exports;`;
                     opt.cache[path] = {};
-                    const rtn = (new Function('__files', '__cache', '__map', '__invoke', code))(files, opt.cache, opt.map, opt.invoke);
+                    const rtn = (new Function('__files', '__cache', '__map', '__invoke', '__preprocess', code))(files, opt.cache, opt.map, opt.invoke, opt.preprocess);
                     if (rtn !== opt.cache[path]) {
                         opt.cache[path] = rtn;
                     }

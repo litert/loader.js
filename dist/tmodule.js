@@ -9,9 +9,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runInvokeFunction = exports.requireModule3 = exports.getJson = exports.getData = void 0;
+exports.runInvokeFunction = exports.requireModule3 = exports.getJson = exports.getData = exports.tm2fn = void 0;
 const tmodule2 = require("./tmodule2");
 const tjson = require("./tjson.json");
+exports.tm2fn = tmodule2.fn;
 function getData(key) {
     var _a;
     return (_a = tmodule2.data[key]) !== null && _a !== void 0 ? _a : 'nothing';

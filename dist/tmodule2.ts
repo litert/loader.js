@@ -3,3 +3,4 @@ export const data: Record<string, string> = {
     'd2': 'the2',
     'd3': 'the3'
 };
+export const fn = __filename;

@@ -1,6 +1,9 @@
 import * as tmodule2 from './tmodule2';
 import * as tjson from './tjson.json';
 
+/** --- 获取 tmodule2 的 filename --- */
+export const tm2fn = tmodule2.fn;
+
 /**
  * --- 根据 key 获取 tmodule2 的值 ---
  * @param key 键

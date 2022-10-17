@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -106,7 +106,8 @@ loader.ready(function () {
             '../dist/tjson.json',
             '../dist/tmodule.js',
             '../dist/tmodule2.js',
-            '../dist/tmodule3.js'
+            '../dist/tmodule3.js',
+            '../dist/tmodule4.js'
         ]);
         const tmodule = loader.require('../dist/tmodule', files, {
             'cache': cache,
@@ -248,13 +249,19 @@ loader.ready(function () {
                 });
             })();
         });
-        (_j = document.getElementById('getFiles')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
+        (_j = document.getElementById('loadDefault')) === null || _j === void 0 ? void 0 : _j.addEventListener('click', function () {
+            const m = loader.require('../dist/tmodule4.js', files, {
+                'cache': cache
+            });
+            console.log(m);
+        });
+        (_k = document.getElementById('getFiles')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
             console.log(Object.keys(files));
         });
-        (_k = document.getElementById('getCache')) === null || _k === void 0 ? void 0 : _k.addEventListener('click', function () {
+        (_l = document.getElementById('getCache')) === null || _l === void 0 ? void 0 : _l.addEventListener('click', function () {
             console.log(cache);
         });
-        (_l = document.getElementById('runTestOnNode')) === null || _l === void 0 ? void 0 : _l.addEventListener('click', function () {
+        (_m = document.getElementById('runTestOnNode')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -271,7 +278,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_m = document.getElementById('runTestOnNodeLoop')) === null || _m === void 0 ? void 0 : _m.addEventListener('click', function () {
+        (_o = document.getElementById('runTestOnNodeLoop')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -288,7 +295,17 @@ loader.ready(function () {
                 });
             })();
         });
-        (_o = document.getElementById('runTypeGuard')) === null || _o === void 0 ? void 0 : _o.addEventListener('click', function () {
+        (_p = document.getElementById('runThe1ToThe4')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
+            const cache1 = {};
+            const m = loader.require('../dist/tmodule.js', files, {
+                'cache': cache1,
+                'preprocess': (code) => {
+                    return code.replace(/'the1'/g, '\'the4\'');
+                }
+            });
+            console.log('filename:', m[0].tm2fn, 'd1:', m[0].getData('d1'));
+        });
+        (_q = document.getElementById('runTypeGuard')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -326,7 +343,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_p = document.getElementById('runResizeObserverESM')) === null || _p === void 0 ? void 0 : _p.addEventListener('click', function () {
+        (_r = document.getElementById('runResizeObserverESM')) === null || _r === void 0 ? void 0 : _r.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -344,7 +361,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_q = document.getElementById('runResizeObserverUMD')) === null || _q === void 0 ? void 0 : _q.addEventListener('click', function () {
+        (_s = document.getElementById('runResizeObserverUMD')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     mask.style.display = 'flex';
@@ -362,7 +379,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_r = document.getElementById('runMonacoEditor')) === null || _r === void 0 ? void 0 : _r.addEventListener('click', function () {
+        (_t = document.getElementById('runMonacoEditor')) === null || _t === void 0 ? void 0 : _t.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const monacoDiv = document.getElementById('monacoDiv');
@@ -415,7 +432,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_s = document.getElementById('AddFetchFilesAdapter')) === null || _s === void 0 ? void 0 : _s.addEventListener('click', function () {
+        (_u = document.getElementById('AddFetchFilesAdapter')) === null || _u === void 0 ? void 0 : _u.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const tmpFiles = {};
@@ -445,7 +462,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_t = document.getElementById('AddSniffFilesAdapter')) === null || _t === void 0 ? void 0 : _t.addEventListener('click', function () {
+        (_v = document.getElementById('AddSniffFilesAdapter')) === null || _v === void 0 ? void 0 : _v.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const tmpFiles = {};
@@ -470,10 +487,10 @@ loader.ready(function () {
                 });
             })();
         });
-        (_u = document.getElementById('runRemoveComment')) === null || _u === void 0 ? void 0 : _u.addEventListener('click', function () {
+        (_w = document.getElementById('runRemoveComment')) === null || _w === void 0 ? void 0 : _w.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
         });
-        (_v = document.getElementById('runParseUrl')) === null || _v === void 0 ? void 0 : _v.addEventListener('click', function () {
+        (_x = document.getElementById('runParseUrl')) === null || _x === void 0 ? void 0 : _x.addEventListener('click', function () {
             document.getElementById('runParseUrl2').value = JSON.stringify(loader.parseUrl(document.getElementById('runParseUrl1').value), null, 4);
         });
         const urlResolve1 = document.getElementById('urlResolve1');
@@ -498,7 +515,7 @@ loader.ready(function () {
                 }
             }
         });
-        (_w = document.getElementById('urlResolve')) === null || _w === void 0 ? void 0 : _w.addEventListener('click', function () {
+        (_y = document.getElementById('urlResolve')) === null || _y === void 0 ? void 0 : _y.addEventListener('click', function () {
             document.getElementById('urlResolve3').innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
         });
     });

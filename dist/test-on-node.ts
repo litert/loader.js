@@ -1,4 +1,5 @@
 import * as tmodule from './tmodule';
+import * as tmodule4 from './tmodule4';
 
 console.log(`getData('d1'): ${tmodule.getData('d1')}`);
 
@@ -15,6 +16,8 @@ console.log(`getJson('d5'): ${tmodule.getJson('d5')}`);
 console.log(`getJson('hello'): ${tmodule.getJson('hello')}`);
 
 console.log(`getJson('goodbye'): ${tmodule.getJson('goodbye')}`);
+
+console.log('tmodule4:', tmodule4);
 
 tmodule.requireModule3().then(function(n) {
     console.log(`requireModule3(): ${n}`);
