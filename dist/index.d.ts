@@ -170,4 +170,4 @@ declare const loader: ILoader;
 declare const __invoke: Record<string, any>;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-declare const __preprocess: (code: string, path: string) => string | undefined;
+declare const __preprocess: ((code: string, path: string) => string) | undefined;
