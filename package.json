@@ -23,12 +23,10 @@
     "node": ">=12.0.0"
   },
   "devDependencies": {
+    "@litert/eslint-plugin-rules": "^0.1.1",
     "@litert/typeguard": "^1.1.0",
     "@types/node": "^17.0.23",
     "@types/seedrandom": "^3.0.2",
-    "@typescript-eslint/eslint-plugin": "^5.26.0",
-    "@typescript-eslint/parser": "^5.26.0",
-    "eslint": "^8.16.0",
-    "typescript": "^4.7.2"
+    "typescript": "^4.8.4"
   }
 }
