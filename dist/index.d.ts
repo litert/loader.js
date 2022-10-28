@@ -165,3 +165,9 @@ interface ILoaderUrl {
 }
 
 declare const loader: ILoader;
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare const __invoke: Record<string, any>;
+
+// eslint-disable-next-line @typescript-eslint/naming-convention
+declare const __preprocess: (code: string, path: string) => string | undefined;

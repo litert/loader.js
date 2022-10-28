@@ -39,3 +39,5 @@ catch {
     console.log('invokeVar:', undefined);
     console.log('location:', undefined);
 }
+console.log('__invoke:', __invoke);
+console.log('__preprocess:', __preprocess);
