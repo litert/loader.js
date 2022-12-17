@@ -122,6 +122,11 @@ interface ILoader {
      */
     urlResolve(from: string, to: string): string;
     /**
+     * --- 将路径中的 ../ ./ 都按规范妥善处理 ---
+     * @param url 要处理的地址
+     */
+    urlAtom(url: string): string;
+    /**
      * --- 判断一个代码字符串中，某个字符是否是被转义的 ---
      * @param index 字符的位置
      * @param code 整段代码字符串

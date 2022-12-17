@@ -12,6 +12,12 @@
     /** --- 获取当前 js 基路径 --- */
     const temp = document.querySelectorAll('script');
     const scriptEle = temp[temp.length - 1];
+    /** --- 浏览器 location 的网址目录，以 / 结尾 --- */
+    let location = window.location.href;
+    if (!location.endsWith('/')) {
+        const lio = location.lastIndexOf('/');
+        location = location.slice(0, lio + 1);
+    }
     const loader: ILoader = {
         'isReady': false,
         'readys': [],
@@ -157,7 +163,7 @@
                 opt.cache = {};
             }
             if (opt.dir === undefined) {
-                opt.dir = location.href;
+                opt.dir = location;
             }
             if (opt.invoke === undefined) {
                 opt.invoke = {};
@@ -545,7 +551,7 @@ return module.exports;`;
                     opt.init = {};
                 }
                 if (opt.dir === undefined) {
-                    opt.dir = location.href;
+                    opt.dir = location;
                 }
                 if (opt.before === undefined) {
                     opt.before = '';
@@ -798,7 +804,7 @@ return module.exports;`;
             'preprocess'?: (code: string, path: string) => string;
         } = {}): Promise<any> {
             if (opt.dir === undefined) {
-                opt.dir = location.href;
+                opt.dir = location;
             }
             url = this.moduleNameResolve(url, opt.dir, opt.map);
             if (files[url]) {
@@ -818,8 +824,15 @@ return module.exports;`;
 
         moduleNameResolve: function(path: string, dir: string, map: Record<string, string> = {}): string {
             // --- 查询是否有映射 ---
-            if (map[path]) {
-                path = map[path];
+            for (const key in map) {
+                if (!path.startsWith(key)) {
+                    continue;
+                }
+                let val = map[key];
+                if (val.startsWith('.')) {
+                    val = location + val;
+                }
+                path = val + path.slice(key.length);
             }
             path = this.urlResolve(dir, path);
             // --- 是否自动加 index ---
@@ -923,13 +936,13 @@ return module.exports;`;
             to = to.replace(/\\/g, '/');
             // --- to 为空，直接返回 form ---
             if (to === '') {
-                return from;
+                return this.urlAtom(from);
             }
             // --- 获取 from 的 scheme, host, path ---
             const f = this.parseUrl(from);
             // --- 以 // 开头的，加上 from 的 protocol 返回 ---
             if (to.startsWith('//')) {
-                return f.protocol ? f.protocol + to : to;
+                return this.urlAtom(f.protocol ? f.protocol + to : to);
             }
             if (f.protocol) {
                 // --- 获取小写的 protocol ---
@@ -940,16 +953,16 @@ return module.exports;`;
             // --- 已经是绝对路径，直接返回 ---
             if (t.protocol) {
                 // --- 获取小写的 protocol ---
-                return t.protocol + to.slice(t.protocol.length);
+                return this.urlAtom(t.protocol + to.slice(t.protocol.length));
             }
             // --- # 或 ? 替换后返回 ---
             if (to.startsWith('#') || to.startsWith('?')) {
                 const sp = from.indexOf(to[0]);
                 if (sp !== -1) {
-                    return from.slice(0, sp) + to;
+                    return this.urlAtom(from.slice(0, sp) + to);
                 }
                 else {
-                    return from + to;
+                    return this.urlAtom(from + to);
                 }
             }
             // --- 处理后面的尾随路径 ---
@@ -965,23 +978,28 @@ return module.exports;`;
                 // --- abs 是 /xx/xx 了，因为如果 path 是空，则跟上了 /，如果 path 不为空，也是 / 开头 ---
                 abs += path + '/' + to;
             }
-            // --- 删掉 ./ ---
-            abs = abs.replace(/\/\.\//g, '/');
-            // --- 删掉 ../ ---
-            while (/\/(?!\.\.)[^/]+\/\.\.\//.test(abs)) {
-                abs = abs.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
-            }
-            // --- 剩下的 ../ 就是无效的直接替换为空 ---
-            abs = abs.replace(/\.\.\//g, '');
             // --- 返回最终结果 ---
             if (f.protocol && (f.protocol !== 'file:') && !f.host) {
                 // --- 类似 c:/ ---
-                return f.protocol + abs;
+                return this.urlAtom(f.protocol + abs);
             }
             else {
                 // --- 类似 http:// ---
-                return (f.protocol ? f.protocol + '//' : '') + abs;
+                return this.urlAtom((f.protocol ? f.protocol + '//' : '') + abs);
             }
+        },
+
+        urlAtom: function(url: string): string {
+            // --- 删掉 ./ ---
+            while (url.includes('/./')) {
+                url = url.replace(/\/\.\//g, '/');
+            }
+            // --- 删掉 ../ ---
+            while (/\/(?!\.\.)[^/]+\/\.\.\//.test(url)) {
+                url = url.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
+            }
+            url = url.replace(/\.\.\//g, '');
+            return url;
         },
 
         isEscapeChar: function(index: number, code: string): boolean {

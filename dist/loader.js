@@ -11,6 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 (function () {
     const temp = document.querySelectorAll('script');
     const scriptEle = temp[temp.length - 1];
+    let location = window.location.href;
+    if (!location.endsWith('/')) {
+        const lio = location.lastIndexOf('/');
+        location = location.slice(0, lio + 1);
+    }
     const loader = {
         'isReady': false,
         'readys': [],
@@ -139,7 +144,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 opt.cache = {};
             }
             if (opt.dir === undefined) {
-                opt.dir = location.href;
+                opt.dir = location;
             }
             if (opt.invoke === undefined) {
                 opt.invoke = {};
@@ -428,7 +433,7 @@ return module.exports;`;
                         opt.init = {};
                     }
                     if (opt.dir === undefined) {
-                        opt.dir = location.href;
+                        opt.dir = location;
                     }
                     if (opt.before === undefined) {
                         opt.before = '';
@@ -663,7 +668,7 @@ return module.exports;`;
         import: function (url, files, opt = {}) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (opt.dir === undefined) {
-                    opt.dir = location.href;
+                    opt.dir = location;
                 }
                 url = this.moduleNameResolve(url, opt.dir, opt.map);
                 if (files[url]) {
@@ -679,8 +684,15 @@ return module.exports;`;
             });
         },
         moduleNameResolve: function (path, dir, map = {}) {
-            if (map[path]) {
-                path = map[path];
+            for (const key in map) {
+                if (!path.startsWith(key)) {
+                    continue;
+                }
+                let val = map[key];
+                if (val.startsWith('.')) {
+                    val = location + val;
+                }
+                path = val + path.slice(key.length);
             }
             path = this.urlResolve(dir, path);
             if (path.endsWith('/')) {
@@ -767,26 +779,26 @@ return module.exports;`;
             from = from.replace(/\\/g, '/');
             to = to.replace(/\\/g, '/');
             if (to === '') {
-                return from;
+                return this.urlAtom(from);
             }
             const f = this.parseUrl(from);
             if (to.startsWith('//')) {
-                return f.protocol ? f.protocol + to : to;
+                return this.urlAtom(f.protocol ? f.protocol + to : to);
             }
             if (f.protocol) {
                 from = f.protocol + from.slice(f.protocol.length);
             }
             const t = this.parseUrl(to);
             if (t.protocol) {
-                return t.protocol + to.slice(t.protocol.length);
+                return this.urlAtom(t.protocol + to.slice(t.protocol.length));
             }
             if (to.startsWith('#') || to.startsWith('?')) {
                 const sp = from.indexOf(to[0]);
                 if (sp !== -1) {
-                    return from.slice(0, sp) + to;
+                    return this.urlAtom(from.slice(0, sp) + to);
                 }
                 else {
-                    return from + to;
+                    return this.urlAtom(from + to);
                 }
             }
             let abs = (f.auth ? f.auth + '@' : '') + (f.host ? f.host : '');
@@ -797,17 +809,22 @@ return module.exports;`;
                 const path = f.pathname.replace(/\/[^/]*$/g, '');
                 abs += path + '/' + to;
             }
-            abs = abs.replace(/\/\.\//g, '/');
-            while (/\/(?!\.\.)[^/]+\/\.\.\//.test(abs)) {
-                abs = abs.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
-            }
-            abs = abs.replace(/\.\.\//g, '');
             if (f.protocol && (f.protocol !== 'file:') && !f.host) {
-                return f.protocol + abs;
+                return this.urlAtom(f.protocol + abs);
             }
             else {
-                return (f.protocol ? f.protocol + '//' : '') + abs;
+                return this.urlAtom((f.protocol ? f.protocol + '//' : '') + abs);
             }
+        },
+        urlAtom: function (url) {
+            while (url.includes('/./')) {
+                url = url.replace(/\/\.\//g, '/');
+            }
+            while (/\/(?!\.\.)[^/]+\/\.\.\//.test(url)) {
+                url = url.replace(/\/(?!\.\.)[^/]+\/\.\.\//g, '/');
+            }
+            url = url.replace(/\.\.\//g, '');
+            return url;
         },
         isEscapeChar: function (index, code) {
             let preChar = code[index - 1];

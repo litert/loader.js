@@ -103,7 +103,8 @@ loader.ready(async function(): Promise<void> {
         '../dist/tmodule.js',
         '../dist/tmodule2.js',
         '../dist/tmodule3.js',
-        '../dist/tmodule4.js'
+        '../dist/tmodule4.js',
+        '../dist/tfolder/test.js'
     ]);
     const tmodule = loader.require('../dist/tmodule', files, {
         'cache': cache,
@@ -246,6 +247,15 @@ loader.ready(async function(): Promise<void> {
     document.getElementById('loadDefault')?.addEventListener('click', function() {
         const m = loader.require('../dist/tmodule4.js', files, {
             'cache': cache
+        });
+        console.log(m);
+    });
+    document.getElementById('alias')?.addEventListener('click', function() {
+        const m = loader.require('../dist/tfolder/test.js', files, {
+            'cache': cache,
+            'map': {
+                '~/': '../dist/'
+            }
         });
         console.log(m);
     });
