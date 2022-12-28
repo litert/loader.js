@@ -733,44 +733,49 @@ return module.exports;`;
             }
             const protocol = url.indexOf(':');
             if (protocol > -1) {
-                rtn['protocol'] = url.slice(0, protocol + 1);
+                rtn['protocol'] = url.slice(0, protocol + 1).toLowerCase();
                 url = url.slice(protocol + 1);
-            }
-            if (url.startsWith('//')) {
-                url = url.slice(2);
-            }
-            let path = url.indexOf('/');
-            if (path === -1) {
-                path = url.indexOf('\\');
-            }
-            if (path > -1) {
-                rtn['pathname'] = url.slice(path);
-                url = url.slice(0, path);
-            }
-            const auth = url.indexOf('@');
-            if (auth > -1) {
-                const authStr = url.slice(0, auth);
-                const authSplit = authStr.indexOf(':');
-                if (authSplit > -1) {
-                    rtn['user'] = authStr.slice(0, authSplit);
-                    rtn['pass'] = authStr.slice(authSplit + 1);
-                    rtn['auth'] = rtn['user'] + ':' + rtn['pass'];
+                if (url.startsWith('//')) {
+                    url = url.slice(2);
                 }
-                else {
-                    rtn['user'] = authStr;
-                    rtn['auth'] = authStr;
+                let path = url.indexOf('/');
+                if (path === -1) {
+                    path = url.indexOf('\\');
                 }
-                url = url.slice(auth + 1);
-            }
-            const port = url.indexOf(':');
-            if (port > -1) {
-                rtn['hostname'] = url.slice(0, port);
-                rtn['port'] = url.slice(port + 1);
-                rtn['host'] = rtn['hostname'] + (rtn['port'] ? ':' + rtn['port'] : '');
+                if (path > -1) {
+                    rtn['pathname'] = url.slice(path);
+                    url = url.slice(0, path);
+                }
+                const auth = url.indexOf('@');
+                if (auth > -1) {
+                    const authStr = url.slice(0, auth);
+                    const authSplit = authStr.indexOf(':');
+                    if (authSplit > -1) {
+                        rtn['user'] = authStr.slice(0, authSplit);
+                        rtn['pass'] = authStr.slice(authSplit + 1);
+                        rtn['auth'] = rtn['user'] + ':' + rtn['pass'];
+                    }
+                    else {
+                        rtn['user'] = authStr;
+                        rtn['auth'] = authStr;
+                    }
+                    url = url.slice(auth + 1);
+                }
+                if (url) {
+                    const port = url.indexOf(':');
+                    if (port > -1) {
+                        rtn['hostname'] = url.slice(0, port).toLowerCase();
+                        rtn['port'] = url.slice(port + 1);
+                        rtn['host'] = rtn['hostname'] + (rtn['port'] ? ':' + rtn['port'] : '');
+                    }
+                    else {
+                        rtn['hostname'] = url.toLowerCase();
+                        rtn['host'] = rtn['hostname'];
+                    }
+                }
             }
             else {
-                rtn['hostname'] = url;
-                rtn['host'] = url;
+                rtn['pathname'] = url;
             }
             rtn['path'] = rtn['pathname'] + (rtn['query'] ? '?' + rtn['query'] : '');
             return rtn;
