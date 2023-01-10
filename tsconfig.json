@@ -14,7 +14,8 @@
         "paths": {
             "~/*": ["./*"]
         },
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "esModuleInterop": true
     },
     "include": [
         "./**/*.ts"

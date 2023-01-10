@@ -1,4 +1,4 @@
-import * as sr from 'seedrandom';
+import sr from 'seedrandom';
 
 const html = [];
 let rng = sr('hello');

@@ -580,7 +580,7 @@ return module.exports;`;
                         while ((match = reg.exec(item))) {
                             tmp.push(match[3]);
                         }
-                        reg = /(^|[ *}\n;=])require\(['"](.+?)['"]\)/g;
+                        reg = /(^|[ *}\n;=(])require\(['"](.+?)['"]\)/g;
                         while ((match = reg.exec(item))) {
                             tmp.push(match[2]);
                         }
