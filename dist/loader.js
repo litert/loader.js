@@ -30,14 +30,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
             const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.?=]+)/.exec(srcSearch);
+                let match = /[?&]path=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
                         path += '.js';
                     }
                 }
-                match = /[?&]cdn=([/-\w.]+)/.exec(srcSearch);
+                match = /[?&]cdn=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
                     this.cdn = match[1];
                 }
@@ -109,7 +109,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                             console.log(e);
                         }
                     }
-                    match = /[?&]after=([/\-\w.?=]+)/.exec(srcSearch);
+                    match = /[?&]after=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     let after = undefined;
                     if (match) {
                         after = match[1];
