@@ -1,7 +1,4 @@
 <style>
-.icon {
-    margin: 40px auto 20px auto; width: 68px; height: 68px; font-size: 68px; color: #FFF; display: flex; align-items: center; justify-content: center; border-radius: 30%; line-height: 1; background: hsl(40, 100%, 75%);
-}
 .icon > div {
     display: flex; align-items: flex-end; font-size: 50%;
 }
@@ -10,7 +7,7 @@
 }
 </style>
 <p align="center">
-    <div class="icon"><div><span>L</span><span>O</span></div></div>
+    <div style="margin: 40px auto 20px auto; width: 68px; height: 68px; font-size: 68px; color: #FFF; display: flex; align-items: center; justify-content: center; border-radius: 30%; line-height: 1; background: hsl(40, 100%, 75%);"><div style="display: flex; align-items: flex-end; font-size: 50%;"><span>L</span><span style="font-size: 70%; padding-left: 1px; transform: translateY(-1px);">O</span></div></div>
 </p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
