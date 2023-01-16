@@ -14,6 +14,12 @@
     const scriptEle = temp[temp.length - 1];
     /** --- 浏览器 location 的网址目录，以 / 结尾 --- */
     let location = window.location.href;
+    const qio = location.indexOf('?');
+    // --- 把 querystring 分离掉 ---
+    if (qio > -1) {
+        location = location.slice(0, qio);
+    }
+    // --- 如果不是 / 结尾则要变成 / 结尾 ---
     if (!location.endsWith('/')) {
         const lio = location.lastIndexOf('/');
         location = location.slice(0, lio + 1);
@@ -25,11 +31,11 @@
         'cdn': 'https://cdn.jsdelivr.net',
 
         init: function() {
-            const srcSplit = scriptEle.src.lastIndexOf('?');
+            const srcSplit = scriptEle.src.indexOf('?');
             const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path: string = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.]+)/.exec(srcSearch);
+                let match = /[?&]path=([/-\w.?=]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
@@ -62,7 +68,7 @@
                     const map: Record<string, string> = {};
                     const files: Record<string, any> = {};
                     // --- URL 传入的 npm 版本号 ---
-                    let match = /[?&]npm=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    let match = /[?&]npm=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');
@@ -101,7 +107,7 @@
                         }
                     }
                     // --- URL 传入的 map 参数 ---
-                    match = /[?&]map=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    match = /[?&]map=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     if (match) {
                         match[1] = match[1].replace(/'/g, '"');
                         try {
@@ -114,9 +120,16 @@
                             console.log(e);
                         }
                     }
+                    // --- 检查是否有 after ---
+                    match = /[?&]after=([/\-\w.?=]+)/.exec(srcSearch);
+                    let after: undefined | string = undefined;
+                    if (match) {
+                        after = match[1];
+                    }
                     await loader.sniffFiles([path], {
                         'files': files,
-                        'map': map
+                        'map': map,
+                        'after': after
                     });
                     loader.require(path, files, {
                         'map': map
@@ -589,7 +602,7 @@ return module.exports;`;
                     if (opt.before) {
                         ourl = opt.before + ourl;
                     }
-                    if (!opt.afterIgnore?.test(url)) {
+                    if (!opt.afterIgnore?.test(url) && !ourl.startsWith(this.cdn)) {
                         ourl += opt.after;
                     }
                     const success = (res: string | Blob | null): void => {

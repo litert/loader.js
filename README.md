@@ -1,4 +1,17 @@
-<p align="center"><img src="doc/icon.png" width="100" height="100" alt="Loader"></p>
+<style>
+.icon {
+    margin: 40px auto 20px auto; width: 68px; height: 68px; font-size: 68px; color: #FFF; display: flex; align-items: center; justify-content: center; border-radius: 30%; line-height: 1; background: hsl(40, 100%, 75%);
+}
+.icon > div {
+    display: flex; align-items: flex-end; font-size: 50%;
+}
+.icon > div span:last-child {
+    font-size: 70%; padding-left: 1px; transform: translateY(-1px);
+}
+</style>
+<p align="center">
+    <div class="icon"><div><span>L</span><span>O</span></div></div>
+</p>
 
 [![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
 [![npm version](https://img.shields.io/npm/v/@litert/loader/dev)](https://www.npmjs.com/package/@litert/loader "Development Version")
@@ -44,16 +57,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN (recommend)
 
-Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
+Recommended: https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/loader.min.js, you can also find it here https://cdn.jsdelivr.net/npm/@litert/loader/.
 
-Also available on [unpkg](https://unpkg.com/@litert/loader@3.4.6/dist/loader.min.js).
+Also available on [unpkg](https://unpkg.com/@litert/loader@3.4.7/dist/loader.min.js).
 
 ## Usage
 
 Here's a general how to use it:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/loader.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/loader.min.js"></script>
 ```
 
 The code hint needs to be added in "tsconfig.json":
@@ -83,25 +96,25 @@ loader.ready(function() {
 Alternatively, use ?path= to load the ingress file directly, the js file extension can be omitted.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/index.min.js?path=../lib/test"></script>
 ```
 
 Use the ?cdn= parameter to set the source address of the third library load, default is: https://cdn.jsdelivr.net.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
 Use the ?map= parameter to set the path to the third-party library, a JSON string, that is valid only with the path parameter.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
 ```
 
 Using the ?npm= parameter loader will automatically go to npm to find the relevant library for sniffing loading, JSON string, module name and version number, only valid with the path parameter.
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.6/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.7/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
 ```
 
 You can use the fetchFiles method to load network files into memory.

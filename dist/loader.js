@@ -12,6 +12,10 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     const temp = document.querySelectorAll('script');
     const scriptEle = temp[temp.length - 1];
     let location = window.location.href;
+    const qio = location.indexOf('?');
+    if (qio > -1) {
+        location = location.slice(0, qio);
+    }
     if (!location.endsWith('/')) {
         const lio = location.lastIndexOf('/');
         location = location.slice(0, lio + 1);
@@ -22,11 +26,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         'head': undefined,
         'cdn': 'https://cdn.jsdelivr.net',
         init: function () {
-            const srcSplit = scriptEle.src.lastIndexOf('?');
+            const srcSplit = scriptEle.src.indexOf('?');
             const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.]+)/.exec(srcSearch);
+                let match = /[?&]path=([/-\w.?=]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
@@ -55,7 +59,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 if (path) {
                     const map = {};
                     const files = {};
-                    let match = /[?&]npm=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    let match = /[?&]npm=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');
@@ -92,7 +96,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                             console.log(e);
                         }
                     }
-                    match = /[?&]map=([\w./"'@:{}-]+)/.exec(srcSearch);
+                    match = /[?&]map=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     if (match) {
                         match[1] = match[1].replace(/'/g, '"');
                         try {
@@ -105,9 +109,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                             console.log(e);
                         }
                     }
+                    match = /[?&]after=([/\-\w.?=]+)/.exec(srcSearch);
+                    let after = undefined;
+                    if (match) {
+                        after = match[1];
+                    }
                     yield loader.sniffFiles([path], {
                         'files': files,
-                        'map': map
+                        'map': map,
+                        'after': after
                     });
                     loader.require(path, files, {
                         'map': map
@@ -471,7 +481,7 @@ return module.exports;`;
                         if (opt.before) {
                             ourl = opt.before + ourl;
                         }
-                        if (!((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url))) {
+                        if (!((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) && !ourl.startsWith(this.cdn)) {
                             ourl += opt.after;
                         }
                         const success = (res) => {
