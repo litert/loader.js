@@ -35,14 +35,14 @@
             const srcSearch = decodeURIComponent(scriptEle.src.slice(srcSplit));
             let path: string = '';
             if (srcSplit !== -1) {
-                let match = /[?&]path=([/-\w.?=]+)/.exec(srcSearch);
+                let match = /[?&]path=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
                     path = match[1];
                     if (!path.endsWith('.js')) {
                         path += '.js';
                     }
                 }
-                match = /[?&]cdn=([/-\w.]+)/.exec(srcSearch);
+                match = /[?&]cdn=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
                     this.cdn = match[1];
                 }
@@ -121,7 +121,7 @@
                         }
                     }
                     // --- 检查是否有 after ---
-                    match = /[?&]after=([/\-\w.?=]+)/.exec(srcSearch);
+                    match = /[?&]after=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                     let after: undefined | string = undefined;
                     if (match) {
                         after = match[1];
