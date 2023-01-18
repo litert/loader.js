@@ -41,6 +41,16 @@ interface ILoader {
      */
     fetch(url: string, init?: RequestInit): Promise<string | Blob | null>;
     /**
+     * --- 简单 post 数据，提交 json 或 formdata 数据，无需手动设置 content-type ---
+     * @param url 网址
+     * @param data 数据对象
+     * @param opt 选项
+     */
+    post(url: string, data: Record<string, any> | FormData, opt?: {
+        'credentials'?: 'include' | 'same-origin' | 'omit';
+        'headers'?: HeadersInit;
+    }): Promise<Response | null>;
+    /**
      * --- 获取文件序列 ---
      * @param urls 网址列表，已加载的文件不会被再次返回
      * @param opt 配置项

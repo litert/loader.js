@@ -416,7 +416,7 @@ return module.exports;`;
                         if ((_a = res.headers.get('content-type')) === null || _a === void 0 ? void 0 : _a.toLowerCase().includes('image/')) {
                             return res.blob();
                         }
-                        const typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
+                        const typeList = ['text/', 'javascript', 'json', 'css', 'xml', 'html'];
                         for (const item of typeList) {
                             if ((_b = res.headers.get('content-type')) === null || _b === void 0 ? void 0 : _b.toLowerCase().includes(item)) {
                                 return res.text();
@@ -433,6 +433,30 @@ return module.exports;`;
                 }).catch(function () {
                     resolve(null);
                 });
+            });
+        },
+        post: function (url, data, opt = {}) {
+            var _a;
+            return __awaiter(this, void 0, void 0, function* () {
+                try {
+                    const headers = {};
+                    if (!(data instanceof FormData)) {
+                        headers['content-type'] = 'application/json';
+                    }
+                    if (opt.headers) {
+                        Object.assign(headers, opt.headers);
+                    }
+                    const res = yield fetch(url, {
+                        'method': 'POST',
+                        'headers': headers,
+                        'body': data instanceof FormData ? data : JSON.stringify(data),
+                        'credentials': (_a = opt.credentials) !== null && _a !== void 0 ? _a : 'include'
+                    });
+                    return res;
+                }
+                catch (_b) {
+                    return null;
+                }
             });
         },
         fetchFiles: function (urls, opt = {}) {

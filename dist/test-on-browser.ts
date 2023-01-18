@@ -519,4 +519,18 @@ loader.ready(async function(): Promise<void> {
     document.getElementById('urlResolve')?.addEventListener('click', function() {
         document.getElementById('urlResolve3')!.innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
     });
+
+    // --- testPost ---
+
+    document.getElementById('testPost')?.addEventListener('click', function() {
+        (async function() {
+            console.log('Post start...');
+            mask.style.display = 'flex';
+            const r = await loader.post('./index2.html', {
+                'param': 'test1'
+            });
+            mask.style.display = 'none';
+            console.log('Post done: ' + typeof r);
+        })() as unknown;
+    });
 });

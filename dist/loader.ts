@@ -528,7 +528,7 @@ return module.exports;`;
                         if (res.headers.get('content-type')?.toLowerCase().includes('image/')) {
                             return res.blob();
                         }
-                        const typeList = ['text/', 'javascript', 'json', 'plain', 'css', 'xml', 'html'];
+                        const typeList = ['text/', 'javascript', 'json', 'css', 'xml', 'html'];
                         for (const item of typeList) {
                             if (res.headers.get('content-type')?.toLowerCase().includes(item)) {
                                 return res.text();
@@ -546,6 +546,31 @@ return module.exports;`;
                     resolve(null);
                 });
             });
+        },
+
+        post: async function(url: string, data: Record<string, any> | FormData, opt: {
+            'credentials'?: 'include' | 'same-origin' | 'omit';
+            'headers'?: HeadersInit;
+        } = {}): Promise<Response | null> {
+            try {
+                const headers: HeadersInit = {};
+                if (!(data instanceof FormData)) {
+                    headers['content-type'] = 'application/json';
+                }
+                if (opt.headers) {
+                    Object.assign(headers, opt.headers);
+                }
+                const res = await fetch(url, {
+                    'method': 'POST',
+                    'headers': headers,
+                    'body': data instanceof FormData ? data : JSON.stringify(data),
+                    'credentials': opt.credentials ?? 'include'
+                });
+                return res;
+            }
+            catch {
+                return null;
+            }
         },
 
         fetchFiles: async function(urls: string[], opt: {

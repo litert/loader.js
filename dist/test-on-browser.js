@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -527,6 +527,19 @@ loader.ready(function () {
         });
         (_z = document.getElementById('urlResolve')) === null || _z === void 0 ? void 0 : _z.addEventListener('click', function () {
             document.getElementById('urlResolve3').innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
+        });
+        (_0 = document.getElementById('testPost')) === null || _0 === void 0 ? void 0 : _0.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    console.log('Post start...');
+                    mask.style.display = 'flex';
+                    const r = yield loader.post('./index2.html', {
+                        'param': 'test1'
+                    });
+                    mask.style.display = 'none';
+                    console.log('Post done: ' + typeof r);
+                });
+            })();
         });
     });
 });
