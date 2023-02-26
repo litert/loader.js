@@ -11,4 +11,5 @@ tsconfig.json
 
 !/dist/index.d.ts
 /dist/t*
+/dist/index2.js
 /test/

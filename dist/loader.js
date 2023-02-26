@@ -970,9 +970,6 @@ return module.exports;`;
                 }
                 return overCode;
             });
-            while (code.includes('\n\n')) {
-                code = code.replace(/\n\n/, '\n');
-            }
             return code;
         },
         blob2Text: function (blob) {
