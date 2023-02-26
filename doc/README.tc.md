@@ -43,16 +43,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推薦）
 
-推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推薦引用位址：https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js，也可以此處查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.4.9/dist/index.min.js)。
+同樣可使用 [unpkg](https://unpkg.com/@litert/loader@3.4.10/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js"></script>
 ```
 
 代碼提示需要在「tsconfig.json」中添加：
@@ -82,25 +82,25 @@ loader.ready(function() {
 或者使用 ?path= 直接載入入口 js 檔，js 後綴可省略。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js?path=../lib/test"></script>
 ```
 
 使用 ?cdn= 參數設置三方庫載入的源地址，預設為：https://cdn.jsdelivr.net。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
 使用 ?map= 參數設置第三方庫的路徑，JSON 字串，僅在含有 path 參數下有效。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script> 
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script> 
 ```
 
 使用 ?npm= 參數 loader 將自動去 npm 查找相關的庫進行嗅探載入，JSON 字串，模組名跟版本號，僅在含有 path 參數下有效。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.9/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.4.10/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
 ```
 
 你可以使用 fetchFiles 方法載入網路檔到記憶體。
