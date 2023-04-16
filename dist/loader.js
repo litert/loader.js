@@ -699,6 +699,85 @@ return module.exports;`;
                 }
             });
         },
+        loadLink: function (url, el) {
+            return new Promise((resolve) => {
+                if (!el) {
+                    if (this.head) {
+                        el = this.head;
+                    }
+                    else {
+                        el = document.getElementsByTagName('head')[0];
+                        this.head = el;
+                    }
+                }
+                const link = document.createElement('link');
+                link.addEventListener('load', function () {
+                    resolve(true);
+                });
+                link.addEventListener('error', function () {
+                    resolve(false);
+                });
+                link.href = url;
+                link.rel = 'stylesheet';
+                el.appendChild(link);
+            });
+        },
+        loadLinks: function (urls, opt = {}) {
+            return new Promise((resolve) => {
+                let count = 0;
+                for (const url of urls) {
+                    this.loadLink(url, opt.el).then((res) => {
+                        var _a, _b;
+                        ++count;
+                        if (res) {
+                            if (opt.loaded) {
+                                opt.loaded(url, 1);
+                            }
+                            else {
+                                (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, 1);
+                            }
+                        }
+                        else {
+                            if (opt.loaded) {
+                                opt.loaded(url, 0);
+                            }
+                            else {
+                                (_b = this.loaded) === null || _b === void 0 ? void 0 : _b.call(this, url, 0);
+                            }
+                        }
+                        if (count === urls.length) {
+                            resolve();
+                        }
+                    }).catch(() => {
+                        var _a;
+                        ++count;
+                        if (opt.loaded) {
+                            opt.loaded(url, -1);
+                        }
+                        else {
+                            (_a = this.loaded) === null || _a === void 0 ? void 0 : _a.call(this, url, -1);
+                        }
+                        if (count === urls.length) {
+                            resolve();
+                        }
+                    });
+                }
+            });
+        },
+        loadStyle: function (style, el) {
+            if (!el) {
+                if (this.head) {
+                    el = this.head;
+                }
+                else {
+                    el = document.getElementsByTagName('head')[0];
+                    this.head = el;
+                }
+            }
+            const sel = document.createElement('style');
+            sel.innerHTML = style;
+            el.appendChild(sel);
+        },
         import: function (url, files, opt = {}) {
             return __awaiter(this, void 0, void 0, function* () {
                 if (opt.dir === undefined) {

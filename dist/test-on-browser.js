@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -442,7 +442,92 @@ loader.ready(function () {
                 });
             })();
         });
-        (_v = document.getElementById('AddFetchFilesAdapter')) === null || _v === void 0 ? void 0 : _v.addEventListener('click', function () {
+        (_v = document.getElementById('runXterm')) === null || _v === void 0 ? void 0 : _v.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const xtermDiv = document.getElementById('xtermDiv');
+                    if (xtermDiv.getAttribute('loaded') === 'loaded') {
+                        alert('Cannot be loaded repeatedly.');
+                        return;
+                    }
+                    xtermDiv.setAttribute('loaded', 'loaded');
+                    xtermDiv.innerHTML = 'Loading...';
+                    mask.style.display = 'flex';
+                    yield loader.loadLinks([
+                        'https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.min.css'
+                    ], {
+                        'loaded': function (url, state) {
+                            mask.innerHTML = url + '<br>Loaded(' + state.toString() + ').';
+                        }
+                    });
+                    yield loader.loadScripts([
+                        'https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js',
+                        'https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js',
+                        'https://cdn.jsdelivr.net/npm/xterm-addon-webgl@0.14.0/lib/xterm-addon-webgl.js'
+                    ], {
+                        'loaded': function (url, state) {
+                            mask.innerHTML = url + '<br>Loaded(' + state.toString() + ').';
+                        }
+                    });
+                    loader.loadStyle('.xterm-viewport::-webkit-scrollbar{display:none;}');
+                    mask.style.display = 'none';
+                    xtermDiv.innerHTML = '';
+                    xtermDiv.style.background = '#000';
+                    xtermDiv.style.display = 'block';
+                    const term = new window.Terminal();
+                    let command = '';
+                    function prompt() {
+                        command = '';
+                        term.write('\r\n$ ');
+                    }
+                    function runCommand(text) {
+                        const command = text.trim().split(' ')[0];
+                        if (command.length > 0) {
+                            term.writeln('');
+                            term.writeln(`${command}: command not found`);
+                        }
+                        prompt();
+                    }
+                    term.onData(function (e) {
+                        switch (e) {
+                            case '\u0003':
+                                term.write('^C');
+                                prompt();
+                                break;
+                            case '\r':
+                                runCommand(command);
+                                command = '';
+                                break;
+                            case '\u007F':
+                                console.log('x', term._core.buffer.x);
+                                if (term._core.buffer.x > 2) {
+                                    term.write('\b \b');
+                                    if (command.length > 0) {
+                                        command = command.slice(0, command.length - 1);
+                                    }
+                                }
+                                break;
+                            default:
+                                if (e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7E) || e >= '\u00a0') {
+                                    command += e;
+                                    term.write(e);
+                                }
+                        }
+                    });
+                    const fitAddon = new window.FitAddon.FitAddon();
+                    term.loadAddon(fitAddon);
+                    const webgl = new window.WebglAddon.WebglAddon();
+                    term.loadAddon(webgl);
+                    term.open(xtermDiv);
+                    fitAddon.fit();
+                    window.addEventListener('resize', () => {
+                        fitAddon.fit();
+                    });
+                    term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
+                });
+            })();
+        });
+        (_w = document.getElementById('AddFetchFilesAdapter')) === null || _w === void 0 ? void 0 : _w.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const tmpFiles = {};
@@ -472,7 +557,7 @@ loader.ready(function () {
                 });
             })();
         });
-        (_w = document.getElementById('AddSniffFilesAdapter')) === null || _w === void 0 ? void 0 : _w.addEventListener('click', function () {
+        (_x = document.getElementById('AddSniffFilesAdapter')) === null || _x === void 0 ? void 0 : _x.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     const tmpFiles = {};
@@ -497,10 +582,10 @@ loader.ready(function () {
                 });
             })();
         });
-        (_x = document.getElementById('runRemoveComment')) === null || _x === void 0 ? void 0 : _x.addEventListener('click', function () {
+        (_y = document.getElementById('runRemoveComment')) === null || _y === void 0 ? void 0 : _y.addEventListener('click', function () {
             document.getElementById('removeComment2').value = loader.removeComment(document.getElementById('removeComment1').value);
         });
-        (_y = document.getElementById('runParseUrl')) === null || _y === void 0 ? void 0 : _y.addEventListener('click', function () {
+        (_z = document.getElementById('runParseUrl')) === null || _z === void 0 ? void 0 : _z.addEventListener('click', function () {
             document.getElementById('runParseUrl2').value = JSON.stringify(loader.parseUrl(document.getElementById('runParseUrl1').value), null, 4);
         });
         const urlResolve1 = document.getElementById('urlResolve1');
@@ -525,10 +610,10 @@ loader.ready(function () {
                 }
             }
         });
-        (_z = document.getElementById('urlResolve')) === null || _z === void 0 ? void 0 : _z.addEventListener('click', function () {
+        (_0 = document.getElementById('urlResolve')) === null || _0 === void 0 ? void 0 : _0.addEventListener('click', function () {
             document.getElementById('urlResolve3').innerText = loader.urlResolve(urlResolve1.value, urlResolve2.value);
         });
-        (_0 = document.getElementById('testPost')) === null || _0 === void 0 ? void 0 : _0.addEventListener('click', function () {
+        (_1 = document.getElementById('testPost')) === null || _1 === void 0 ? void 0 : _1.addEventListener('click', function () {
             (function () {
                 return __awaiter(this, void 0, void 0, function* () {
                     console.log('Post start...');

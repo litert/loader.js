@@ -433,6 +433,92 @@ loader.ready(async function(): Promise<void> {
         })() as unknown;
     });
 
+    document.getElementById('runXterm')?.addEventListener('click', function() {
+        (async function() {
+            const xtermDiv = document.getElementById('xtermDiv') as HTMLDivElement;
+            if (xtermDiv.getAttribute('loaded') === 'loaded') {
+                alert('Cannot be loaded repeatedly.');
+                return;
+            }
+            xtermDiv.setAttribute('loaded', 'loaded');
+            xtermDiv.innerHTML = 'Loading...';
+            // --- 开始加载 ---
+            mask.style.display = 'flex';
+            await loader.loadLinks([
+                'https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.min.css'
+            ], {
+                'loaded': function(url, state) {
+                    mask.innerHTML = url + '<br>Loaded(' + state.toString() + ').';
+                }
+            });
+            await loader.loadScripts([
+                'https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js',
+                'https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js',
+                'https://cdn.jsdelivr.net/npm/xterm-addon-webgl@0.14.0/lib/xterm-addon-webgl.js'
+            ], {
+                'loaded': function(url, state) {
+                    mask.innerHTML = url + '<br>Loaded(' + state.toString() + ').';
+                }
+            });
+            loader.loadStyle('.xterm-viewport::-webkit-scrollbar{display:none;}');
+            mask.style.display = 'none';
+            xtermDiv.innerHTML = '';
+            xtermDiv.style.background = '#000';
+            xtermDiv.style.display = 'block';
+            const term = new (window as any).Terminal();
+            let command = '';
+            function prompt(): void {
+                command = '';
+                term.write('\r\n$ ');
+            }
+            function runCommand(text: string): void {
+                const command = text.trim().split(' ')[0];
+                if (command.length > 0) {
+                    term.writeln('');
+                    term.writeln(`${command}: command not found`);
+                }
+                prompt();
+            }
+            term.onData(function(e: string) {
+                switch (e) {
+                    case '\u0003': // Ctrl+C
+                        term.write('^C');
+                        prompt();
+                        break;
+                    case '\r': // Enter
+                        runCommand(command);
+                        command = '';
+                        break;
+                    case '\u007F': // Backspace (DEL)
+                        // Do not delete the prompt
+                        console.log('x', term._core.buffer.x);
+                        if (term._core.buffer.x > 2) {
+                            term.write('\b \b');
+                            if (command.length > 0) {
+                                command = command.slice(0, command.length - 1);
+                            }
+                        }
+                        break;
+                    default: // Print all other characters for demo
+                        if (e >= String.fromCharCode(0x20) && e <= String.fromCharCode(0x7E) || e >= '\u00a0') {
+                            command += e;
+                            term.write(e);
+                        }
+                }
+            });
+            const fitAddon = new (window as any).FitAddon.FitAddon();
+            term.loadAddon(fitAddon);
+            const webgl = new (window as any).WebglAddon.WebglAddon();
+            term.loadAddon(webgl);
+            term.open(xtermDiv);
+            fitAddon.fit();
+            window.addEventListener('resize', () => {
+                fitAddon.fit();
+            });
+            term.write('Hello from \x1B[1;3;31mxterm.js\x1B[0m $ ');
+        })() as unknown;
+    });
+
     document.getElementById('AddFetchFilesAdapter')?.addEventListener('click', function() {
         (async function() {
             const tmpFiles: Record<string, string | Blob> = {};

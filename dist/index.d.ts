@@ -100,6 +100,28 @@ interface ILoader {
         'el'?: HTMLElement;
     }): Promise<void>;
     /**
+     * --- 加载样式表 ---
+     * @param url 增加的 link 文件地址
+     * @param el 在此标签中增加
+     */
+    loadLink(url: string, el?: HTMLElement): Promise<boolean>;
+    /**
+     * --- 加载多个 link 标签 ---
+     * @param el 在此标签中增加
+     * @param urls 增加的 link 文件地址列表
+     * @param opt loaded 回调函数
+     */
+    loadLinks(urls: string[], opt?: {
+        'loaded'?: (url: string, state: number) => void;
+        'el'?: HTMLElement;
+    }): Promise<void>;
+    /**
+     * --- 直接加载全局 style 字符串 ---
+     * @param style 要加载的字符串
+     * @param el 在此标签中增加
+     */
+    loadStyle(style: string, el?: HTMLElement): void;
+    /**
      * --- 代码中异步加载文件 ---
      * @param url 路径或模型映射名，如 ./abc，echarts，../xx/xx
      * @param files 文件 blob 列表

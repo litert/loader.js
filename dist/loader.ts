@@ -833,6 +833,89 @@ return module.exports;`;
             });
         },
 
+        loadLink: function(url: string, el?: HTMLElement): Promise<boolean> {
+            return new Promise((resolve) => {
+                if (!el) {
+                    if (this.head) {
+                        el = this.head;
+                    }
+                    else {
+                        el = document.getElementsByTagName('head')[0];
+                        this.head = el;
+                    }
+                }
+                const link = document.createElement('link');
+                link.addEventListener('load', function() {
+                    resolve(true);
+                });
+                link.addEventListener('error', function() {
+                    resolve(false);
+                });
+                link.href = url;
+                link.rel = 'stylesheet';
+                el.appendChild(link);
+            });
+        },
+
+        loadLinks: function(urls: string[], opt: {
+            'loaded'?: (url: string, state: number) => void;
+            'el'?: HTMLElement;
+        } = {}): Promise<void> {
+            return new Promise((resolve) => {
+                let count = 0;
+                for (const url of urls) {
+                    this.loadLink(url, opt.el).then((res) => {
+                        ++count;
+                        if (res) {
+                            if (opt.loaded) {
+                                opt.loaded(url, 1);
+                            }
+                            else {
+                                this.loaded?.(url, 1);
+                            }
+                        }
+                        else {
+                            if (opt.loaded) {
+                                opt.loaded(url, 0);
+                            }
+                            else {
+                                this.loaded?.(url, 0);
+                            }
+                        }
+                        if (count === urls.length) {
+                            resolve();
+                        }
+                    }).catch(() => {
+                        ++count;
+                        if (opt.loaded) {
+                            opt.loaded(url, -1);
+                        }
+                        else {
+                            this.loaded?.(url, -1);
+                        }
+                        if (count === urls.length) {
+                            resolve();
+                        }
+                    });
+                }
+            });
+        },
+
+        loadStyle: function(style: string, el?: HTMLElement): void {
+            if (!el) {
+                if (this.head) {
+                    el = this.head;
+                }
+                else {
+                    el = document.getElementsByTagName('head')[0];
+                    this.head = el;
+                }
+            }
+            const sel = document.createElement('style');
+            sel.innerHTML = style;
+            el.appendChild(sel);
+        },
+
         import: async function(url: string, files: Record<string, Blob | string>, opt: {
             'cache'?: Record<string, any>;
             'map'?: Record<string, string>;
