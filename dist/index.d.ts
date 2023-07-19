@@ -67,6 +67,23 @@ interface ILoader {
         'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
     }): Promise<Record<string, Blob | string>>;
     /**
+     * --- 嗅探 NPM 包为文件序列 ---
+     * @param npms 包名/版本键值对
+     * @param opt 配置项
+     */
+    sniffNpm(npms: Record<string, string>, opt?: {
+        'init'?: RequestInit;
+        'load'?: (url: string) => void;
+        'loaded'?: (url: string, state: number) => void;
+        'dir'?: string;
+        'files'?: Record<string, Blob | string>;
+        'map'?: Record<string, string>;
+        'before'?: string;
+        'after'?: string;
+        'afterIgnore'?: RegExp;
+        'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
+    }): Promise<Record<string, Blob | string>>;
+    /**
      * --- 嗅探文件序列 ---
      * @param urls 网址或网址列表
      * @param opt 配置项

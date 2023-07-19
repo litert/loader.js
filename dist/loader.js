@@ -63,31 +63,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');
-                            const ls = JSON.parse(match[1]);
-                            const npms = [];
-                            for (const name in ls) {
-                                npms.push(`${this.cdn}/npm/${name}@${ls[name]}/package.json`);
-                            }
-                            const npmFiles = yield this.fetchFiles(npms, {
-                                'files': files
-                            });
-                            const sniffFiles = [];
-                            for (const name in ls) {
-                                const file = npmFiles[`${this.cdn}/npm/${name}@${ls[name]}/package.json`];
-                                if (typeof file !== 'string') {
-                                    continue;
-                                }
-                                try {
-                                    const json = JSON.parse(file);
-                                    const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${ls[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${ls[name]}/${json.main}`;
-                                    sniffFiles.push(main);
-                                    map[name] = main;
-                                }
-                                catch (e) {
-                                    console.log(e);
-                                }
-                            }
-                            yield this.sniffFiles(sniffFiles, {
+                            const npms = JSON.parse(match[1]);
+                            yield this.sniffNpm(npms, {
                                 'files': files,
                                 'map': map
                             });
@@ -570,6 +547,59 @@ return module.exports;`;
                         }
                     }
                 });
+            });
+        },
+        sniffNpm: function (npms, opt = {}) {
+            return __awaiter(this, void 0, void 0, function* () {
+                if (!opt.map) {
+                    opt.map = {};
+                }
+                if (!opt.files) {
+                    opt.files = {};
+                }
+                const packages = [];
+                for (const name in npms) {
+                    packages.push(`${this.cdn}/npm/${name}@${npms[name]}/package.json`);
+                }
+                const npmFiles = yield this.fetchFiles(packages, {
+                    'init': opt.init,
+                    'load': opt.load,
+                    'loaded': opt.loaded,
+                    'dir': opt.dir,
+                    'files': opt.files,
+                    'before': opt.before,
+                    'after': opt.after,
+                    'afterIgnore': opt.afterIgnore,
+                    'adapter': opt.adapter
+                });
+                const sniffFiles = [];
+                for (const name in npms) {
+                    const file = npmFiles[`${this.cdn}/npm/${name}@${npms[name]}/package.json`];
+                    if (typeof file !== 'string') {
+                        continue;
+                    }
+                    try {
+                        const json = JSON.parse(file);
+                        const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${npms[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${npms[name]}/${json.main}`;
+                        sniffFiles.push(main);
+                        opt.map[name] = main;
+                    }
+                    catch (e) {
+                        console.log(e);
+                    }
+                }
+                yield this.sniffFiles(sniffFiles, {
+                    'init': opt.init,
+                    'load': opt.load,
+                    'loaded': opt.loaded,
+                    'dir': opt.dir,
+                    'files': opt.files,
+                    'before': opt.before,
+                    'after': opt.after,
+                    'afterIgnore': opt.afterIgnore,
+                    'adapter': opt.adapter
+                });
+                return opt.files;
             });
         },
         sniffFiles: function (urls, opt = {}) {

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 loader.ready(function () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2;
     return __awaiter(this, void 0, void 0, function* () {
         const keyInput = document.getElementById('key');
         const consoleDiv = document.getElementById('console');
@@ -623,6 +623,33 @@ loader.ready(function () {
                     });
                     mask.style.display = 'none';
                     console.log('Post done: ' + typeof r);
+                });
+            })();
+        });
+        (_2 = document.getElementById('testSniffNpm')) === null || _2 === void 0 ? void 0 : _2.addEventListener('click', function () {
+            (function () {
+                return __awaiter(this, void 0, void 0, function* () {
+                    const tmpFiles = {};
+                    const map = {};
+                    mask.style.display = 'flex';
+                    yield loader.sniffNpm({
+                        'clickgo': '3.3.5',
+                        'compressorjs': '1.2.1'
+                    }, {
+                        'files': tmpFiles,
+                        'after': '?' + Math.random().toString(),
+                        'dir': '/',
+                        'map': map,
+                        load: function (url) {
+                            mask.innerHTML = url + '<br>Loading...';
+                        },
+                        loaded: function (url) {
+                            mask.innerHTML = url + '<br>Loaded.';
+                        }
+                    });
+                    mask.style.display = 'none';
+                    console.log('tmpFiles', Object.keys(tmpFiles));
+                    console.log('map', map);
                 });
             })();
         });

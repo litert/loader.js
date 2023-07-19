@@ -72,32 +72,8 @@
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');
-                            const ls = JSON.parse(match[1]);
-                            const npms: string[] = [];
-                            for (const name in ls) {
-                                npms.push(`${this.cdn}/npm/${name}@${ls[name]}/package.json`);
-                            }
-                            const npmFiles = await this.fetchFiles(npms, {
-                                'files': files
-                            });
-                            /** --- 将要嗅探的文件 --- */
-                            const sniffFiles: string[] = [];
-                            for (const name in ls) {
-                                const file = npmFiles[`${this.cdn}/npm/${name}@${ls[name]}/package.json`];
-                                if (typeof file !== 'string') {
-                                    continue;
-                                }
-                                try {
-                                    const json = JSON.parse(file);
-                                    const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${ls[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${ls[name]}/${json.main}`;
-                                    sniffFiles.push(main);
-                                    map[name] = main;
-                                }
-                                catch (e) {
-                                    console.log(e);
-                                }
-                            }
-                            await this.sniffFiles(sniffFiles, {
+                            const npms = JSON.parse(match[1]);
+                            await this.sniffNpm(npms, {
                                 'files': files,
                                 'map': map
                             });
@@ -690,6 +666,70 @@ return module.exports;`;
                     }
                 }
             });
+        },
+
+        sniffNpm: async function(npms: Record<string, string>, opt: {
+            'init'?: RequestInit;
+            'load'?: (url: string) => void;
+            'loaded'?: (url: string, state: number) => void;
+            'dir'?: string;
+            'files'?: Record<string, Blob | string>;
+            'map'?: Record<string, string>;
+            'before'?: string;
+            'after'?: string;
+            'afterIgnore'?: RegExp;
+            'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
+        } = {}): Promise<Record<string, Blob | string>> {
+            if (!opt.map) {
+                opt.map = {};
+            }
+            if (!opt.files) {
+                opt.files = {};
+            }
+            const packages: string[] = [];
+            for (const name in npms) {
+                packages.push(`${this.cdn}/npm/${name}@${npms[name]}/package.json`);
+            }
+            const npmFiles = await this.fetchFiles(packages, {
+                'init': opt.init,
+                'load': opt.load,
+                'loaded': opt.loaded,
+                'dir': opt.dir,
+                'files': opt.files,
+                'before': opt.before,
+                'after': opt.after,
+                'afterIgnore': opt.afterIgnore,
+                'adapter': opt.adapter
+            });
+            /** --- 将要嗅探的文件 --- */
+            const sniffFiles: string[] = [];
+            for (const name in npms) {
+                const file = npmFiles[`${this.cdn}/npm/${name}@${npms[name]}/package.json`];
+                if (typeof file !== 'string') {
+                    continue;
+                }
+                try {
+                    const json = JSON.parse(file);
+                    const main = json.jsdelivr ? `${this.cdn}/npm/${name}@${npms[name]}/${json.jsdelivr}` : `${this.cdn}/npm/${name}@${npms[name]}/${json.main}`;
+                    sniffFiles.push(main);
+                    opt.map[name] = main;
+                }
+                catch (e) {
+                    console.log(e);
+                }
+            }
+            await this.sniffFiles(sniffFiles, {
+                'init': opt.init,
+                'load': opt.load,
+                'loaded': opt.loaded,
+                'dir': opt.dir,
+                'files': opt.files,
+                'before': opt.before,
+                'after': opt.after,
+                'afterIgnore': opt.afterIgnore,
+                'adapter': opt.adapter
+            });
+            return opt.files;
         },
 
         sniffFiles: async function(urls: string | string[], opt: {

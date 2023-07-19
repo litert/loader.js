@@ -619,4 +619,32 @@ loader.ready(async function(): Promise<void> {
             console.log('Post done: ' + typeof r);
         })() as unknown;
     });
+
+    // --- testSniffNpm ---
+
+    document.getElementById('testSniffNpm')?.addEventListener('click', function() {
+        (async function() {
+            const tmpFiles: Record<string, string | Blob> = {};
+            const map = {};
+            mask.style.display = 'flex';
+            await loader.sniffNpm({
+                'clickgo': '3.3.5',
+                'compressorjs': '1.2.1'
+            }, {
+                'files': tmpFiles,
+                'after': '?' + Math.random().toString(),
+                'dir': '/',
+                'map': map,
+                load: function(url: string) {
+                    mask.innerHTML = url + '<br>Loading...';
+                },
+                loaded: function(url: string) {
+                    mask.innerHTML = url + '<br>Loaded.';
+                }
+            });
+            mask.style.display = 'none';
+            console.log('tmpFiles', Object.keys(tmpFiles));
+            console.log('map', map);
+        })() as unknown;
+    });
 });
