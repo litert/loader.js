@@ -1,6 +1,6 @@
 /**
  * Project: @litert/loader.js, User: JianSuoQiYue
- * Date: 2020-3-14 22:00:31, 2022-3-31 00:38:08, 2022-4-10 01:45:38
+ * Date: 2020-3-14 22:00:31, 2022-3-31 00:38:08, 2022-4-10 01:45:38, 2024-3-25 21:55:29
  */
 
 // git config core.ignorecase false 大小写敏感
@@ -522,6 +522,27 @@ return module.exports;`;
                     resolve(null);
                 });
             });
+        },
+
+        get: async function(url: string, opt: {
+            'credentials'?: 'include' | 'same-origin' | 'omit';
+            'headers'?: HeadersInit;
+        } = {}): Promise<Response | null> {
+            try {
+                const headers: HeadersInit = {};
+                if (opt.headers) {
+                    Object.assign(headers, opt.headers);
+                }
+                const res = await fetch(url, {
+                    'method': 'GET',
+                    'headers': headers,
+                    'credentials': opt.credentials ?? 'include'
+                });
+                return res;
+            }
+            catch {
+                return null;
+            }
         },
 
         post: async function(url: string, data: Record<string, any> | FormData, opt: {

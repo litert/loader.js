@@ -412,9 +412,29 @@ return module.exports;`;
                 });
             });
         },
-        post: function (url, data, opt = {}) {
-            var _a;
-            return __awaiter(this, void 0, void 0, function* () {
+        get: function (url_1) {
+            return __awaiter(this, arguments, void 0, function* (url, opt = {}) {
+                var _a;
+                try {
+                    const headers = {};
+                    if (opt.headers) {
+                        Object.assign(headers, opt.headers);
+                    }
+                    const res = yield fetch(url, {
+                        'method': 'GET',
+                        'headers': headers,
+                        'credentials': (_a = opt.credentials) !== null && _a !== void 0 ? _a : 'include'
+                    });
+                    return res;
+                }
+                catch (_b) {
+                    return null;
+                }
+            });
+        },
+        post: function (url_1, data_1) {
+            return __awaiter(this, arguments, void 0, function* (url, data, opt = {}) {
+                var _a;
                 try {
                     const headers = {};
                     if (!(data instanceof FormData)) {
@@ -436,8 +456,8 @@ return module.exports;`;
                 }
             });
         },
-        fetchFiles: function (urls, opt = {}) {
-            return __awaiter(this, void 0, void 0, function* () {
+        fetchFiles: function (urls_1) {
+            return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
                 return new Promise((resolve) => {
                     var _a, _b, _c;
                     if (!opt.init) {
@@ -549,8 +569,8 @@ return module.exports;`;
                 });
             });
         },
-        sniffNpm: function (npms, opt = {}) {
-            return __awaiter(this, void 0, void 0, function* () {
+        sniffNpm: function (npms_1) {
+            return __awaiter(this, arguments, void 0, function* (npms, opt = {}) {
                 if (!opt.map) {
                     opt.map = {};
                 }
@@ -602,8 +622,8 @@ return module.exports;`;
                 return opt.files;
             });
         },
-        sniffFiles: function (urls, opt = {}) {
-            return __awaiter(this, void 0, void 0, function* () {
+        sniffFiles: function (urls_1) {
+            return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
                 if (typeof urls === 'string') {
                     urls = [urls];
                 }
@@ -808,8 +828,8 @@ return module.exports;`;
             sel.innerHTML = style;
             el.appendChild(sel);
         },
-        import: function (url, files, opt = {}) {
-            return __awaiter(this, void 0, void 0, function* () {
+        import: function (url_1, files_1) {
+            return __awaiter(this, arguments, void 0, function* (url, files, opt = {}) {
                 if (opt.dir === undefined) {
                     opt.dir = location;
                 }
