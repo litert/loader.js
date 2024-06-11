@@ -60,6 +60,16 @@ interface ILoader {
         'headers'?: HeadersInit;
     }): Promise<Response | null>;
     /**
+     * --- 发送响应为 json 的网络数据，无需 try，失败返回 null ---
+     * @param url 网址
+     * @param data 数据对象
+     * @param opt 选项
+     */
+    postResponseJson(url: string, data: Record<string, any> | FormData, opt?: {
+        'credentials'?: 'include' | 'same-origin' | 'omit';
+        'headers'?: HeadersInit;
+    }): Promise<any | null>;
+    /**
      * --- 获取文件序列 ---
      * @param urls 网址列表，已加载的文件不会被再次返回
      * @param opt 配置项

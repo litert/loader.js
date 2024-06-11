@@ -456,6 +456,20 @@ return module.exports;`;
                 }
             });
         },
+        postResponseJson: function (url_1, data_1) {
+            return __awaiter(this, arguments, void 0, function* (url, data, opt = {}) {
+                const res = yield this.post(url, data, opt);
+                if (!res) {
+                    return null;
+                }
+                try {
+                    return yield res.json();
+                }
+                catch (_a) {
+                    return null;
+                }
+            });
+        },
         fetchFiles: function (urls_1) {
             return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
                 return new Promise((resolve) => {
