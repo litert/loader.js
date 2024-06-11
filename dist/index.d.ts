@@ -129,8 +129,9 @@ interface ILoader {
      * --- 加载样式表 ---
      * @param url 增加的 link 文件地址
      * @param el 在此标签中增加
+     * @param pos 样式加载在内标签的之前还是之后
      */
-    loadLink(url: string, el?: HTMLElement): Promise<boolean>;
+    loadLink(url: string, el?: HTMLElement, pos?: 'before' | 'after'): Promise<boolean>;
     /**
      * --- 加载多个 link 标签 ---
      * @param el 在此标签中增加

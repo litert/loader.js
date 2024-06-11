@@ -894,7 +894,7 @@ return module.exports;`;
             });
         },
 
-        loadLink: function(url: string, el?: HTMLElement): Promise<boolean> {
+        loadLink: function(url: string, el?: HTMLElement, pos: 'before' | 'after' = 'after'): Promise<boolean> {
             return new Promise((resolve) => {
                 if (!el) {
                     if (this.head) {
@@ -914,7 +914,18 @@ return module.exports;`;
                 });
                 link.href = url;
                 link.rel = 'stylesheet';
-                el.appendChild(link);
+                if (pos === 'after') {
+                    el.appendChild(link);
+                }
+                else {
+                    // --- 之前 ---
+                    if (el.firstChild) {
+                        el.insertBefore(link, el.firstChild);
+                    }
+                    else {
+                        el.appendChild(link);
+                    }
+                }
             });
         },
 

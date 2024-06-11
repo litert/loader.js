@@ -749,7 +749,7 @@ return module.exports;`;
                 }
             });
         },
-        loadLink: function (url, el) {
+        loadLink: function (url, el, pos = 'after') {
             return new Promise((resolve) => {
                 if (!el) {
                     if (this.head) {
@@ -769,7 +769,17 @@ return module.exports;`;
                 });
                 link.href = url;
                 link.rel = 'stylesheet';
-                el.appendChild(link);
+                if (pos === 'after') {
+                    el.appendChild(link);
+                }
+                else {
+                    if (el.firstChild) {
+                        el.insertBefore(link, el.firstChild);
+                    }
+                    else {
+                        el.appendChild(link);
+                    }
+                }
             });
         },
         loadLinks: function (urls, opt = {}) {
