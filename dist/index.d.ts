@@ -222,6 +222,11 @@ interface ILoader {
      * @param reg 正则
      */
     arrayTest(arr: string[], reg: RegExp): string | null;
+    /**
+     * --- 看是否是 cdn 的 url，是的话获取 min 结尾的 url ---
+     * @param ourl 原始路径
+     */
+    compressUrl(ourl: string): string;
 }
 
 interface ILoaderUrl {

@@ -504,15 +504,7 @@ return module.exports;`;
                         else {
                             (_b = this.load) === null || _b === void 0 ? void 0 : _b.call(this, url);
                         }
-                        let ourl = url;
-                        if (ourl.startsWith(this.cdn)) {
-                            if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
-                                ourl = ourl.slice(0, -3) + '.min.js';
-                            }
-                            else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
-                                ourl = ourl.slice(0, -4) + '.min.css';
-                            }
-                        }
+                        let ourl = this.compressUrl(url);
                         if (opt.before) {
                             ourl = opt.before + ourl;
                         }
@@ -717,7 +709,7 @@ return module.exports;`;
                 script.addEventListener('error', function () {
                     resolve(false);
                 });
-                script.src = url;
+                script.src = this.compressUrl(url);
                 el.appendChild(script);
             });
         },
@@ -781,7 +773,7 @@ return module.exports;`;
                 link.addEventListener('error', function () {
                     resolve(false);
                 });
-                link.href = url;
+                link.href = this.compressUrl(url);
                 link.rel = 'stylesheet';
                 if (pos === 'after') {
                     el.appendChild(link);
@@ -1160,6 +1152,17 @@ return module.exports;`;
                 }
             }
             return null;
+        },
+        compressUrl: function (ourl) {
+            if (ourl.startsWith(this.cdn)) {
+                if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                    ourl = ourl.slice(0, -3) + '.min.js';
+                }
+                else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
+                    ourl = ourl.slice(0, -4) + '.min.css';
+                }
+            }
+            return ourl;
         }
     };
     window.loader = loader;

@@ -628,15 +628,7 @@ return module.exports;`;
                     else {
                         this.load?.(url);
                     }
-                    let ourl = url;
-                    if (ourl.startsWith(this.cdn)) {
-                        if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
-                            ourl = ourl.slice(0, -3) + '.min.js';
-                        }
-                        else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
-                            ourl = ourl.slice(0, -4) + '.min.css';
-                        }
-                    }
+                    let ourl = this.compressUrl(url);
                     if (opt.before) {
                         ourl = opt.before + ourl;
                     }
@@ -861,7 +853,7 @@ return module.exports;`;
                 script.addEventListener('error', function() {
                     resolve(false);
                 });
-                script.src = url;
+                script.src = this.compressUrl(url);
                 el.appendChild(script);
             });
         },
@@ -928,7 +920,7 @@ return module.exports;`;
                 link.addEventListener('error', function() {
                     resolve(false);
                 });
-                link.href = url;
+                link.href = this.compressUrl(url);
                 link.rel = 'stylesheet';
                 if (pos === 'after') {
                     el.appendChild(link);
@@ -1379,11 +1371,6 @@ return module.exports;`;
             });
         },
 
-        /**
-         * --- 在数组中找有没有相应的匹配值 ---
-         * @param arr 数组
-         * @param reg 正则
-         */
         arrayTest: function(arr: string[], reg: RegExp): string | null {
             for (const item of arr) {
                 if (reg.test(item)) {
@@ -1391,6 +1378,18 @@ return module.exports;`;
                 }
             }
             return null;
+        },
+
+        compressUrl: function(ourl: string): string {
+            if (ourl.startsWith(this.cdn)) {
+                if (ourl.endsWith('.js') && !ourl.endsWith('.min.js')) {
+                    ourl = ourl.slice(0, -3) + '.min.js';
+                }
+                else if (ourl.endsWith('.css') && !ourl.endsWith('.min.css')) {
+                    ourl = ourl.slice(0, -4) + '.min.css';
+                }
+            }
+            return ourl;
         }
     };
     (window as any).loader = loader;
