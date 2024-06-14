@@ -25,8 +25,8 @@
   "devDependencies": {
     "@litert/eslint-plugin-rules": "^0.1.7",
     "@litert/typeguard": "^1.4.0",
-    "@types/node": "^20.11.30",
+    "@types/node": "^20.14.2",
     "@types/seedrandom": "^3.0.8",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.5"
   }
 }
