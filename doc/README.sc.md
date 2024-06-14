@@ -1,9 +1,18 @@
 <p align="center"><img src="./icon.svg" width="100" height="100" alt="Loader"></p>
-
-[![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
-[![License](https://img.shields.io/github/license/litert/loader.js)](https://github.com/litert/loader.js/blob/master/LICENSE)
-[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js)](https://github.com/litert/loader.js/issues)
-[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js)](https://github.com/litert/loader.js/releases "Stable Release")
+<p align="center">
+    <a href="https://github.com/litert/loader.js/blob/master/LICENSE">
+        <img alt="License" src="https://img.shields.io/github/license/litert/loader.js?color=blue" />
+    </a>
+    <a href="https://www.npmjs.com/package/@litert/loader">
+        <img alt="NPM stable version" src="https://img.shields.io/npm/v/@litert/loader?color=brightgreen&logo=npm" />
+    </a>
+    <a href="https://github.com/litert/loader.js/releases">
+        <img alt="GitHub releases" src="https://img.shields.io/github/v/release/litert/loader.js?color=brightgreen&logo=github" />
+    </a>
+    <a href="https://github.com/litert/loader.js/issues">
+        <img alt="GitHub issues" src="https://img.shields.io/github/issues/litert/loader.js?color=blue&logo=github" />
+    </a>
+</p>
 
 轻量易用的运行于浏览器的模块加载器。
 
