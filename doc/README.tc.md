@@ -1,12 +1,9 @@
 <p align="center"><img src="./icon.svg" width="100" height="100" alt="Loader"></p>
 
-[![npm version](https://img.shields.io/npm/v/@litert/loader.svg?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
-[![npm version](https://img.shields.io/npm/v/@litert/loader/dev.svg)](https://www.npmjs.com/package/@litert/loader "Development Version")
-[![License](https://img.shields.io/github/license/litert/loader.js.svg)](https://github.com/litert/loader.js/blob/master/LICENSE)
-[![node](https://img.shields.io/node/v/@litert/loader.svg?colorB=brightgreen)](https://nodejs.org/dist/latest-v12.x/)
-[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js.svg)](https://github.com/litert/loader.js/issues)
-[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js.svg)](https://github.com/litert/loader.js/releases "Stable Release")
-[![GitHub Pre-Releases](https://img.shields.io/github/release/litert/loader.js/all.svg)](https://github.com/litert/loader.js/releases "Pre-Release")
+[![npm version](https://img.shields.io/npm/v/@litert/loader?colorB=brightgreen)](https://www.npmjs.com/package/@litert/loader "Stable Version")
+[![License](https://img.shields.io/github/license/litert/loader.js)](https://github.com/litert/loader.js/blob/master/LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/litert/loader.js)](https://github.com/litert/loader.js/issues)
+[![GitHub Releases](https://img.shields.io/github/release/litert/loader.js)](https://github.com/litert/loader.js/releases "Stable Release")
 
 輕量易用的運行于瀏覽器的模組載入器。
 
