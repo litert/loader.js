@@ -44,7 +44,7 @@
                 }
                 match = /[?&]cdn=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
-                    this.cdn = match[1];
+                    this.cdn = this.urlResolve(window.location.href, match[1]);
                 }
             }
             /** --- 文档装载完毕后需要执行的函数 --- */

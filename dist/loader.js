@@ -39,7 +39,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 }
                 match = /[?&]cdn=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
                 if (match) {
-                    this.cdn = match[1];
+                    this.cdn = this.urlResolve(window.location.href, match[1]);
                 }
             }
             const run = () => __awaiter(this, void 0, void 0, function* () {
