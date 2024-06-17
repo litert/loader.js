@@ -570,6 +570,22 @@ return module.exports;`;
             }
         },
 
+        getResponseJson: async function(url: string, opt: {
+            'credentials'?: 'include' | 'same-origin' | 'omit';
+            'headers'?: HeadersInit;
+        } = {}) {
+            const res = await this.get(url, opt);
+            if (!res) {
+                return null;
+            }
+            try {
+                return await res.json();
+            }
+            catch {
+                return null;
+            }
+        },
+
         postResponseJson: async function(url: string, data: Record<string, any> | FormData, opt: {
             'credentials'?: 'include' | 'same-origin' | 'omit';
             'headers'?: HeadersInit;

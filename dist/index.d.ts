@@ -60,7 +60,17 @@ interface ILoader {
         'headers'?: HeadersInit;
     }): Promise<Response | null>;
     /**
-     * --- 发送响应为 json 的网络数据，无需 try，失败返回 null ---
+     * --- 发送 get 响应为 json 的网络数据，无需 try，失败返回 null ---
+     * @param url 网址
+     * @param data 数据对象
+     * @param opt 选项
+     */
+    getResponseJson(url: string, opt?: {
+        'credentials'?: 'include' | 'same-origin' | 'omit';
+        'headers'?: HeadersInit;
+    }): Promise<any | null>;
+    /**
+     * --- 发送 post 响应为 json 的网络数据，无需 try，失败返回 null ---
      * @param url 网址
      * @param data 数据对象
      * @param opt 选项
