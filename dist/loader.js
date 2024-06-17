@@ -59,7 +59,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                 if (path) {
                     const map = {};
                     const files = {};
-                    let match = /[?&]npm=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
+                    let match = /[?&]npm=([\w./"'@:{}\-?=, ]+)/.exec(srcSearch);
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');

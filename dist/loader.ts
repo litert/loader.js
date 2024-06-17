@@ -68,7 +68,7 @@
                     const map: Record<string, string> = {};
                     const files: Record<string, any> = {};
                     // --- URL 传入的 npm 版本号 ---
-                    let match = /[?&]npm=([\w./"'@:{}\-?=]+)/.exec(srcSearch);
+                    let match = /[?&]npm=([\w./"'@:{}\-?=, ]+)/.exec(srcSearch);
                     if (match) {
                         try {
                             match[1] = match[1].replace(/'/g, '"');
