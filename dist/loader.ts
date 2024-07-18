@@ -836,7 +836,7 @@ return module.exports;`;
                     }
                 }
                 for (const t of tmp) {
-                    if (/^[\w-]+$/.test(t) && (!opt.map || !opt.map[t])) {
+                    if (/^[\w-]+$/.test(t) && (!opt.map?.[t])) {
                         continue;
                     }
                     const mnr = this.moduleNameResolve(t, path, opt.map);

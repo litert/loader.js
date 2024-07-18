@@ -644,6 +644,7 @@ return module.exports;`;
         },
         sniffFiles: function (urls_1) {
             return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
+                var _a;
                 if (typeof urls === 'string') {
                     urls = [urls];
                 }
@@ -690,7 +691,7 @@ return module.exports;`;
                         }
                     }
                     for (const t of tmp) {
-                        if (/^[\w-]+$/.test(t) && (!opt.map || !opt.map[t])) {
+                        if (/^[\w-]+$/.test(t) && (!((_a = opt.map) === null || _a === void 0 ? void 0 : _a[t]))) {
                             continue;
                         }
                         const mnr = this.moduleNameResolve(t, path, opt.map);
