@@ -851,7 +851,7 @@ return module.exports;`;
             return list;
         },
 
-        loadScript: function(url: string, el?: HTMLElement): Promise<boolean> {
+        loadScript: function(url: string, el?: HTMLElement, module = false): Promise<boolean> {
             return new Promise((resolve) => {
                 if (!el) {
                     if (this.head) {
@@ -863,6 +863,9 @@ return module.exports;`;
                     }
                 }
                 const script = document.createElement('script');
+                if (module) {
+                    script.setAttribute('type', 'module');
+                }
                 script.addEventListener('load', function() {
                     resolve(true);
                 });
@@ -877,11 +880,12 @@ return module.exports;`;
         loadScripts: function(urls: string[], opt: {
             'loaded'?: (url: string, state: number) => void;
             'el'?: HTMLElement;
+            'module'?: boolean;
         } = {}): Promise<void> {
             return new Promise((resolve) => {
                 let count = 0;
                 for (const url of urls) {
-                    this.loadScript(url, opt.el).then((res) => {
+                    this.loadScript(url, opt.el, opt.module).then((res) => {
                         ++count;
                         if (res) {
                             if (opt.loaded) {

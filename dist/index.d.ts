@@ -133,8 +133,9 @@ interface ILoader {
      * --- 加载 script 标签 ---
      * @param url 增加的 js 文件地址
      * @param el 在此标签中增加
+     * @param module 加载 module mjs 格式的 script
      */
-    loadScript(url: string, el?: HTMLElement): Promise<boolean>;
+    loadScript(url: string, el?: HTMLElement, module?: boolean): Promise<boolean>;
     /**
      * --- 加载多个 script 标签 ---
      * @param el 在此标签中增加
@@ -144,6 +145,7 @@ interface ILoader {
     loadScripts(urls: string[], opt?: {
         'loaded'?: (url: string, state: number) => void;
         'el'?: HTMLElement;
+        'module'?: boolean;
     }): Promise<void>;
     /**
      * --- 加载样式表 ---

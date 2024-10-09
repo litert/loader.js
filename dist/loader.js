@@ -706,7 +706,7 @@ return module.exports;`;
                 return list;
             });
         },
-        loadScript: function (url, el) {
+        loadScript: function (url, el, module = false) {
             return new Promise((resolve) => {
                 if (!el) {
                     if (this.head) {
@@ -718,6 +718,9 @@ return module.exports;`;
                     }
                 }
                 const script = document.createElement('script');
+                if (module) {
+                    script.setAttribute('type', 'module');
+                }
                 script.addEventListener('load', function () {
                     resolve(true);
                 });
@@ -732,7 +735,7 @@ return module.exports;`;
             return new Promise((resolve) => {
                 let count = 0;
                 for (const url of urls) {
-                    this.loadScript(url, opt.el).then((res) => {
+                    this.loadScript(url, opt.el, opt.module).then((res) => {
                         var _a, _b;
                         ++count;
                         if (res) {

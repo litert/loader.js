@@ -49,16 +49,16 @@ $ npm i @litert/loader@dev --save
 
 ### CDN（推荐）
 
-推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js，也可以此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
+推荐引用地址：https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js，也可以此处查找：https://cdn.jsdelivr.net/npm/@litert/loader/。
 
-同样可使用 [unpkg](https://unpkg.com/@litert/loader@3.5.7/dist/index.min.js)。
+同样可使用 [unpkg](https://unpkg.com/@litert/loader@3.5.8/dist/index.min.js)。
 
 ## Usage
 
 通常的使用方式：
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js"></script>
 ```
 
 代码提示需要在“tsconfig.json”中添加：
@@ -88,25 +88,25 @@ loader.ready(function() {
 或者使用 ?path= 直接加载入口 js 文件，js 后缀可省略。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js?path=../lib/test"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js?path=../lib/test"></script>
 ```
 
 使用 ?cdn= 参数设置第三库加载的源地址，默认为：https://cdn.jsdelivr.net。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js?cdn=https://cdn.xxx.xxx"></script>
 ```
 
 使用 ?map= 参数设置第三方库的路径，JSON 字符串，仅在含有 path 参数下有效。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js?&path=xxx&map={'xxx':'https://xx/npm/index'}"></script>
 ```
 
 使用 ?npm= 参数 loader 将自动去 npm 查找相关的库进行嗅探加载，JSON 字符串，模块名跟版本号，仅在含有 path 参数下有效。
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.7/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
+<script src="https://cdn.jsdelivr.net/npm/@litert/loader@3.5.8/dist/index.min.js?&path=xxx&npm={'xxx':'1.0.0'}"></script>
 ```
 
 你可以使用 fetchFiles 方法加载网络文件到内存。
