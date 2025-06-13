@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -32,7 +42,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runInvokeFunction = exports.requireModule3 = exports.getJson = exports.getData = exports.tm2fn = void 0;
+exports.tm2fn = void 0;
+exports.getData = getData;
+exports.getJson = getJson;
+exports.requireModule3 = requireModule3;
+exports.runInvokeFunction = runInvokeFunction;
 const tmodule2 = __importStar(require("./tmodule2"));
 const tjson = __importStar(require("./tjson.json"));
 exports.tm2fn = tmodule2.fn;
@@ -40,23 +54,19 @@ function getData(key) {
     var _a;
     return (_a = tmodule2.data[key]) !== null && _a !== void 0 ? _a : 'nothing';
 }
-exports.getData = getData;
 function getJson(key) {
     var _a;
     return (_a = tjson[key]) !== null && _a !== void 0 ? _a : 'know';
 }
-exports.getJson = getJson;
 function requireModule3() {
     return __awaiter(this, void 0, void 0, function* () {
         const t3 = yield Promise.resolve().then(() => __importStar(require('./tmodule3')));
         return t3.getNum();
     });
 }
-exports.requireModule3 = requireModule3;
 function runInvokeFunction() {
     invokeFunction();
 }
-exports.runInvokeFunction = runInvokeFunction;
 try {
     console.log('invokeVar:', invokeVar);
     console.log('location:', location);

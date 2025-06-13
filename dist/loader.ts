@@ -148,15 +148,9 @@
             if (typeof paths === 'string') {
                 paths = [paths];
             }
-            if (opt.cache === undefined) {
-                opt.cache = {};
-            }
-            if (opt.dir === undefined) {
-                opt.dir = location;
-            }
-            if (opt.invoke === undefined) {
-                opt.invoke = {};
-            }
+            opt.cache ??= {};
+            opt.dir ??= location;
+            opt.invoke ??= {};
             let styleElement: HTMLStyleElement | null = null;
             if (opt.style) {
                 styleElement = document.querySelector('style[name="' + opt.style + '"]');
@@ -196,7 +190,7 @@
                             while ((match = reg.exec(code))) {
                                 const realPath: string = this.urlResolve(path, match[1]);
                                 const file: Blob | null = (files[realPath] && files[realPath] instanceof Blob)
-                                    ? files[realPath] as Blob : null;
+                                    ? files[realPath] : null;
                                 if (file) {
                                     code = code.replace(match[0], `url('${await this.blob2DataUrl(file)}')`);
                                 }
@@ -614,18 +608,10 @@ return module.exports;`;
             'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
         } = {}): Promise<Record<string, Blob | string>> {
             return new Promise<Record<string, Blob | string>>((resolve) => {
-                if (!opt.init) {
-                    opt.init = {};
-                }
-                if (opt.dir === undefined) {
-                    opt.dir = location;
-                }
-                if (opt.before === undefined) {
-                    opt.before = '';
-                }
-                if (opt.after === undefined) {
-                    opt.after = '';
-                }
+                opt.init ??= {};
+                opt.dir ??= location;
+                opt.before ??= '';
+                opt.after ??= '';
                 const list: Record<string, Blob | string> = {};
                 let count = 0;
                 for (let url of urls) {
@@ -725,12 +711,8 @@ return module.exports;`;
             'afterIgnore'?: RegExp;
             'adapter'?: (url: string) => string | Blob | null | Promise<string | Blob | null>;
         } = {}): Promise<Record<string, Blob | string>> {
-            if (!opt.map) {
-                opt.map = {};
-            }
-            if (!opt.files) {
-                opt.files = {};
-            }
+            opt.map ??= {};
+            opt.files ??= {};
             const packages: string[] = [];
             for (const name in npms) {
                 packages.push(`${this.cdn}/npm/${name}@${npms[name]}/package.json`);
@@ -792,9 +774,7 @@ return module.exports;`;
             if (typeof urls === 'string') {
                 urls = [urls];
             }
-            if (!opt.files) {
-                opt.files = {};
-            }
+            opt.files ??= {};
             const list = await this.fetchFiles(urls, {
                 'init': opt.init,
                 'load': opt.load,
@@ -1024,9 +1004,7 @@ return module.exports;`;
             'invoke'?: Record<string, any>;
             'preprocess'?: (code: string, path: string) => string;
         } = {}): Promise<any> {
-            if (opt.dir === undefined) {
-                opt.dir = location;
-            }
+            opt.dir ??= location;
             url = this.moduleNameResolve(url, opt.dir, opt.map);
             if (files[url]) {
                 return this.require(url, files, opt)[0];
@@ -1193,7 +1171,7 @@ return module.exports;`;
                 }
             }
             // --- 处理后面的尾随路径 ---
-            let abs = (f.auth ? f.auth + '@' : '') + (f.host ? f.host : '');
+            let abs = (f.auth ? f.auth + '@' : '') + (f.host ?? '');
             if (to.startsWith('/')) {
                 // -- abs 类似是 /xx/xx ---
                 abs += to;
