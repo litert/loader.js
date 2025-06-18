@@ -124,18 +124,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
             }
         },
         require: function (paths, files, opt = {}) {
+            var _a, _b, _c;
             if (typeof paths === 'string') {
                 paths = [paths];
             }
-            if (opt.cache === undefined) {
-                opt.cache = {};
-            }
-            if (opt.dir === undefined) {
-                opt.dir = location;
-            }
-            if (opt.invoke === undefined) {
-                opt.invoke = {};
-            }
+            (_a = opt.cache) !== null && _a !== void 0 ? _a : (opt.cache = {});
+            (_b = opt.dir) !== null && _b !== void 0 ? _b : (opt.dir = location);
+            (_c = opt.invoke) !== null && _c !== void 0 ? _c : (opt.invoke = {});
             let styleElement = null;
             if (opt.style) {
                 styleElement = document.querySelector('style[name="' + opt.style + '"]');
@@ -187,7 +182,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
                         opt.cache[path] = data;
                         output.push(data);
                     }
-                    catch (_a) {
+                    catch (_d) {
                         output.push(null);
                     }
                 }
@@ -487,24 +482,16 @@ return module.exports;`;
         fetchFiles: function (urls_1) {
             return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
                 return new Promise((resolve) => {
-                    var _a, _b, _c;
-                    if (!opt.init) {
-                        opt.init = {};
-                    }
-                    if (opt.dir === undefined) {
-                        opt.dir = location;
-                    }
-                    if (opt.before === undefined) {
-                        opt.before = '';
-                    }
-                    if (opt.after === undefined) {
-                        opt.after = '';
-                    }
+                    var _a, _b, _c, _d, _e, _f, _g;
+                    (_a = opt.init) !== null && _a !== void 0 ? _a : (opt.init = {});
+                    (_b = opt.dir) !== null && _b !== void 0 ? _b : (opt.dir = location);
+                    (_c = opt.before) !== null && _c !== void 0 ? _c : (opt.before = '');
+                    (_d = opt.after) !== null && _d !== void 0 ? _d : (opt.after = '');
                     const list = {};
                     let count = 0;
                     for (let url of urls) {
                         url = this.urlResolve(opt.dir, url);
-                        if ((_a = opt.files) === null || _a === void 0 ? void 0 : _a[url]) {
+                        if ((_e = opt.files) === null || _e === void 0 ? void 0 : _e[url]) {
                             ++count;
                             if (count === urls.length) {
                                 resolve(list);
@@ -516,13 +503,13 @@ return module.exports;`;
                             opt.load(url);
                         }
                         else {
-                            (_b = this.load) === null || _b === void 0 ? void 0 : _b.call(this, url);
+                            (_f = this.load) === null || _f === void 0 ? void 0 : _f.call(this, url);
                         }
                         let ourl = this.compressUrl(url);
                         if (opt.before) {
                             ourl = opt.before + ourl;
                         }
-                        if (!((_c = opt.afterIgnore) === null || _c === void 0 ? void 0 : _c.test(url)) && !ourl.startsWith(this.cdn)) {
+                        if (!((_g = opt.afterIgnore) === null || _g === void 0 ? void 0 : _g.test(url)) && !ourl.startsWith(this.cdn)) {
                             ourl += opt.after;
                         }
                         const success = (res) => {
@@ -591,12 +578,9 @@ return module.exports;`;
         },
         sniffNpm: function (npms_1) {
             return __awaiter(this, arguments, void 0, function* (npms, opt = {}) {
-                if (!opt.map) {
-                    opt.map = {};
-                }
-                if (!opt.files) {
-                    opt.files = {};
-                }
+                var _a, _b;
+                (_a = opt.map) !== null && _a !== void 0 ? _a : (opt.map = {});
+                (_b = opt.files) !== null && _b !== void 0 ? _b : (opt.files = {});
                 const packages = [];
                 for (const name in npms) {
                     packages.push(`${this.cdn}/npm/${name}@${npms[name]}/package.json`);
@@ -644,13 +628,11 @@ return module.exports;`;
         },
         sniffFiles: function (urls_1) {
             return __awaiter(this, arguments, void 0, function* (urls, opt = {}) {
-                var _a;
+                var _a, _b;
                 if (typeof urls === 'string') {
                     urls = [urls];
                 }
-                if (!opt.files) {
-                    opt.files = {};
-                }
+                (_a = opt.files) !== null && _a !== void 0 ? _a : (opt.files = {});
                 const list = yield this.fetchFiles(urls, {
                     'init': opt.init,
                     'load': opt.load,
@@ -691,7 +673,7 @@ return module.exports;`;
                         }
                     }
                     for (const t of tmp) {
-                        if (/^[\w-]+$/.test(t) && (!((_a = opt.map) === null || _a === void 0 ? void 0 : _a[t]))) {
+                        if (/^[\w-]+$/.test(t) && (!((_b = opt.map) === null || _b === void 0 ? void 0 : _b[t]))) {
                             continue;
                         }
                         const mnr = this.moduleNameResolve(t, path, opt.map);
@@ -864,9 +846,8 @@ return module.exports;`;
         },
         import: function (url_1, files_1) {
             return __awaiter(this, arguments, void 0, function* (url, files, opt = {}) {
-                if (opt.dir === undefined) {
-                    opt.dir = location;
-                }
+                var _a;
+                (_a = opt.dir) !== null && _a !== void 0 ? _a : (opt.dir = location);
                 url = this.moduleNameResolve(url, opt.dir, opt.map);
                 if (files[url]) {
                     return this.require(url, files, opt)[0];
@@ -978,6 +959,7 @@ return module.exports;`;
             return rtn;
         },
         urlResolve: function (from, to) {
+            var _a;
             from = from.replace(/\\/g, '/');
             to = to.replace(/\\/g, '/');
             if (to === '') {
@@ -1003,7 +985,7 @@ return module.exports;`;
                     return this.urlAtom(from + to);
                 }
             }
-            let abs = (f.auth ? f.auth + '@' : '') + (f.host ? f.host : '');
+            let abs = (f.auth ? f.auth + '@' : '') + ((_a = f.host) !== null && _a !== void 0 ? _a : '');
             if (to.startsWith('/')) {
                 abs += to;
             }
