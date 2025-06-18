@@ -1,4 +1,4 @@
-interface ILoader {
+export interface ILoader {
     /** --- 是否已加载完成 --- */
     'isReady': boolean;
     /** --- 注册的 ready 事件 --- */
@@ -241,7 +241,7 @@ interface ILoader {
     compressUrl(ourl: string): string;
 }
 
-interface ILoaderUrl {
+export interface ILoaderUrl {
     auth: string | null;
     hash: string | null;
     host: string | null;
@@ -255,10 +255,10 @@ interface ILoaderUrl {
     user: string | null;
 }
 
-declare const loader: ILoader;
+export const loader: ILoader;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-declare const __invoke: Record<string, any>;
+export const __invoke: Record<string, any>;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-declare const __preprocess: ((code: string, path: string) => string) | undefined;
+export const __preprocess: ((code: string, path: string) => string) | undefined;
