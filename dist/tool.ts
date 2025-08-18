@@ -424,7 +424,7 @@ export function removeComment(code: string): string {
                 }
                 overCode += char;
             }
-            else if (isReg !== '') {
+            else if (isReg) {
                 if (char === '[') {
                     if (!isEscapeChar(i, t)) {
                         isReg = '[';
@@ -533,11 +533,31 @@ export function extractString(code: string, opt: {
     let overCode: string = '';
     /** --- 当前在字符串内 --- */
     let isString: string = '';
+    /** --- 是否是正则 --- */
+    let isReg: string = '';
     /** --- 临时字符串保留待审查 --- */
     let tmpString: string = '';
     for (let i = 0; i < code.length; ++i) {
         const char = code[i];
-        if (isString) {
+        if (isReg) {
+            if (char === '[') {
+                if (!isEscapeChar(i, code)) {
+                    isReg = '[';
+                }
+            }
+            else if (char === ']') {
+                if (!isEscapeChar(i, code) && (isReg === '[')) {
+                    isReg = '/';
+                }
+            }
+            else if (char === '/') {
+                if (!isEscapeChar(i, code) && (isReg === '/')) {
+                    isReg = '';
+                }
+            }
+            overCode += char;
+        }
+        else if (isString) {
             if (tmpString) {
                 tmpString += char;
             }
@@ -565,6 +585,26 @@ export function extractString(code: string, opt: {
                 case '`': {
                     isString = char;
                     tmpString = char;
+                    break;
+                }
+                case '/': {
+                    // --- 判断是 reg 还是 / 除号 ---
+                    // --- 如果是 / 号前面必定有变量或数字，否则就是 reg ---
+                    for (let j = i - 1; j >= 0; --j) {
+                        if (code[j] === ' ' || code[j] === '\t') {
+                            continue;
+                        }
+                        if (code[j] === ')' || code[j] === ']') {
+                            break;
+                        }
+                        if ((code[j] === '\n') || (!/[\w$]/.test(code[j]))) {
+                            isReg = char;
+                            break;
+                        }
+                        // --- 是除号 ---
+                        break;
+                    }
+                    overCode += char;
                     break;
                 }
                 default: {

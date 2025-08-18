@@ -12,11 +12,14 @@ tool.onClick('btn-monaco-esm', async () => {
     tool.output(`const res = await loader.loadESM('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/editor/editor.main.js');`);
     let loaded = 0;
     const monaco = await loader.loadESM('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/editor/editor.main.js', {
-        'loaded': (url, furl, fail) => {
+        load: (url, furl) => {
+            tool.output(`load: ${url}, ${furl}`);
+        },
+        loaded: (url, furl, fail) => {
             ++loaded;
             tool.output(`loaded: ${url}, ${furl}, ${fail}`);
         },
-        'error': (furl, e) => {
+        error: (furl, e) => {
             tool.output(`<span style="color: oklch(.85 .2 20)">error: ${furl}, ${JSON.stringify(e)}</span>`);
             console.log('error', e, furl, loader.getCacheTransform(furl));
         },
@@ -25,11 +28,14 @@ tool.onClick('btn-monaco-esm', async () => {
     if (!monaco) {
         return;
     }
-    const editorWorker = await loader.loadESMWorker('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/editor/editor.worker');
-    const cssWorker = await loader.loadESMWorker('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/language/css/css.worker');
-    const htmlWorker = await loader.loadESMWorker('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/language/html/html.worker');
-    const jsonWorker = await loader.loadESMWorker('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/language/json/json.worker');
-    const tsWorker = await loader.loadESMWorker('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/language/typescript/ts.worker');
+    const opt = {
+        'base': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/',
+    };
+    const editorWorker = await loader.loadESMWorker('./editor/editor.worker', opt);
+    const cssWorker = await loader.loadESMWorker('./language/css/css.worker', opt);
+    const htmlWorker = await loader.loadESMWorker('./language/html/html.worker', opt);
+    const jsonWorker = await loader.loadESMWorker('./language/json/json.worker', opt);
+    const tsWorker = await loader.loadESMWorker('./language/typescript/ts.worker', opt);
     // console.log('xxx', loader.internalImport('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/esm/vs/language/json/json.worker.js'));
 
     (self as any).MonacoEnvironment = {
@@ -90,7 +96,7 @@ tool.onClick('btn-novnc-esm', async () => {
 tool.onClick('btn-memory-esm', async () => {
     const files = {
         'a.js': 'import * as b from "./b.js"; export const a = 1 + b.b; export { b };',
-        'b.js': 'import { a } from "./a.js"; export const b = 2; console.log(a, b); export function f() { return "a: " + a; }',
+        'b.js': 'import { a } from "./a.js"; export const b = 2; console.log(a, b, __dirname, __filename); export function f() { return "a: " + a; }',
     };
     tool.output(`const murl = loader.insertCache(${JSON.stringify(files)});`);
     const murl = loader.insertCache(files);
@@ -185,6 +191,12 @@ tool.onClick('btn-xterm-umd', async () => {
 
 tool.onClick('btn-remove-comment', () => {
     (document.getElementById('removeComment2') as HTMLTextAreaElement).value = loader.tool.removeComment((document.getElementById('removeComment1') as HTMLTextAreaElement).value);
+});
+
+tool.onClick('btn-extract-string', () => {
+    const res = loader.tool.extractString(loader.tool.removeComment((document.getElementById('extractString1') as HTMLTextAreaElement).value));
+    (document.getElementById('extractString2') as HTMLTextAreaElement).value = res.code;
+    tool.output(`strings${res.strings.length}: ${JSON.stringify(res.strings)}`);
 });
 
 tool.onClick('btn-parse-url', () => {

@@ -229,9 +229,12 @@ const cache: Record<string, {
  * @returns 转换后的 URL
  */
 function transformUrl(url: string, opt: {
-    /** --- 基础 URL，用于解析相对路径，可以是文件路径，如果不以 / 结尾，就成文件路径了 --- */
+    /** --- 当前转换的文件基完整路径 --- */
     'base'?: string;
+    /** --- 映射表，用于映射模块路径 --- */
+    'map'?: Record<string, string>;
 } = {}): string {
+    const map = opt.map ?? config.map;
     /** --- 相对路径 --- */
     let base = opt.base ?? location;
     /** --- 最终请求的文件地址 --- */
@@ -270,7 +273,7 @@ function transformUrl(url: string, opt: {
             }
             // --- 去 map 里面找 ---
             /** --- http://xxx/abc/index, #index --- */
-            let mapUrl = config.map[libName];
+            let mapUrl = map[libName];
             if (!mapUrl) {
                 // --- 没有找到 ---
                 return '';
@@ -298,7 +301,7 @@ function transformUrl(url: string, opt: {
  * @returns 转换后的代码
  */
 function transformCode(code: string, opt: {
-    /** --- 基础 URL，用于解析相对路径，可以是文件路径，如果不以 / 结尾，就成文件路径了 --- */
+    /** --- 当前转换的文件完整路径 --- */
     'base'?: string;
     /** --- 模式，提取或替换，默认提取 --- */
     'mode'?: 'extract' | 'replace';
@@ -554,7 +557,19 @@ function transformCode(code: string, opt: {
 
     // --- 前缀 ---
     if (mode === 'replace') {
+        let filename = opt.base ?? location;
+        if (filename.endsWith('/')) {
+            filename += 'index.html';
+        }
+        let dirname: string = '';
+        const flio = filename.lastIndexOf('/');
+        if (flio !== -1) {
+            dirname = filename.slice(0, flio);
+        }
         code = `const _ll_exports = {};
+
+const __dirname = '${dirname}';
+const __filename = '${filename}';
 
 ${headerCode.join('\n')}
 
@@ -580,9 +595,14 @@ async function loadESMFile(urls: string[], opt: {
     'name'?: string;
     /** --- 网址后缀，如 ?123，仅会加载到非 cdn/memory 网址 --- */
     'after'?: string;
+    /** --- 映射表，用于映射模块路径 --- */
+    'map'?: Record<string, string>;
+    /** --- 开始加载 --- */
+    load?: (url: string, furl: string) => void | Promise<void>;
     /** --- 加载完成 --- */
-    'loaded'?: (url: string, furl: string, fail: boolean) => void | Promise<void>;
-    'error'?: (furl: string, e: {
+    loaded?: (url: string, furl: string, fail: boolean) => void | Promise<void>;
+    /** --- 错误 --- */
+    error?: (furl: string, e: {
         'result': number;
         'msg': string;
     }) => void | Promise<void>;
@@ -611,6 +631,7 @@ async function loadESMFile(urls: string[], opt: {
                 'transform': '',
                 'object': null,
             };
+            opt.load?.(url, furl) as any;
             tool.get(furl + ((!furl.startsWith(config.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
                 if (typeof code !== 'string') {
                     opt.loaded?.(url, furl, false) as any;
@@ -667,6 +688,7 @@ async function loadESMFile(urls: string[], opt: {
                 'base': furl,
                 'name': opt.name,
                 'after': opt.after,
+                'load': opt.load,
                 'loaded': opt.loaded,
                 'error': opt.error,
             });
@@ -700,9 +722,14 @@ export async function loadESM(url: string, opt: {
     'name'?: string;
     /** --- 网址后缀，如 ?123，仅会加载到非 cdn/memory 网址 --- */
     'after'?: string;
+    /** --- 映射表，用于映射模块路径 --- */
+    'map'?: Record<string, string>;
+    /** --- 开始加载 --- */
+    load?: (url: string, furl: string) => void | Promise<void>;
     /** --- 加载完成 --- */
-    'loaded'?: (url: string, furl: string, fail: boolean) => void | Promise<void>;
-    'error'?: (furl: string, e: {
+    loaded?: (url: string, furl: string, fail: boolean) => void | Promise<void>;
+    /** --- 错误 --- */
+    error?: (furl: string, e: {
         'result': number;
         'msg': string;
     }) => void | Promise<void>;
@@ -733,6 +760,18 @@ export async function loadESM(url: string, opt: {
  * @returns 供创建 Worker 的对象
  */
 export async function loadESMWorker(url: string, opt: {
+    /** --- 基础 URL，用于解析相对路径，可以是文件路径，如果不以 / 结尾，就成文件路径了 --- */
+    'base'?: string;
+    /** --- 标记名，可在清除时使用 --- */
+    'name'?: string;
+    /** --- 网址后缀，如 ?123，仅会加载到非 cdn/memory 网址 --- */
+    'after'?: string;
+    /** --- 映射表，用于映射模块路径 --- */
+    'map'?: Record<string, string>;
+    /** --- 开始加载 --- */
+    load?: (url: string, furl: string) => void | Promise<void>;
+    /** --- 加载完成 --- */
+    loaded?: (url: string, furl: string, fail: boolean) => void | Promise<void>;
     'error'?: (furl: string, e: {
         'result': number;
         'msg': string;

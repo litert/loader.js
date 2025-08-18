@@ -139,6 +139,7 @@ export function loadStyle(style, el) {
 }
 const cache = {};
 function transformUrl(url, opt = {}) {
+    const map = opt.map ?? config.map;
     let base = opt.base ?? location;
     let furl = '';
     if (/^\w+:\/\//.test(url)) {
@@ -164,7 +165,7 @@ function transformUrl(url, opt = {}) {
                 libName = url.substring(0, io);
                 libPath = url.substring(io);
             }
-            let mapUrl = config.map[libName];
+            let mapUrl = map[libName];
             if (!mapUrl) {
                 return '';
             }
@@ -371,7 +372,19 @@ function transformCode(code, opt = {}) {
         });
     }
     if (mode === 'replace') {
+        let filename = opt.base ?? location;
+        if (filename.endsWith('/')) {
+            filename += 'index.html';
+        }
+        let dirname = '';
+        const flio = filename.lastIndexOf('/');
+        if (flio !== -1) {
+            dirname = filename.slice(0, flio);
+        }
         code = `const _ll_exports = {};
+
+const __dirname = '${dirname}';
+const __filename = '${filename}';
 
 ${headerCode.join('\n')}
 
@@ -403,6 +416,7 @@ async function loadESMFile(urls, opt = {}) {
                 'transform': '',
                 'object': null,
             };
+            opt.load?.(url, furl);
             tool.get(furl + ((!furl.startsWith(config.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
                 if (typeof code !== 'string') {
                     opt.loaded?.(url, furl, false);
@@ -454,6 +468,7 @@ async function loadESMFile(urls, opt = {}) {
                 'base': furl,
                 'name': opt.name,
                 'after': opt.after,
+                'load': opt.load,
                 'loaded': opt.loaded,
                 'error': opt.error,
             });

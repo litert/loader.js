@@ -288,7 +288,7 @@ export function removeComment(code) {
                 }
                 overCode += char;
             }
-            else if (isReg !== '') {
+            else if (isReg) {
                 if (char === '[') {
                     if (!isEscapeChar(i, t)) {
                         isReg = '[';
@@ -369,10 +369,29 @@ export function extractString(code, opt = {}) {
     const strings = [];
     let overCode = '';
     let isString = '';
+    let isReg = '';
     let tmpString = '';
     for (let i = 0; i < code.length; ++i) {
         const char = code[i];
-        if (isString) {
+        if (isReg) {
+            if (char === '[') {
+                if (!isEscapeChar(i, code)) {
+                    isReg = '[';
+                }
+            }
+            else if (char === ']') {
+                if (!isEscapeChar(i, code) && (isReg === '[')) {
+                    isReg = '/';
+                }
+            }
+            else if (char === '/') {
+                if (!isEscapeChar(i, code) && (isReg === '/')) {
+                    isReg = '';
+                }
+            }
+            overCode += char;
+        }
+        else if (isString) {
             if (tmpString) {
                 tmpString += char;
             }
@@ -397,6 +416,23 @@ export function extractString(code, opt = {}) {
                 case '`': {
                     isString = char;
                     tmpString = char;
+                    break;
+                }
+                case '/': {
+                    for (let j = i - 1; j >= 0; --j) {
+                        if (code[j] === ' ' || code[j] === '\t') {
+                            continue;
+                        }
+                        if (code[j] === ')' || code[j] === ']') {
+                            break;
+                        }
+                        if ((code[j] === '\n') || (!/[\w$]/.test(code[j]))) {
+                            isReg = char;
+                            break;
+                        }
+                        break;
+                    }
+                    overCode += char;
                     break;
                 }
                 default: {
