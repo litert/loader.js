@@ -18,7 +18,6 @@ function getLocation() {
 }
 const location = getLocation();
 function getQueryString() {
-    var _a;
     const uri = tool.parseUrl(scriptElement.src);
     const rtn = (uri.query ? tool.queryParse(uri.query) : {});
     if (!rtn.cdn) {
@@ -27,7 +26,7 @@ function getQueryString() {
     else if (rtn.cdn.endsWith('/')) {
         rtn.cdn = rtn.cdn.slice(0, -1);
     }
-    (_a = rtn.map) !== null && _a !== void 0 ? _a : (rtn.map = '{}');
+    rtn.map ??= '{}';
     rtn.map = JSON.parse(rtn.map);
     return rtn;
 }
@@ -45,7 +44,7 @@ function getHeadElement() {
 const headElement = getHeadElement();
 export async function loadScript(url, el) {
     return new Promise((resolve) => {
-        el !== null && el !== void 0 ? el : (el = headElement);
+        el ??= headElement;
         const script = document.createElement('script');
         script.addEventListener('load', function () {
             resolve(true);
@@ -62,21 +61,19 @@ export async function loadScripts(urls, opt = {}) {
         let count = 0;
         for (const url of urls) {
             loadScript(url, opt.el).then(res => {
-                var _a, _b;
                 ++count;
                 if (res) {
-                    (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                    opt.loaded?.(url, 1);
                 }
                 else {
-                    (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                    opt.loaded?.(url, 0);
                 }
                 if (count === urls.length) {
                     resolve();
                 }
             }).catch(() => {
-                var _a;
                 ++count;
-                (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                opt.loaded?.(url, -1);
                 if (count === urls.length) {
                     resolve();
                 }
@@ -86,7 +83,7 @@ export async function loadScripts(urls, opt = {}) {
 }
 export async function loadLink(url, el, pos = 'after') {
     return new Promise((resolve) => {
-        el !== null && el !== void 0 ? el : (el = headElement);
+        el ??= headElement;
         const link = document.createElement('link');
         link.addEventListener('load', function () {
             resolve(true);
@@ -114,21 +111,19 @@ export async function loadLinks(urls, opt = {}) {
         let count = 0;
         for (const url of urls) {
             loadLink(url, opt.el).then(res => {
-                var _a, _b;
                 ++count;
                 if (res) {
-                    (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, 1);
+                    opt.loaded?.(url, 1);
                 }
                 else {
-                    (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, 0);
+                    opt.loaded?.(url, 0);
                 }
                 if (count === urls.length) {
                     resolve();
                 }
             }).catch(() => {
-                var _a;
                 ++count;
-                (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, -1);
+                opt.loaded?.(url, -1);
                 if (count === urls.length) {
                     resolve();
                 }
@@ -137,15 +132,14 @@ export async function loadLinks(urls, opt = {}) {
     });
 }
 export function loadStyle(style, el) {
-    el !== null && el !== void 0 ? el : (el = headElement);
+    el ??= headElement;
     const sel = document.createElement('style');
     sel.innerHTML = style;
     el.appendChild(sel);
 }
 const cache = {};
 function transformUrl(url, opt = {}) {
-    var _a;
-    let base = (_a = opt.base) !== null && _a !== void 0 ? _a : location;
+    let base = opt.base ?? location;
     let furl = '';
     if (/^\w+:\/\//.test(url)) {
         furl = url;
@@ -188,8 +182,7 @@ function transformUrl(url, opt = {}) {
     return furl;
 }
 function transformCode(code, opt = {}) {
-    var _a;
-    const mode = (_a = opt.mode) !== null && _a !== void 0 ? _a : 'extract';
+    const mode = opt.mode ?? 'extract';
     const extracts = [];
     const headerCode = [];
     let reg = /import\s+\*\s+as\s+(\w+)\s+from\s+['"](.+?)['"] *;?/g;
@@ -204,13 +197,12 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, alias, importUrl) => {
-            var _a;
             if (importUrl === '@litert/loader') {
                 return `const ${alias} = litertLoader ?? {};`;
             }
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -228,10 +220,9 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, imports, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -250,10 +241,9 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, name, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -271,10 +261,9 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -291,10 +280,9 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -312,10 +300,9 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, exports, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
@@ -325,7 +312,7 @@ function transformCode(code, opt = {}) {
             const list = exports.split(',').map(item => item.trim());
             for (const item of list) {
                 const [name, alias] = item.split(' as ').map(part => part.trim());
-                rtn += `_ll_exports.${alias !== null && alias !== void 0 ? alias : name} = ${ltmp}.${name};`;
+                rtn += `_ll_exports.${alias ?? name} = ${ltmp}.${name};`;
             }
             return rtn.slice(0, -1);
         });
@@ -339,15 +326,14 @@ function transformCode(code, opt = {}) {
     }
     else {
         code = code.replace(reg, (match, awaitKeyword, importUrl) => {
-            var _a;
             const furl = transformUrl(importUrl, opt);
             if (!cache[furl]) {
-                (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+                opt.error?.(furl, {
                     'result': 0,
                     'msg': 'Cache not found',
                 });
             }
-            return `${awaitKeyword !== null && awaitKeyword !== void 0 ? awaitKeyword : ''} litertLoader.internalImport('${furl}', _ll_opt)`;
+            return `${awaitKeyword ?? ''} litertLoader.internalImport('${furl}', _ll_opt)`;
         });
     }
     if (mode === 'replace') {
@@ -357,7 +343,7 @@ function transformCode(code, opt = {}) {
             const list = exports.split(',').map(item => item.trim());
             for (const item of list) {
                 const [name, alias] = item.split(' as ').map(part => part.trim());
-                rtn += `_ll_exports.${alias !== null && alias !== void 0 ? alias : name} = ${name};`;
+                rtn += `_ll_exports.${alias ?? name} = ${name};`;
             }
             return rtn;
         });
@@ -374,7 +360,7 @@ function transformCode(code, opt = {}) {
             const list = names.split(',').map(item => item.trim().replace(' as ', ': '));
             for (const item of list) {
                 const [name, alias] = item.split(': ').map(part => part.trim());
-                rtn += `_ll_exports.${alias !== null && alias !== void 0 ? alias : name} = ${name};`;
+                rtn += `_ll_exports.${alias ?? name} = ${name};`;
             }
             return `${method} { ${list.join(', ')} }`;
         });
@@ -398,7 +384,6 @@ return _ll_exports;
 }
 async function loadESMFile(urls, opt = {}) {
     let success = await new Promise(resolve => {
-        var _a, _b;
         let count = 0;
         let successCount = 0;
         let successUrls = [];
@@ -413,15 +398,14 @@ async function loadESMFile(urls, opt = {}) {
                 continue;
             }
             cache[furl] = {
-                'name': (_a = opt.name) !== null && _a !== void 0 ? _a : '',
+                'name': opt.name ?? '',
                 'code': '',
                 'transform': '',
                 'object': null,
             };
-            tool.get(furl + ((!furl.startsWith(queryString.cdn) && !furl.startsWith('memory://')) ? ((_b = opt.after) !== null && _b !== void 0 ? _b : '') : '')).then(code => {
-                var _a, _b;
+            tool.get(furl + ((!furl.startsWith(queryString.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
                 if (typeof code !== 'string') {
-                    (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, furl, false);
+                    opt.loaded?.(url, furl, false);
                     if (++count === urls.length) {
                         resolve(successCount < urls.length ? false : successUrls);
                     }
@@ -429,14 +413,13 @@ async function loadESMFile(urls, opt = {}) {
                 }
                 ++successCount;
                 successUrls.push(furl);
-                (_b = opt.loaded) === null || _b === void 0 ? void 0 : _b.call(opt, url, furl, true);
+                opt.loaded?.(url, furl, true);
                 cache[furl].code = tool.removeComment(code);
                 if (++count === urls.length) {
                     resolve(successCount < urls.length ? false : successUrls);
                 }
             }).catch(() => {
-                var _a;
-                (_a = opt.loaded) === null || _a === void 0 ? void 0 : _a.call(opt, url, furl, false);
+                opt.loaded?.(url, furl, false);
                 if (++count === urls.length) {
                     resolve(successCount < urls.length ? false : successUrls);
                 }
@@ -489,7 +472,6 @@ async function loadESMFile(urls, opt = {}) {
     return furls;
 }
 export async function loadESM(url, opt = {}) {
-    var _a;
     const furls = await loadESMFile([url], opt);
     if (!furls) {
         return false;
@@ -500,7 +482,7 @@ export async function loadESM(url, opt = {}) {
         });
     }
     catch (e) {
-        (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furls[0], {
+        opt.error?.(furls[0], {
             'result': -1,
             'msg': 'Wrap error',
         });
@@ -597,7 +579,6 @@ self.addEventListener('message', e => {
 const asyncFunction = Object.getPrototypeOf(async function () {
 }).constructor;
 export async function internalImport(furl, opt = {}) {
-    var _a;
     if (furl === '@litert/loader') {
         return window['@litert/loader'];
     }
@@ -618,7 +599,7 @@ export async function internalImport(furl, opt = {}) {
         return rtn;
     }
     catch (e) {
-        (_a = opt.error) === null || _a === void 0 ? void 0 : _a.call(opt, furl, {
+        opt.error?.(furl, {
             'result': -2,
             'msg': e.message,
         });
@@ -655,7 +636,7 @@ export function insertCache(files, name) {
             key = '/' + key;
         }
         cache['memory://' + memoryName + key] = {
-            'name': name !== null && name !== void 0 ? name : '',
+            'name': name ?? '',
             'code': code,
             'transform': '',
             'object': null,
@@ -664,8 +645,7 @@ export function insertCache(files, name) {
     return 'memory://' + memoryName;
 }
 export function getCacheTransform(furl) {
-    var _a, _b;
-    return (_b = (_a = cache[furl]) === null || _a === void 0 ? void 0 : _a.transform) !== null && _b !== void 0 ? _b : '';
+    return cache[furl]?.transform ?? '';
 }
 export { tool };
 window.litertLoader = {

@@ -1,6 +1,6 @@
 export function sleep(ms = 0) {
     return new Promise(function (resolve) {
-        if (ms > 30000) {
+        if (ms > 30_000) {
             resolve(false);
             return;
         }
@@ -10,26 +10,24 @@ export function sleep(ms = 0) {
     });
 }
 export async function fetch(url, init) {
-    var _a, _b;
     try {
         const res = await window.fetch(url, init);
         if (res.status === 200 || res.status === 304) {
-            const ct = (_b = (_a = res.headers.get('content-type')) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== null && _b !== void 0 ? _b : '';
+            const ct = res.headers.get('content-type')?.toLowerCase() ?? '';
             const types = ['text/', 'javascript', 'json', 'css', 'xml', 'html'];
             return types.some(item => ct.includes(item)) ? await res.text() : await res.blob();
         }
         return null;
     }
-    catch (_c) {
+    catch {
         return null;
     }
 }
-const retryTimes = [300, 1000, 2000];
+const retryTimes = [300, 1_000, 2_000];
 export async function get(url, init, opt = {}) {
-    var _a;
-    init !== null && init !== void 0 ? init : (init = {});
+    init ??= {};
     init.method = 'GET';
-    const retry = (_a = opt.retry) !== null && _a !== void 0 ? _a : 3;
+    const retry = opt.retry ?? 3;
     for (let i = 0; i <= retry; ++i) {
         const res = await fetch(url, init);
         if (res !== null) {
@@ -43,10 +41,9 @@ export async function get(url, init, opt = {}) {
     return null;
 }
 export async function post(url, data, init) {
-    var _a;
-    init !== null && init !== void 0 ? init : (init = {});
+    init ??= {};
     init.method = 'POST';
-    (_a = init.headers) !== null && _a !== void 0 ? _a : (init.headers = {});
+    init.headers ??= {};
     if (!(data instanceof FormData)) {
         if (init.headers instanceof Headers) {
             init.headers.set('content-type', 'application/json');
@@ -70,7 +67,7 @@ export async function getResponseJson(url, init) {
     try {
         return JSON.parse(res);
     }
-    catch (_a) {
+    catch {
         return null;
     }
 }
@@ -85,7 +82,7 @@ export async function postResponseJson(url, data, init) {
     try {
         return JSON.parse(res);
     }
-    catch (_a) {
+    catch {
         return null;
     }
 }
@@ -119,7 +116,7 @@ export function queryParse(query) {
         try {
             value = pos === -1 ? '' : decodeURIComponent(i.slice(pos + 1));
         }
-        catch (_a) {
+        catch {
             value = pos === -1 ? '' : i.slice(pos + 1);
         }
         if (arrayKeys[key]) {
@@ -209,7 +206,6 @@ export function parseUrl(url) {
     return rtn;
 }
 export function urlResolve(from, to) {
-    var _a;
     from = from.replace(/\\/g, '/');
     to = to.replace(/\\/g, '/');
     if (to === '') {
@@ -235,7 +231,7 @@ export function urlResolve(from, to) {
             return urlAtom(from + to);
         }
     }
-    let abs = (f.auth ? f.auth + '@' : '') + ((_a = f.host) !== null && _a !== void 0 ? _a : '');
+    let abs = (f.auth ? f.auth + '@' : '') + (f.host ?? '');
     if (to.startsWith('/')) {
         abs += to;
     }
@@ -416,9 +412,8 @@ export function extractString(code, opt = {}) {
 }
 export function restoreString(code, strings) {
     return code.replace(/\[_LL_PLACEHOLDER_(\d+)\]/g, (match, index) => {
-        var _a;
         const i = Number(index);
-        return (_a = strings[i]) !== null && _a !== void 0 ? _a : '';
+        return strings[i] ?? '';
     });
 }
 export function blob2Text(blob) {
@@ -453,7 +448,7 @@ export function arrayFind(arr, reg) {
     const item = arr.find((item) => {
         return reg.test(item);
     });
-    return item !== null && item !== void 0 ? item : null;
+    return item ?? null;
 }
 export const RANDOM_N = '0123456789';
 export const RANDOM_U = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
