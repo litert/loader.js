@@ -2,13 +2,14 @@
   "name": "@litert/loader",
   "version": "3.5.9",
   "description": "Simple browser module loader.",
+  "type": "module",
   "keywords": [
     "litert",
     "module",
     "loader",
     "require"
   ],
-  "main": "./dist/loader.js",
+  "main": "./dist/index.js",
   "author": "hanguoshuai",
   "license": "Apache-2.0",
   "repository": {
@@ -20,13 +21,13 @@
   },
   "types": "./dist/index.d.ts",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=22.0.0"
   },
   "devDependencies": {
     "@litert/eslint-plugin-rules": "^0.3.1",
     "@litert/typeguard": "^1.4.0",
-    "@types/node": "^24.0.1",
+    "@types/node": "^24.2.0",
     "@types/seedrandom": "^3.0.8",
-    "typescript": "^5.8.3"
+    "typescript": "^5.9.2"
   }
 }

@@ -9,7 +9,5 @@ tsconfig.json
 /types/
 *.ts
 
-!/dist/index.d.ts
-/dist/t*
-/dist/index2.js
-/test/
+/dist/test/
+/types/
