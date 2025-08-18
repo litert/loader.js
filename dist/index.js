@@ -30,12 +30,12 @@ function getQueryString() {
     rtn.map = JSON.parse(rtn.map);
     return rtn;
 }
-const queryString = getQueryString();
+export const config = getQueryString();
 export function addMap(key, value) {
-    queryString.map[key] = value;
+    config.map[key] = value;
 }
 export function removeMap(key) {
-    delete queryString.map[key];
+    delete config.map[key];
 }
 function getHeadElement() {
     const heads = document.querySelectorAll('head');
@@ -164,12 +164,12 @@ function transformUrl(url, opt = {}) {
                 libName = url.substring(0, io);
                 libPath = url.substring(io);
             }
-            let mapUrl = queryString.map[libName];
+            let mapUrl = config.map[libName];
             if (!mapUrl) {
                 return '';
             }
             if (mapUrl.startsWith('#')) {
-                mapUrl = `${queryString.cdn}/npm/${libName}/${mapUrl.slice(1)}`;
+                mapUrl = `${config.cdn}/npm/${libName}/${mapUrl.slice(1)}`;
             }
             url = libPath ? tool.urlResolve(mapUrl, libPath) : mapUrl;
         }
@@ -403,7 +403,7 @@ async function loadESMFile(urls, opt = {}) {
                 'transform': '',
                 'object': null,
             };
-            tool.get(furl + ((!furl.startsWith(queryString.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
+            tool.get(furl + ((!furl.startsWith(config.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
                 if (typeof code !== 'string') {
                     opt.loaded?.(url, furl, false);
                     if (++count === urls.length) {
@@ -649,6 +649,7 @@ export function getCacheTransform(furl) {
 }
 export { tool };
 window.litertLoader = {
+    config,
     addMap,
     removeMap,
     loadScript,
@@ -666,11 +667,11 @@ window.litertLoader = {
     tool,
 };
 document.addEventListener('DOMContentLoaded', () => {
-    if (!queryString.path) {
+    if (!config.path) {
         return;
     }
-    loadESM(queryString.path, {
-        'after': queryString.after,
+    loadESM(config.path, {
+        'after': config.after,
     }).catch(e => {
         console.log('loader init', e);
     });

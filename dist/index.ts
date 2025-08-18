@@ -50,7 +50,7 @@ function getQueryString(): {
     return rtn as any;
 }
 /** --- 当前 js 查询字符串 --- */
-const queryString = getQueryString();
+export const config = getQueryString();
 
 /**
  * --- 添加映射 ---
@@ -58,7 +58,7 @@ const queryString = getQueryString();
  * @param value 值
  */
 export function addMap(key: string, value: string): void {
-    queryString.map[key] = value;
+    config.map[key] = value;
 }
 
 /**
@@ -66,7 +66,7 @@ export function addMap(key: string, value: string): void {
  * @param key 映射的键
  */
 export function removeMap(key: string): void {
-    delete queryString.map[key];
+    delete config.map[key];
 }
 
 function getHeadElement(): HTMLHeadElement {
@@ -270,14 +270,14 @@ function transformUrl(url: string, opt: {
             }
             // --- 去 map 里面找 ---
             /** --- http://xxx/abc/index, #index --- */
-            let mapUrl = queryString.map[libName];
+            let mapUrl = config.map[libName];
             if (!mapUrl) {
                 // --- 没有找到 ---
                 return '';
             }
 
             if (mapUrl.startsWith('#')) {
-                mapUrl = `${queryString.cdn}/npm/${libName}/${mapUrl.slice(1)}`;
+                mapUrl = `${config.cdn}/npm/${libName}/${mapUrl.slice(1)}`;
             }
             url = libPath ? tool.urlResolve(mapUrl, libPath) : mapUrl;
         }
@@ -611,7 +611,7 @@ async function loadESMFile(urls: string[], opt: {
                 'transform': '',
                 'object': null,
             };
-            tool.get(furl + ((!furl.startsWith(queryString.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
+            tool.get(furl + ((!furl.startsWith(config.cdn) && !furl.startsWith('memory://')) ? (opt.after ?? '') : '')).then(code => {
                 if (typeof code !== 'string') {
                     opt.loaded?.(url, furl, false) as any;
                     if (++count === urls.length) {
@@ -939,6 +939,8 @@ export function getCacheTransform(furl: string): string {
 export { tool };
 
 (window as any).litertLoader = {
+    config,
+
     addMap,
     removeMap,
     loadScript,
@@ -960,12 +962,12 @@ export { tool };
 // --- 业务代码 ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    if (!queryString.path) {
+    if (!config.path) {
         return;
     }
     // --- 只能是 ESM 模块 ---
-    loadESM(queryString.path, {
-        'after': queryString.after,
+    loadESM(config.path, {
+        'after': config.after,
     }).catch(e => {
         // eslint-disable-next-line no-console
         console.log('loader init', e);
