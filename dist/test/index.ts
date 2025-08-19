@@ -95,18 +95,35 @@ tool.onClick('btn-novnc-esm', async () => {
 
 tool.onClick('btn-memory-esm', async () => {
     const files = {
-        'a.js': 'import * as b from "./b.js"; export const a = 1 + b.b; export { b };',
+        'a.js': 'import * as b from "./b.js"; export const a = 1 + b.b; export { b, bbb };',
         'b.js': 'import { a } from "./a.js"; export const b = 2; console.log(a, b, __dirname, __filename); export function f() { return "a: " + a; }',
     };
     tool.output(`const murl = loader.insertCache(${JSON.stringify(files)});`);
     const murl = loader.insertCache(files);
     tool.output(`murl: ${murl}`);
     tool.output(`const res = await loader.loadESM(\`${murl}/a.js\`);`);
-    const res = await loader.loadESM(`${murl}/a.js`);
+    const res = await loader.loadESM(`${murl}/a.js`, {
+        'invoke': {
+            'bbb': 'ok',
+        },
+        preprocess: (furl, code, nostring) => {
+            console.log('xx', nostring);
+            tool.output('preprocess: ' + furl);
+            if (nostring.includes('1 + b')) {
+                tool.output('has "1 + b": ' + furl);
+            }
+            return code;
+        },
+        error: (furl, e) => {
+            tool.output(`<span style="color: oklch(.85 .2 20)">error: ${furl}, ${JSON.stringify(e)}</span>`);
+            console.log('error', e, furl, loader.getCacheTransform(furl));
+        },
+    });
     if (!res) {
         return;
     }
     tool.output(`res: ${JSON.stringify(res)}`);
+    console.log('res', res);
     tool.output(`res: ${JSON.stringify(res.b.f())}`);
     //*/
 });

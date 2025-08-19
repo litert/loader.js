@@ -313,7 +313,7 @@ function transformCode(code, opt = {}) {
             const list = exports.split(',').map(item => item.trim());
             for (const item of list) {
                 const [name, alias] = item.split(' as ').map(part => part.trim());
-                rtn += `_ll_exports.${alias ?? name} = ${ltmp}.${name};`;
+                rtn += `_ll_exports.${alias ?? name} = ${ltmp}.${name};\n`;
             }
             return rtn.slice(0, -1);
         });
@@ -381,10 +381,18 @@ function transformCode(code, opt = {}) {
         if (flio !== -1) {
             dirname = filename.slice(0, flio);
         }
+        let invokeCode = '';
+        if (opt.invoke) {
+            for (const ikey in opt.invoke) {
+                invokeCode += `const ${ikey} = _ll_opt.invoke.${ikey};\n`;
+            }
+        }
         code = `const _ll_exports = {};
 
 const __dirname = '${dirname}';
 const __filename = '${filename}';
+
+${invokeCode}
 
 ${headerCode.join('\n')}
 
@@ -414,6 +422,7 @@ async function loadESMFile(urls, opt = {}) {
                 'name': opt.name ?? '',
                 'code': '',
                 'transform': '',
+                'nostring': '',
                 'object': null,
             };
             opt.load?.(url, furl);
@@ -456,6 +465,7 @@ async function loadESMFile(urls, opt = {}) {
             cache[furl].transform = cache[furl].code.replace(/url\(['"]?([/\w.]+)['"]?\)/g, (match, url) => {
                 return `url(${tool.urlResolve(furl, url)})`;
             });
+            cache[furl].nostring = cache[furl].transform;
             continue;
         }
         const exString = tool.extractString(cache[furl].code);
@@ -468,9 +478,12 @@ async function loadESMFile(urls, opt = {}) {
                 'base': furl,
                 'name': opt.name,
                 'after': opt.after,
-                'load': opt.load,
-                'loaded': opt.loaded,
-                'error': opt.error,
+                'map': opt.map,
+                'invoke': opt.invoke,
+                preprocess: opt.preprocess,
+                load: opt.load,
+                loaded: opt.loaded,
+                error: opt.error,
             });
             if (!objUrls) {
                 return false;
@@ -479,9 +492,14 @@ async function loadESMFile(urls, opt = {}) {
         const [transform] = transformCode(exString.code, {
             'base': furl,
             'mode': 'replace',
-            'error': opt.error,
+            'invoke': opt.invoke,
+            error: opt.error,
         });
+        cache[furl].nostring = transform;
         cache[furl].transform = tool.restoreString(transform, exString.strings);
+        if (opt.preprocess) {
+            cache[furl].transform = opt.preprocess(furl, cache[furl].transform, cache[furl].nostring);
+        }
         furls.push(furl);
     }
     return furls;
@@ -492,9 +510,11 @@ export async function loadESM(url, opt = {}) {
         return false;
     }
     try {
-        return await internalImport(furls[0], {
+        const rtn = await internalImport(furls[0], {
+            'invoke': opt.invoke,
             'error': opt.error,
         });
+        return rtn;
     }
     catch (e) {
         opt.error?.(furls[0], {
@@ -654,6 +674,7 @@ export function insertCache(files, name) {
             'name': name ?? '',
             'code': code,
             'transform': '',
+            'nostring': '',
             'object': null,
         };
     }

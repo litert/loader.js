@@ -218,6 +218,8 @@ const cache: Record<string, {
     'code': string;
     /** --- 转换后的代码 --- */
     'transform': string;
+    /** --- 转换后的代码（无有害字符串）--- */
+    'nostring': string;
     /** --- 对象 --- */
     'object': Record<string, any> | null;
 }> = {};
@@ -305,6 +307,8 @@ function transformCode(code: string, opt: {
     'base'?: string;
     /** --- 模式，提取或替换，默认提取 --- */
     'mode'?: 'extract' | 'replace';
+    /** --- 注入对象--- */
+    'invoke'?: Record<string, any>;
     'error'?: (furl: string, e: {
         'result': number;
         'msg': string;
@@ -474,7 +478,7 @@ function transformCode(code: string, opt: {
             const list = exports.split(',').map(item => item.trim());
             for (const item of list) {
                 const [name, alias] = item.split(' as ').map(part => part.trim());
-                rtn += `_ll_exports.${alias ?? name} = ${ltmp}.${name};`;
+                rtn += `_ll_exports.${alias ?? name} = ${ltmp}.${name};\n`;
             }
             return rtn.slice(0, -1);
         });
@@ -566,10 +570,21 @@ function transformCode(code: string, opt: {
         if (flio !== -1) {
             dirname = filename.slice(0, flio);
         }
+
+        /** --- 注入代码 --- */
+        let invokeCode = '';
+        if (opt.invoke) {
+            for (const ikey in opt.invoke) {
+                invokeCode += `const ${ikey} = _ll_opt.invoke.${ikey};\n`;
+            }
+        }
+
         code = `const _ll_exports = {};
 
 const __dirname = '${dirname}';
 const __filename = '${filename}';
+
+${invokeCode}
 
 ${headerCode.join('\n')}
 
@@ -597,6 +612,10 @@ async function loadESMFile(urls: string[], opt: {
     'after'?: string;
     /** --- 映射表，用于映射模块路径 --- */
     'map'?: Record<string, string>;
+    /** --- 注入对象--- */
+    'invoke'?: Record<string, any>;
+    /** --- 文件处理后的一次回调最终处理 --- */
+    preprocess?: (furl: string, code: string, nostring: string) => string;
     /** --- 开始加载 --- */
     load?: (url: string, furl: string) => void | Promise<void>;
     /** --- 加载完成 --- */
@@ -629,6 +648,7 @@ async function loadESMFile(urls: string[], opt: {
                 'name': opt.name ?? '',
                 'code': '',
                 'transform': '',
+                'nostring': '',
                 'object': null,
             };
             opt.load?.(url, furl) as any;
@@ -674,6 +694,7 @@ async function loadESMFile(urls: string[], opt: {
             cache[furl].transform = cache[furl].code.replace(/url\(['"]?([/\w.]+)['"]?\)/g, (match, url) => {
                 return `url(${tool.urlResolve(furl, url)})`;
             });
+            cache[furl].nostring = cache[furl].transform;
             continue;
         }
         /** --- 提取的字符串 --- */
@@ -688,9 +709,12 @@ async function loadESMFile(urls: string[], opt: {
                 'base': furl,
                 'name': opt.name,
                 'after': opt.after,
-                'load': opt.load,
-                'loaded': opt.loaded,
-                'error': opt.error,
+                'map': opt.map,
+                'invoke': opt.invoke,
+                preprocess: opt.preprocess,
+                load: opt.load,
+                loaded: opt.loaded,
+                error: opt.error,
             });
             if (!objUrls) {
                 return false;
@@ -700,9 +724,14 @@ async function loadESMFile(urls: string[], opt: {
         const [transform] = transformCode(exString.code, {
             'base': furl,
             'mode': 'replace',
-            'error': opt.error,
+            'invoke': opt.invoke,
+            error: opt.error,
         });
+        cache[furl].nostring = transform;
         cache[furl].transform = tool.restoreString(transform, exString.strings);
+        if (opt.preprocess) {
+            cache[furl].transform = opt.preprocess(furl, cache[furl].transform, cache[furl].nostring);
+        }
         furls.push(furl);
     }
 
@@ -724,6 +753,10 @@ export async function loadESM(url: string, opt: {
     'after'?: string;
     /** --- 映射表，用于映射模块路径 --- */
     'map'?: Record<string, string>;
+    /** --- 注入对象--- */
+    'invoke'?: Record<string, any>;
+    /** --- 文件处理后的一次回调最终处理 --- */
+    preprocess?: (furl: string, code: string, nostring: string) => string;
     /** --- 开始加载 --- */
     load?: (url: string, furl: string) => void | Promise<void>;
     /** --- 加载完成 --- */
@@ -739,9 +772,11 @@ export async function loadESM(url: string, opt: {
         return false;
     }
     try {
-        return await internalImport(furls[0], {
+        const rtn = await internalImport(furls[0], {
+            'invoke': opt.invoke,
             'error': opt.error,
         });
+        return rtn;
     }
     catch (e: any) {
         opt.error?.(furls[0], {
@@ -768,6 +803,8 @@ export async function loadESMWorker(url: string, opt: {
     'after'?: string;
     /** --- 映射表，用于映射模块路径 --- */
     'map'?: Record<string, string>;
+    /** --- 文件处理后的一次回调最终处理 --- */
+    preprocess?: (furl: string, code: string, nostring: string) => string;
     /** --- 开始加载 --- */
     load?: (url: string, furl: string) => void | Promise<void>;
     /** --- 加载完成 --- */
@@ -876,6 +913,7 @@ const asyncFunction = Object.getPrototypeOf(async function() {
  * @returns 模块导出对象
  */
 export async function internalImport(furl: string, opt: {
+    'invoke'?: Record<string, any>;
     'error'?: (furl: string, e: {
         'result': number;
         'msg': string;
@@ -960,6 +998,7 @@ export function insertCache(files: Record<string, string>, name?: string): strin
             'name': name ?? '',
             'code': code,
             'transform': '',
+            'nostring': '',
             'object': null,
         };
     }
