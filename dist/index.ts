@@ -1,14 +1,5 @@
 import * as tool from './tool.js';
 
-// --- 预处理 URL ---
-
-function getScriptElement(): HTMLScriptElement {
-    const scripts = document.querySelectorAll('script');
-    return scripts[scripts.length - 1];
-}
-/** --- 加载当前文件的 script 元素 --- */
-const scriptElement = getScriptElement();
-
 function getLocation(): string {
     /** --- 浏览器 location 的网址目录，以 / 结尾 --- */
     let location = window.location.href;
@@ -36,7 +27,7 @@ function getQueryString(): {
     'cdn': string;
 } {
     /** --- uri --- */
-    const uri = tool.parseUrl(scriptElement.src);
+    const uri = tool.parseUrl(import.meta.url);
     const rtn = (uri.query ? tool.queryParse(uri.query) : {}) as Record<string, any>;
     if (!rtn.cdn) {
         rtn.cdn = 'https://cdn.jsdelivr.net';

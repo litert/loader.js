@@ -1,9 +1,4 @@
 import * as tool from './tool.js';
-function getScriptElement() {
-    const scripts = document.querySelectorAll('script');
-    return scripts[scripts.length - 1];
-}
-const scriptElement = getScriptElement();
 function getLocation() {
     let location = window.location.href;
     const lio = location.indexOf('?');
@@ -18,7 +13,7 @@ function getLocation() {
 }
 const location = getLocation();
 function getQueryString() {
-    const uri = tool.parseUrl(scriptElement.src);
+    const uri = tool.parseUrl(import.meta.url);
     const rtn = (uri.query ? tool.queryParse(uri.query) : {});
     if (!rtn.cdn) {
         rtn.cdn = 'https://cdn.jsdelivr.net';
